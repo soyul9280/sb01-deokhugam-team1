@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '6.25.0' // 빌드 시 코드 컨벤션 적용
 }
 
 group = 'com.codeit'
@@ -47,6 +48,17 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        target 'src/**/*.java'
+    }
+}
+
+tasks.named('build') {
+    dependsOn 'spotlessApply'  // ✅ build 전에 코드 포맷 자동 적용
 }
 
 tasks.named('test') {

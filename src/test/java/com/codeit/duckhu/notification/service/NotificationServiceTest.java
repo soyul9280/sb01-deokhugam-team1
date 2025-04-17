@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,12 +28,20 @@ public class NotificationServiceTest {
 	@InjectMocks
 	private NotificationServiceImpl notificationService;
 
+	private UUID reviewId;
+	private UUID triggerUserId;
+	private UUID receiverId;
+
+	@BeforeEach
+	void setUp() {
+		reviewId = UUID.randomUUID();       // 댓글이 달린 리뷰 ID
+		triggerUserId = UUID.randomUUID();  // 댓글 or 좋아요를 누른 사용자
+		receiverId = UUID.randomUUID();     // 리뷰 작성자 (알림 수신자)
+	}
+
 	@Test
 	void 내가_작성한_리뷰에_좋아요가_달리면_알림이_생성된다() {
-		// given: 리뷰 ID, 좋아요 누른 사람 ID(triggerUserId) 여기에서 실제로는
-		UUID reviewId = UUID.randomUUID();  // 댓글이 달린 리뷰 ID
-		UUID triggerUserId = UUID.randomUUID(); // 댓글 작성자 (알림을 발생시킨 사용자)
-		UUID receiverId = UUID.randomUUID(); // 리뷰 작성자 (알림을 받는 사용자)
+		// given: 리뷰 ID, 좋아요 누른 사람 ID(triggerUserId) BeforeEach로 미리 구현
 
 		// when: 서비스 메서드 호출(content는 service에서 생성)
 		// 추가로 review를 mock으로 가져와 검증 및 review의 content를 reviewTitle로 변환
@@ -51,10 +60,7 @@ public class NotificationServiceTest {
 
 	@Test
 	void 내가_작성한_리뷰에_댓글이_달리면_알림이_생성된다() {
-		// given: 리뷰 ID, 댓글 작성자 ID, 리뷰 작성자 ID
-		UUID reviewId = UUID.randomUUID();  // 댓글이 달린 리뷰 ID
-		UUID triggerUserId = UUID.randomUUID(); // 댓글 작성자 (알림을 발생시킨 사용자)
-		UUID receiverId = UUID.randomUUID(); // 리뷰 작성자 (알림을 받는 사용자)
+		// given: 리뷰 ID, 댓글 작성자 ID, 리뷰 작성자 ID BeforeEach로 미리 구현
 
 		// when: 댓글 작성자가 리뷰에 댓글을 남겼을 때 알림이 생성되는 상황을 시뮬레이션
 		Notification result = notificationService.createNotifyByComment(reviewId, triggerUserId, receiverId);

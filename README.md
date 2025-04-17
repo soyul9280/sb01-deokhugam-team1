@@ -1,14 +1,14 @@
 #  프로젝트 소개
 
 - 책 읽는 즐거움을 공유하고, 지식과 감상을 나누는 책 덕후들의 커뮤니티 서비스
-- 프로젝트 기간: 
+- 프로젝트 기간 : 2025.04.16 ~ 2025. 05. 13
 
 ## 🧑‍💻 팀원 구성
 
 |             민기                |                     이민주                     |                  김준우                          |                강소율                       |                      변희재         |
 | :--------------------------------------: | :--------------------------------------------: | :----------------------------------------------: | :----------------------------------------------: | :--------------------------------------------: |
-||<img width="160px" src="https://github.com/user-attachments/assets/a7781d01-fea9-4454-97e7-c7c51415f283"/>||||
-|  | [@m0276](https://github.com/m0276) ||  | |
+|<img width="160px" src="https://github.com/user-attachments/assets/a6b8709d-13ed-45dc-b093-96948db20a91"/>|<img width="160px" src="https://github.com/user-attachments/assets/a7781d01-fea9-4454-97e7-c7c51415f283"/>|<img width="160px" src="https://github.com/user-attachments/assets/438f7157-943b-4dcc-bed0-210247c1e50e"/>|<img width="160px" src="https://github.com/user-attachments/assets/5fc20c03-631a-402f-83d3-3c21dd60a287"/>|<img width="160px" src="https://github.com/user-attachments/assets/d4c6dbc7-392a-4dcf-bdb6-3408c8268638"/>|
+| [@GiMin0123](https://github.com/GiMin0123) | [@m0276](https://github.com/m0276) |[@normaldeve](https://github.com/normaldeve)| [@soyul9280](https://github.com/soyul9280) |[@Heyaaz](https://github.com/Heyaaz)|
 ------
 
 ## 🔧 기술 스택

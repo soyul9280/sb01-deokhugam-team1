@@ -63,6 +63,7 @@ CREATE TABLE notifications (
                               id UUID PRIMARY KEY NOT NULL,
                               review_id UUID,  -- nullable로 바꿔야 SET NULL 동작 가능
                               user_id UUID,    -- 마찬가지로 nullable
+                              content VARCHAR(100) NOT NULL,
                               confirmed BOOLEAN NOT NULL,
                               started_at TIMESTAMP NOT NULL,
                               updated_at TIMESTAMP NOT NULL,

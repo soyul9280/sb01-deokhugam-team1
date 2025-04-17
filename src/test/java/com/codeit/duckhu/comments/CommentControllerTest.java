@@ -45,7 +45,7 @@ public class CommentControllerTest {
     CommentCreateRequest request = new CommentCreateRequest();
     request.setContent("create comment");
 
-    doNothing().when(commentService).create(any(CommentCreateRequest.class));
+    doNothing().when(commentService).create((CommentCreateRequest) any(CommentCreateRequest.class));
 
 
     mockMvc.perform(post("/api/comments")
@@ -70,7 +70,8 @@ public class CommentControllerTest {
     CommentUpdateRequest request = new CommentUpdateRequest();
     request.setContent("update comment");
 
-    doNothing().when(commentService).update(eq(commentId), any(CommentUpdateRequest.class));
+    doNothing().when(commentService).update(eq(commentId),
+        (CommentUpdateRequest) any(CommentUpdateRequest.class));
 
     mockMvc.perform(patch("/api/comments/" + commentId)
             .contentType(MediaType.APPLICATION_JSON)

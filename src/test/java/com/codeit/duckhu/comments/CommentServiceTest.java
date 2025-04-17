@@ -3,12 +3,17 @@ package com.codeit.duckhu.comments;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class CommentServiceTest {
 
+  @Autowired
   private CommentService commentService;
+
+  @Autowired
+  private CommentRepository commentRepository;
 
   @Test
   void create(){
@@ -24,14 +29,14 @@ class CommentServiceTest {
   void update(){
     CommentCreateRequest request = new CommentCreateRequest();
     request.setContent("test comment");
-    commentService.create(request);
+    CommentDto commentDto1 = commentService.create(request);
 
     CommentUpdateRequest updateRequest = new CommentUpdateRequest();
     updateRequest.setContent("update test comment");
 
-    CommentDto commentDto = commentService.update(updateRequest);
+    CommentDto commentDto = commentService.update(commentDto1.getId(),updateRequest);
 
-    assertEquals(commentDto.getContent,"update test comment");
+    assertEquals("update test comment", commentDto.getContent());
   }
 
   @Test
@@ -44,7 +49,7 @@ class CommentServiceTest {
 
     Comment deletedComment = commentRepository.findById(commentDto.getId()).orElseThrow();
 
-    assertTrue(deletedComment.isDeleted(), "댓글은 논리적으로 삭제되어야 한다");
+    assertTrue(deletedComment.getIsDeleted(), "댓글은 논리적으로 삭제되어야 한다");
   }
 
   @Test

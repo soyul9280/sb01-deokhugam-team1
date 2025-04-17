@@ -30,9 +30,16 @@ public class Comment extends BaseUpdatableEntity {
   @Column(name = "content")
   String content;
 
+  @Column(name = "is_deleted")
+  Boolean isDeleted;
+
   public Comment(User user, Review review, String content) {
     this.user = user;
     this.review = review;
+    this.content = content;
+  }
+
+  public void setContent(String content) {
     this.content = content;
   }
 }

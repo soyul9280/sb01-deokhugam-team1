@@ -16,6 +16,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "popular_book")
@@ -29,8 +31,9 @@ public class PopularBook extends BaseEntity {
   @JoinColumn(name = "book_id", nullable = false, foreignKey = @ForeignKey(name = "fk_popularbook_book"))
   private Book book;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Enumerated(EnumType.STRING) // enum을 문자열로 처리
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(nullable = false, columnDefinition = "period_type")
   private PeriodType period;
 
   @Column(name = "review_count")

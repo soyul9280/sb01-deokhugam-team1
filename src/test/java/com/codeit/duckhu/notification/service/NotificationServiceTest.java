@@ -11,13 +11,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.codeit.duckhu.notification.entity.Notification;
+import com.codeit.duckhu.notification.repository.NotificationRepsitory;
 import com.codeit.duckhu.notification.service.impl.NotificationServiceImpl;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceTest {
 
 	@Mock
-	private NotificationRepository notificationRepository;
+	private NotificationRepsitory notificationRepository;
 
 	@InjectMocks
 	private NotificationServiceImpl notificationService;

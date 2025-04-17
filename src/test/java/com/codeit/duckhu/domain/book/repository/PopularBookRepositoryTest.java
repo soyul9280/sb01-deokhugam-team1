@@ -1,5 +1,9 @@
 package com.codeit.duckhu.domain.book.repository;
 
+import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.book.entity.PopularBook;
+import com.codeit.duckhu.global.config.AuditingConfig;
+import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import org.junit.jupiter.api.Test;
@@ -33,8 +37,6 @@ class PopularBookRepositoryTest {
         .isbn("9780132350884")
         .thumbnailUrl("https://example.com/clean.jpg")
         .isDeleted(false)
-        .createdAt(Instant.now())
-        .updatedAt(Instant.now())
         .build();
 
     bookRepository.save(book);
@@ -42,7 +44,6 @@ class PopularBookRepositoryTest {
     PopularBook popularBook = PopularBook.builder()
         .book(book)
         .period(PeriodType.MONTHLY)
-        .createdAt(Instant.now())
         .reviewCount(42)
         .rating(4.7)
         .rank(1)

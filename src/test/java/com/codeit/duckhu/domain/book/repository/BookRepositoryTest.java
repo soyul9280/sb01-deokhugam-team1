@@ -1,6 +1,9 @@
 package com.codeit.duckhu.domain.book.repository;
 
+import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.global.config.AuditingConfig;
 import java.time.Instant;
+import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,8 +32,6 @@ public class BookRepositoryTest {
         .isbn("9780134685991")
         .thumbnailUrl("https://example.com/thumb.jpg")
         .isDeleted(false)
-        .createdAt(Instant.now()) // 또는 Auditing 적용
-        .updatedAt(Instant.now())
         .build();
 
     Book saved = bookRepository.save(book);

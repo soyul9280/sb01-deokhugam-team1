@@ -29,4 +29,10 @@ public class Comment extends BaseUpdatableEntity {
 
   @Column(name = "content")
   String content;
+
+  public Comment(User user, Review review, String content) {
+    this.user = user;
+    this.review = review;
+    this.content = content;
+  }
 }

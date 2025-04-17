@@ -52,7 +52,19 @@ public class NotificationServiceTest {
 	@Test
 	void 내가_작성한_리뷰에_댓글이_달리면_알림이_생성된다() {
 		// given: 리뷰 ID, 댓글 작성자 ID, 리뷰 작성자 ID
+		UUID reviewId = UUID.randomUUID();
+		UUID triggerUserId = UUID.randomUUID();
+		UUID receiverId = UUID.randomUUID();
+
 		// when: 서비스 메서드 호출
-		// then: NotificationRepository.save() 호출 확인
+		Notification result = notificationService.createNotifyByComment(reviewId, triggerUserId,receiverId)
+
+		// then: NotificationRepository.save() 호출 확인 및 검증
+		assertThat(result.getReviewId()).isEqualTo(reviewId);
+		assertThat(result.getTriggerUserId()).isEqualTo(triggerUserId);
+		assertThat(result.getReceiverId()).isEqualTo(receiverId);
+		assertThat(result.getContent()).contains("님이 나의 리뷰에 댓글을 남겼습니다.");
+
+		verify(notificationRepository, times(1)).save(any(Notification.class));
 	}
 }

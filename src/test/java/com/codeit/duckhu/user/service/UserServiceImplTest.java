@@ -1,5 +1,10 @@
 package com.codeit.duckhu.user.service;
 
+import com.codeit.duckhu.user.dto.UserDto;
+import com.codeit.duckhu.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.user.entity.User;
+import com.codeit.duckhu.user.mapper.UserMapper;
+import com.codeit.duckhu.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,16 +12,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+public class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -30,7 +36,7 @@ public class UserServiceTest {
     void UserServiceTest() {
         //given
         UUID id = UUID.randomUUID();
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         UserRegisterRequest request = new UserRegisterRequest(
                 "testA@example.com", "testA", "testa1234!"
         );

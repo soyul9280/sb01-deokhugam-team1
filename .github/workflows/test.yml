@@ -7,7 +7,7 @@ on:
       - dev
 
 jobs:
-  테스트:
+  test:
     runs-on: ubuntu-latest
 
     steps:

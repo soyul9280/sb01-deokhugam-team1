@@ -19,15 +19,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  */
 @MappedSuperclass
 @Getter
-@EntityListeners(AuditingEntityListener.class) //Entity의 Auditing 정보 주입 클래스
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(columnDefinition = "uuid", updatable = false, nullable = false)
   private UUID id;
 
   @CreatedDate
-  @Column(name = "created_at", updatable = false, insertable = false)
+  @Column(name = "created_at", updatable = false, nullable = false)
   private Instant createdAt;
 
 }

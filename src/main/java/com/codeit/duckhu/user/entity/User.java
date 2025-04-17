@@ -25,12 +25,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
-
+    @Column(nullable = false)
     private String email;
-
+    @Column(nullable = false)
     private String nickname;
-
+    @Column(nullable = false)
     private String password;
-
+    @Column(nullable = false)
     private Instant createdAt;
+    @Column(nullable = false)
+    private boolean isDeleted;
 }

@@ -24,6 +24,6 @@ public interface UserApi {
         @ApiResponse(responseCode = "500", description = "서버오류",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
     })
-    ResponseEntity<UserDto> registerUser(
+    ResponseEntity<UserDto> create(
             @Parameter(description = "회원가입 정보") @RequestBody UserRegisterRequest userRegisterRequest);
 }

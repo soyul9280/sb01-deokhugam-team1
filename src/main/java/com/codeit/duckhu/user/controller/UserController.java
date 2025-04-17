@@ -20,8 +20,8 @@ public class UserController implements UserApi {
 
     @Override
     @PostMapping
-    public ResponseEntity<UserDto> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) {
-        UserDto result = userService.register(userRegisterRequest);
+    public ResponseEntity<UserDto> create(@RequestBody UserRegisterRequest userRegisterRequest) {
+        UserDto result = userService.create(userRegisterRequest);
         return ResponseEntity.ok(result);
     }
 }

@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public UserDto register(UserRegisterRequest request) {
+    public UserDto create(UserRegisterRequest request) {
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new EmailDuplicateException(request.getEmail());
         }
@@ -29,7 +29,8 @@ public class UserServiceImpl implements UserService {
                 request.getEmail(),
                 request.getNickname(),
                 request.getPassword(),
-                Instant.now());
+                Instant.now(),
+                false);
 
         User savedUser=userRepository.save(user);
 

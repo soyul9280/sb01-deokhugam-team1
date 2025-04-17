@@ -18,7 +18,7 @@ public class ReviewRepositoryTest {
 
   @Test
   @DisplayName("리뷰 저장 확인")
-  void saveReview_() {
+  void saveReview_shouldSavedReview() {
     // Given
     Review savedReview = Review.builder()
             .rating(5)

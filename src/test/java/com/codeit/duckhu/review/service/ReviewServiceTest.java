@@ -12,7 +12,6 @@ import com.codeit.duckhu.review.mapper.ReviewMapper;
 import com.codeit.duckhu.review.repository.ReviewRepository;
 import com.codeit.duckhu.review.service.impl.ReviewServiceImpl;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -55,44 +54,40 @@ class ReviewServiceTest {
    * 3. 서비스 구현체 (ReviewServiceImpl) 생성 - 리포지토리를 통한 CRUD 구현
    */
 
-  @Nested
-  @DisplayName("리뷰 생성 테스트")
-  class CreateReviewTest {
+  @Test
+  @DisplayName("리뷰 생성 성공")
+  void createReview_shouldCreateReview() {
+    // Given
+    ReviewCreateRequest request = ReviewCreateRequest.builder()
+        .rating(3)
+        .content("볼만해요")
+        .build();
 
-    @Test
-    @DisplayName("유효한 리뷰 데이터로 리뷰 생성 성공")
-    void createReview_withValidData_shouldCreateReview() {
-      // Given
-      ReviewCreateRequest request = ReviewCreateRequest.builder()
-          .rating(3)
-          .content("볼만해요")
-          .build();
+    Review review = Review.builder()
+        .rating(request.getRating())
+        .content(request.getContent())
+        .likeCount(0)
+        .commentCount(0)
+        .likeByMe(false)
+        .build();
 
-      Review review = Review.builder()
-          .rating(request.getRating())
-          .content(request.getContent())
-          .likeCount(0)
-          .commentCount(0)
-          .likeByMe(false)
-          .build();
+    ReviewDto expectedDto = ReviewDto.builder()
+        .content("볼만해요")
+        .rating(3)
+        .build();
 
-      ReviewDto expectedDto = ReviewDto.builder()
-          .content("볼만해요")
-          .rating(3)
-          .build();
+    when(reviewRepository.save(any(Review.class))).thenReturn(review);
+    when(reviewMapper.toDto(any(Review.class))).thenReturn(expectedDto);
 
-      when(reviewRepository.save(any(Review.class))).thenReturn(review);
-      when(reviewMapper.toDto(any(Review.class))).thenReturn(expectedDto);
+    // When
+    ReviewDto result = reviewService.createReview(request);
 
-      // When
-      ReviewDto result = reviewService.createReview(request);
-
-      // Then
-      assertThat(result).isNotNull();
-      assertThat(result.getRating()).isEqualTo(3);
-      assertThat(result.getContent()).isEqualTo("볼만해요");
-      verify(reviewRepository).save(any(Review.class));
-      verify(reviewMapper).toDto(any(Review.class));
-    }
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getRating()).isEqualTo(3);
+    assertThat(result.getContent()).isEqualTo("볼만해요");
+    verify(reviewRepository).save(any(Review.class));
+    verify(reviewMapper).toDto(any(Review.class));
   }
 }
+

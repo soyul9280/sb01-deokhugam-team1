@@ -14,10 +14,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Override
     public UserDto register(UserRegisterRequest request) {
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new EmailDuplicateException(request.getEmail());

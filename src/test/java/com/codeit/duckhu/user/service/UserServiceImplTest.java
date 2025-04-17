@@ -6,6 +6,7 @@ import com.codeit.duckhu.user.entity.User;
 import com.codeit.duckhu.user.mapper.UserMapper;
 import com.codeit.duckhu.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,27 +32,34 @@ public class UserServiceImplTest {
     @InjectMocks
     private UserServiceImpl sut;
 
-    @Test
-    @DisplayName("회원가입 성공")
-    void UserServiceTest() {
-        //given
-        UUID id = UUID.randomUUID();
-        Instant now = Instant.now();
-        UserRegisterRequest request = new UserRegisterRequest(
-                "testA@example.com", "testA", "testa1234!"
-        );
-        User user = new User(id, "testA@example.com", "testA", "testa1234!", now);
-        UserDto dto = new UserDto(id, "testA@example.com", "testA", now);
-        given(userRepository.existsByEmail("testA@example.com")).willReturn(false);
-        given(userRepository.save(any(User.class))).willReturn(user);
-        given(userMapper.toDto(any(User.class))).willReturn(dto);
+    @Nested
+    @DisplayName("사용자 회원가입 테스트")
+    class RegisterUserTest{
+        @Test
+        @DisplayName("회원가입 성공")
+        void UserServiceTest() {
+            //given
+            UUID id = UUID.randomUUID();
+            Instant now = Instant.now();
+            UserRegisterRequest request = new UserRegisterRequest(
+                    "testA@example.com", "testA", "testa1234!"
+            );
+            User user = new User(id, "testA@example.com", "testA", "testa1234!", now);
+            UserDto dto = new UserDto(id, "testA@example.com", "testA", now);
+            given(userRepository.existsByEmail("testA@example.com")).willReturn(false);
+            given(userRepository.save(any(User.class))).willReturn(user);
+            given(userMapper.toDto(any(User.class))).willReturn(dto);
 
-        //when
-        UserDto result = sut.register(request);
+            //when
+            UserDto result = sut.register(request);
 
-        //then
-        assertThat(result.getEmail()).isEqualTo("testA@example.com");
-        assertThat(result.getNickname()).isEqualTo("testA");
-        verify(userRepository,times(1)).save(any(User.class));
+            //then
+            assertThat(result.getEmail()).isEqualTo("testA@example.com");
+            assertThat(result.getNickname()).isEqualTo("testA");
+            verify(userRepository,times(1)).save(any(User.class));
+        }
+
+
     }
+
 }

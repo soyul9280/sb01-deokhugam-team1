@@ -2,16 +2,9 @@ package com.codeit.duckhu.user.mapper;
 
 import com.codeit.duckhu.user.dto.UserDto;
 import com.codeit.duckhu.user.entity.User;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class UserMapper {
-    public UserDto toDto(User user) {
-        return new UserDto(
-                user.getId(),
-                user.getEmail(),
-                user.getNickname(),
-                user.getCreatedAt()
-        );
-    }
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    UserDto toDto(User user);
 }

@@ -30,9 +30,9 @@ public class NotificationServiceTest {
 	@Test
 	void 내가_작성한_리뷰에_좋아요가_달리면_알림이_생성된다() {
 		// given: 리뷰 ID, 좋아요 누른 사람 ID(triggerUserId) 여기에서 실제로는
-		UUID reviewId = UUID.randomUUID();
-		UUID triggerUserId = UUID.randomUUID();
-		UUID receiverId = UUID.randomUUID();
+		UUID reviewId = UUID.randomUUID();  // 댓글이 달린 리뷰 ID
+		UUID triggerUserId = UUID.randomUUID(); // 댓글 작성자 (알림을 발생시킨 사용자)
+		UUID receiverId = UUID.randomUUID(); // 리뷰 작성자 (알림을 받는 사용자)
 
 		// when: 서비스 메서드 호출(content는 service에서 생성)
 		// 추가로 review를 mock으로 가져와 검증 및 review의 content를 reviewTitle로 변환
@@ -52,12 +52,12 @@ public class NotificationServiceTest {
 	@Test
 	void 내가_작성한_리뷰에_댓글이_달리면_알림이_생성된다() {
 		// given: 리뷰 ID, 댓글 작성자 ID, 리뷰 작성자 ID
-		UUID reviewId = UUID.randomUUID();
-		UUID triggerUserId = UUID.randomUUID();
-		UUID receiverId = UUID.randomUUID();
+		UUID reviewId = UUID.randomUUID();  // 댓글이 달린 리뷰 ID
+		UUID triggerUserId = UUID.randomUUID(); // 댓글 작성자 (알림을 발생시킨 사용자)
+		UUID receiverId = UUID.randomUUID(); // 리뷰 작성자 (알림을 받는 사용자)
 
-		// when: 서비스 메서드 호출
-		Notification result = notificationService.createNotifyByComment(reviewId, triggerUserId,receiverId)
+		// when: 댓글 작성자가 리뷰에 댓글을 남겼을 때 알림이 생성되는 상황을 시뮬레이션
+		Notification result = notificationService.createNotifyByComment(reviewId, triggerUserId, receiverId);
 
 		// then: NotificationRepository.save() 호출 확인 및 검증
 		assertThat(result.getReviewId()).isEqualTo(reviewId);

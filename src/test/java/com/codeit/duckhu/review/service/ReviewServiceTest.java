@@ -1,24 +1,37 @@
 package com.codeit.duckhu.review.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+import com.codeit.duckhu.review.dto.ReviewCreateRequest;
+import com.codeit.duckhu.review.dto.ReviewDto;
 import com.codeit.duckhu.review.entity.Review;
+import com.codeit.duckhu.review.mapper.ReviewMapper;
 import com.codeit.duckhu.review.repository.ReviewRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * 리뷰 서비스 테스트 클래스
  * TDD 방식으로 구현 예정
  */
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
-  @Autowired
+  @Mock
   private ReviewRepository reviewRepository;
+  
+  @Mock
+  private ReviewMapper reviewMapper;
 
+  @InjectMocks
+  private ReviewServiceImpl reviewService;
+  
   /**
    * 서비스 계층 설계
    * 
@@ -43,23 +56,31 @@ class ReviewServiceTest {
   @Test
   @DisplayName("리뷰 생성 테스트")
   void 리뷰_생성() {
-
       // Given
-       ReviewCreateDto createDto = ReviewCreateDto.builder()
-          .rating(rating)
-          .content(content)
+      ReviewCreateRequest request = ReviewCreateRequest.builder()
+         .rating(3)
+         .content("볼만해요")
+         .build();
+      
+      Review review = Review.builder()
+          .rating(request.getRating())
+          .content(request.getContent())
           .build();
 
+      ReviewDto expectedDto = ReviewDto.builder()
+          .content("볼만해요")
+          .rating(3)
+          .build();
+      
+      when(reviewRepository.save(any(Review.class))).thenReturn(review);
+      when(reviewMapper.toDto(any(Review.class))).thenReturn(expectedDto);
+
       // When
-      ReviewDto result = reviewService.createReview(createDto);
+      ReviewDto result = reviewService.createReview(request);
 
       // Then
       assertThat(result).isNotNull();
-      assertThat(result.getRating()).isEqualTo(rating);
-      assertThat(result.getContent()).isEqualTo(content);
-      assertThat(result.getLikeCount()).isEqualTo(0);
-      assertThat(result.getCommentCount()).isEqualTo(0);
-      assertThat(result.getLikeByMe()).isFalse();
-
+      assertThat(result.getRating()).isEqualTo(3);
+      assertThat(result.getContent()).isEqualTo("볼만해요");
   }
 }

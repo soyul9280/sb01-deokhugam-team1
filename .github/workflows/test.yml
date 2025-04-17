@@ -25,3 +25,5 @@ jobs:
 
       - name: 테스트 실행
         run: ./gradlew clean test
+        env:
+          SPRING_PROFILES_ACTIVE: test

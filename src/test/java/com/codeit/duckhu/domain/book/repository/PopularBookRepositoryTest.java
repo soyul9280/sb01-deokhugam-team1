@@ -6,6 +6,7 @@ import com.codeit.duckhu.global.config.AuditingConfig;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -23,10 +24,8 @@ class PopularBookRepositoryTest {
   @Autowired
   private PopularBookRepository popularBookRepository;
 
-  /**
-   * 인기 도서를 정상적으로 저장하고 조회할 수 있어야 한다.
-   */
   @Test
+  @DisplayName("인기 도서를 정상적으로 저장하고 조회할 수 있어야 한다.")
   void should_save_and_retrieve_popular_book() {
     Book book = Book.builder()
         .title("Clean Code")

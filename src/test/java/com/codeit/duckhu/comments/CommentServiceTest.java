@@ -3,7 +3,9 @@ package com.codeit.duckhu.comments;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
 class CommentServiceTest {
 
   private CommentService commentService;

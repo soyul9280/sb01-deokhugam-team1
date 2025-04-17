@@ -1,4 +1,4 @@
-package com.codeit.duckhu.comments;
+package com.codeit.duckhu.comments.dto.request;
 
 import java.util.UUID;
 import lombok.Data;

@@ -1,6 +1,12 @@
-package com.codeit.duckhu.comments;
+package com.codeit.duckhu.comments.service;
 
 
+import com.codeit.duckhu.comments.exception.NoCommentException;
+import com.codeit.duckhu.comments.domain.Comment;
+import com.codeit.duckhu.comments.dto.CommentDto;
+import com.codeit.duckhu.comments.repository.CommentRepository;
+import com.codeit.duckhu.comments.dto.request.CommentCreateRequest;
+import com.codeit.duckhu.comments.dto.request.CommentUpdateRequest;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

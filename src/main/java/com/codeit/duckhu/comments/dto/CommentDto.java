@@ -1,4 +1,4 @@
-package com.codeit.duckhu.comments;
+package com.codeit.duckhu.comments.dto;
 
 import java.time.Instant;
 import java.util.UUID;

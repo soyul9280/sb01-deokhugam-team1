@@ -2,6 +2,12 @@ package com.codeit.duckhu.comments;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.codeit.duckhu.comments.domain.Comment;
+import com.codeit.duckhu.comments.dto.CommentDto;
+import com.codeit.duckhu.comments.repository.CommentRepository;
+import com.codeit.duckhu.comments.dto.request.CommentCreateRequest;
+import com.codeit.duckhu.comments.dto.request.CommentUpdateRequest;
+import com.codeit.duckhu.comments.service.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

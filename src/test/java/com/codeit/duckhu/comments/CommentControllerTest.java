@@ -11,6 +11,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.codeit.duckhu.comments.conntroller.CommentController;
+import com.codeit.duckhu.comments.dto.CommentDto;
+import com.codeit.duckhu.comments.dto.request.CommentCreateRequest;
+import com.codeit.duckhu.comments.dto.request.CommentUpdateRequest;
+import com.codeit.duckhu.comments.service.CommentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

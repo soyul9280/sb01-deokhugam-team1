@@ -1,17 +1,11 @@
-package com.codeit.duckhu.comments;
+package com.codeit.duckhu.comments.domain;
 
 
-import com.codeit.duckhu.global.entity.BaseEntity;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

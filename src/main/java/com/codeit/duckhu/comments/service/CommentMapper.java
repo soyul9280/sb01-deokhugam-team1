@@ -1,6 +1,7 @@
-package com.codeit.duckhu.comments;
+package com.codeit.duckhu.comments.service;
 
-import java.time.Instant;
+import com.codeit.duckhu.comments.domain.Comment;
+import com.codeit.duckhu.comments.dto.CommentDto;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

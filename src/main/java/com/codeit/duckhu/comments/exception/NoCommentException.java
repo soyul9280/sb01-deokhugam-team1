@@ -1,4 +1,4 @@
-package com.codeit.duckhu.comments;
+package com.codeit.duckhu.comments.exception;
 
 public class NoCommentException extends RuntimeException {
 

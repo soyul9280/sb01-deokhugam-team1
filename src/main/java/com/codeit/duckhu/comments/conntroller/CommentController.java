@@ -1,4 +1,4 @@
-package com.codeit.duckhu.comments;
+package com.codeit.duckhu.comments.conntroller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;

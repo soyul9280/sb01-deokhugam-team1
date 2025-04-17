@@ -25,7 +25,6 @@ public class NotificationServiceImpl implements NotificationService {
 	public Notification createNotifyByLike(UUID reviewId, UUID triggerUserId, UUID receiverId) {
 		String content = "[buzz]님이 나의 리뷰를 좋아합니다."; // Refactor 대상
 		Notification notification = new Notification(
-			UUID.randomUUID(),
 			reviewId,
 			receiverId,
 			triggerUserId,

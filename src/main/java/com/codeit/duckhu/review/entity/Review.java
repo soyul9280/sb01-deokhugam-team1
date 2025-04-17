@@ -42,7 +42,4 @@ public class Review extends BaseUpdatableEntity {
   @Column(name = "like_by_me", nullable = false)
   private Boolean likeByMe;
 
-  public void updateContent(String content) {
-    this.content = content;
-  }
 }

@@ -18,10 +18,14 @@ duckhu:
     type: s3
     s3:
       access-key: ${AWS_ACCESS_KEY} #Github secret에 올릴 예정
-      secret-key: ${AWS_SECRET_KEY}
-      region: ap-northeast-2
-      bucket: your-bucket-name # 추후 수정
-      presigned-url-expiration: 3600 # seconds
+      secret-key: ${AWS_SECRET_KEY}	NAVER_CLIENT_ID
+      region: ${AWS_S3_REGION}
+      bucket: ${AWS_S3_BUCKET}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:3600}
+
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
 
 springdoc:
   swagger-ui:

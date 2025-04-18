@@ -8,6 +8,7 @@ import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.mapper.BookMapper;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.Optional;
@@ -28,6 +29,8 @@ public class BookServiceImpl implements BookService {
   private final BookRepository repository;
 
   private final BookMapper bookMapper;
+
+  private final ThumbnailImageStorage thumbnailImageStorage;
 
   /**
    * 도서 등록
@@ -78,11 +81,11 @@ public class BookServiceImpl implements BookService {
 //    return null;
 //  }
 //
-//  @Override
-//  public NaverBookDto getBookByIsbn(String isbn) {
-//    return null;
-//  }
-//
+  @Override
+  public NaverBookDto getBookByIsbn(String isbn) {
+    return null;
+  }
+
   @Override
   public String extractIsbnFromImage(Optional<MultipartFile> image) {
     return "";

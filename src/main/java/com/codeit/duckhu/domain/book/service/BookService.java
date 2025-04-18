@@ -26,8 +26,8 @@ public interface BookService {
 
 //  BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest, Optional<MultipartFile> thumbnailImage);
 //
-//  NaverBookDto getBookByIsbn(String isbn);
-//
+  NaverBookDto getBookByIsbn(String isbn);
+
   String extractIsbnFromImage(Optional<MultipartFile> image);
 
 //  void deleteBookLogically(UUID id);

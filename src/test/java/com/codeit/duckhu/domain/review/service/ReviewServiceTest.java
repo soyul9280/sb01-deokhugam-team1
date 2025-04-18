@@ -1,7 +1,10 @@
 package com.codeit.duckhu.domain.review.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -125,6 +128,21 @@ class ReviewServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getContent()).isEqualTo("볼만해요");
     assertThat(result.getRating()).isEqualTo(3);
+  }
+
+  @Test
+  @DisplayName("ID로 리뷰 삭제 테스트")
+  void deleteReviewById_shouldReturnSuccess() {
+    // Given
+    when(reviewRepository.findById(any(UUID.class))).thenReturn(Optional.of(testReview));
+    willDoNothing().given(reviewRepository).delete(any(Review.class));
+
+    // When
+    assertDoesNotThrow(() -> reviewService.deleteReviewById(testReviewId));
+
+    // Then
+    verify(reviewRepository).deleteById(testReviewId);
+    verify(reviewRepository, atLeastOnce()).deleteById(testReviewId);
   }
 }
 

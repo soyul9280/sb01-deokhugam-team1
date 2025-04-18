@@ -7,8 +7,11 @@ import com.codeit.duckhu.domain.comment.dto.CommentDto;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
+import com.codeit.duckhu.domain.user.service.UserServiceImpl;
+import com.codeit.duckhu.review.service.impl.ReviewServiceImpl;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +19,9 @@ import org.springframework.stereotype.Service;
 public class CommentService {
   private final CommentRepository repository;
   private final CommentMapper commentMapper;
+
+  private final UserServiceImpl userService;
+  private final ReviewServiceImpl reviewService;
 
    public CommentDto get(UUID id){
      if(repository.findById(id).isEmpty()){
@@ -27,9 +33,17 @@ public class CommentService {
      return commentMapper.toDto(comment);
    }
 
-   //TODO : User & Review service 이용하여 객체 불러오기 필요
+   public Slice<CommentDto> getList(){
+
+   }
+
+   //TODO : User & Review service 이용하여 객체 불러오기 필요 : 현재 메서드 미구현 상태
    public CommentDto create(CommentCreateRequest request){
-     Comment comment = new Comment();
+     Comment comment = Comment.builder()
+         .user()
+         .review()
+         .content(request.getContent())
+         .build();
 
      repository.save(comment);
 
@@ -42,6 +56,17 @@ public class CommentService {
      }
 
      repository.deleteById(id);
+   }
+
+   public void deleteSoft(UUID id){
+     if(repository.findById(id).isEmpty()){
+       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
+     }
+
+     Comment comment = repository.findById(id).get();
+     comment.markAsDeleted(true);
+
+     repository.save(comment);
    }
 
    public CommentDto update(UUID id, CommentUpdateRequest request){

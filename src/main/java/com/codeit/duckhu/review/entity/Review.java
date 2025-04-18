@@ -39,7 +39,4 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private int commentCount = 0;
 
-  @Column(name = "like_by_me", nullable = false)
-  private Boolean likeByMe;
-
 }

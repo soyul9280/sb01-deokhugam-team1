@@ -1,4 +1,4 @@
-package com.codeit.duckhu.global.exception;
+package com.codeit.duckhu.review.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +12,9 @@ import org.springframework.http.HttpStatus;
  */
 @Getter
 @RequiredArgsConstructor
-public enum ErrorCode {
-  // COMMON
-  INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러입니다.", "관리자에게 연락해 주세요."),
-  INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.", "잘못된 요청을 진행하였습니다.");
+public enum ReviewErrorCode {
+  // 리뷰 에러
+  REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다.", "리뷰를 찾을 수 없습니다.");
 
 
   private final HttpStatus status;

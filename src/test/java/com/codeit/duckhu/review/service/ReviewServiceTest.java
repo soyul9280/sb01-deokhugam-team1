@@ -115,14 +115,14 @@ class ReviewServiceTest {
   @Test
   @DisplayName("ID로 리뷰 조회 테스트")
   void getReviewById_shouldReturnReview() {
-    // Given
+    // Given : 저장된 리뷰를 찾았다고 가정, 엔티티를 Dto로 변환
     when(reviewRepository.findById(any(UUID.class))).thenReturn(Optional.of(testReview));
     when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
     
-    // When
+    // When : id로 리뷰 찾기
     ReviewDto result = reviewService.getReviewById(testReviewId);
     
-    // Then
+    // Then : null이 아니여야 하고, content, rating 검증
     assertThat(result).isNotNull();
     assertThat(result.getContent()).isEqualTo("볼만해요");
     assertThat(result.getRating()).isEqualTo(3);

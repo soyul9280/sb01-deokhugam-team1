@@ -1,4 +1,4 @@
-package com.codeit.duckhu.global.exception;
+package com.codeit.duckhu.review.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -8,9 +8,9 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class CustomException extends RuntimeException {
+public class ReviewCustomException extends RuntimeException {
 
-  private final ErrorCode errorCode;
+  private final ReviewErrorCode errorCode;
 
   @Override
   public String getMessage() {

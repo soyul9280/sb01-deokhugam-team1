@@ -5,10 +5,13 @@ import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.review.dto.ReviewDto;
 import com.codeit.duckhu.review.entity.Review;
+import com.codeit.duckhu.review.exception.ReviewCustomException;
+import com.codeit.duckhu.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.review.mapper.ReviewMapper;
 import com.codeit.duckhu.review.repository.ReviewRepository;
 import com.codeit.duckhu.review.service.ReviewService;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,4 +56,16 @@ public class ReviewServiceImpl implements ReviewService {
       throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
-} 
+
+  @Override
+  public ReviewDto getReviewById(UUID testReviewId) {
+    log.info("리뷰 조회, ID: {}", testReviewId);
+
+    // 리뷰 조회
+    Review review = reviewRepository.findById(testReviewId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+    // DTO로 변환하여 반환
+    return reviewMapper.toDto(review);
+  }
+}

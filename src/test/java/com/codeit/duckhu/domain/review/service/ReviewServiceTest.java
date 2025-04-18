@@ -70,7 +70,6 @@ class ReviewServiceTest {
   private ReviewDto testReviewDto;
   private ReviewCreateRequest testCreateRequest;
   private UUID testReviewId;
-  private ReviewUpdateRequest testreviewUpdateRequest;
 
   @BeforeEach
   void setUp() {

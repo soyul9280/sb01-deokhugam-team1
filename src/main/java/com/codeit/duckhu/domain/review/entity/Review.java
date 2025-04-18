@@ -39,4 +39,10 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private int commentCount = 0;
 
+  public void updateContent(String content) {
+    this.content = content;
+  }
+  public void updateRating(int rating) {
+    this.rating = rating;
+  }
 }

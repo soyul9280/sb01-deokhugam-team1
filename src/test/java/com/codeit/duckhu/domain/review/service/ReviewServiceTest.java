@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
@@ -66,6 +67,7 @@ class ReviewServiceTest {
   private ReviewDto testReviewDto;
   private ReviewCreateRequest testCreateRequest;
   private UUID testReviewId;
+  private ReviewUpdateRequest testreviewUpdateRequest;
 
   @BeforeEach
   void setUp() {
@@ -93,6 +95,12 @@ class ReviewServiceTest {
     testCreateRequest = ReviewCreateRequest.builder()
         .content("볼만해요")
         .rating(3)
+        .build();
+
+    // 테스트용 Update 요청 생성
+    testreviewUpdateRequest = ReviewUpdateRequest.builder()
+        .content("재밌어요")
+        .rating(5)
         .build();
   }
 
@@ -152,24 +160,34 @@ class ReviewServiceTest {
   @DisplayName("리뷰 업데이트 테스트")
   void updateReview_shouldReturnUpdateReview() {
     // Given
+    String updatedContent = "재밌어요";
+    int updatedRating = 5;
+
     Review updatedReview = Review.builder()
+        .content(updatedContent)
+        .rating(updatedRating)
+        .build();
+
+    ReviewDto updatedReviewDto = ReviewDto.builder()
         .content("재밌어요")
         .rating(5)
         .likeCount(0)
         .commentCount(0)
+        .likedByMe(false)
         .build();
 
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
-    when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
+    when(reviewMapper.toDto(updatedReview)).thenReturn(updatedReviewDto);
 
     // When
-    ReviewDto result = reviewService.updateReview(testReviewId, testCreateRequest);
+    ReviewDto result = reviewService.updateReview(testReviewId, testreviewUpdateRequest);
 
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getContent()).isEqualTo(updatedReview);
+    assertThat(result.getContent()).isEqualTo(updatedContent);
+    assertThat(result.getRating()).isEqualTo(updatedRating);
     then(reviewRepository).should().save(any(Review.class));
   }
 }

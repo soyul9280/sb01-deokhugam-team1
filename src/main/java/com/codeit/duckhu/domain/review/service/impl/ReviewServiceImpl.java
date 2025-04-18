@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.review.service.impl;
 
+import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.global.exception.CustomException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
@@ -25,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReviewServiceImpl implements ReviewService {
 
   private final ReviewRepository reviewRepository;
@@ -57,22 +59,40 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public ReviewDto getReviewById(UUID testReviewId) {
-    log.info("리뷰 조회, ID: {}", testReviewId);
+  public ReviewDto getReviewById(UUID id) {
+    log.info("리뷰 조회, ID: {}", id);
 
     // 리뷰 조회
-    Review review = reviewRepository.findById(testReviewId)
+    Review review = reviewRepository.findById(id)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     // DTO로 변환하여 반환
     return reviewMapper.toDto(review);
   }
 
+  @Transactional
   @Override
-  public void deleteReviewById(UUID testReviewId) {
-    Review review = reviewRepository.findById(testReviewId)
+  public void deleteReviewById(UUID id) {
+    Review review = reviewRepository.findById(id)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     reviewRepository.delete(review);
+  }
+
+  @Transactional
+  @Override
+  public ReviewDto updateReview(UUID id, ReviewUpdateRequest reviewUpdateRequest) {
+    Review review = reviewRepository.findById(id)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+    // TODO:작성자 확인 - 작성자와 현재 사용자가 같은지 확인하는 로직 추가 필요 (User 통합시 추가)
+
+    review.updateContent(reviewUpdateRequest.getContent());
+    review.updateRating(reviewUpdateRequest.getRating());
+
+    Review updatedReview = reviewRepository.save(review);
+    log.info("리뷰 업데이트 성공, ID: {}", updatedReview.getId());
+
+    return reviewMapper.toDto(updatedReview);
   }
 }

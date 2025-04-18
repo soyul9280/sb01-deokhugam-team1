@@ -48,7 +48,6 @@ class PopularBookRepositoryTest {
   @Test
   @DisplayName("인기 도서를 정상적으로 저장하고 조회할 수 있어야 한다.")
   void should_save_and_retrieve_popular_book() {
-    // given
     PopularBook popularBook = PopularBook.builder()
         .book(savedBook)
         .period(PeriodType.MONTHLY)

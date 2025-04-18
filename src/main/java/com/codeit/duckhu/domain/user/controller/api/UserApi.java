@@ -1,8 +1,8 @@
-package com.codeit.duckhu.user.controller.api;
+package com.codeit.duckhu.domain.user.controller.api;
 
-import com.codeit.duckhu.user.dto.UserDto;
-import com.codeit.duckhu.user.dto.UserRegisterRequest;
-import com.codeit.duckhu.user.exception.UserErrorResponse;
+import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.exception.UserErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

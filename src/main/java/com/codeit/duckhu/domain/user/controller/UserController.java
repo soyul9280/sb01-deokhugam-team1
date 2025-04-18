@@ -1,9 +1,9 @@
-package com.codeit.duckhu.user.controller;
+package com.codeit.duckhu.domain.user.controller;
 
-import com.codeit.duckhu.user.controller.api.UserApi;
-import com.codeit.duckhu.user.dto.UserDto;
-import com.codeit.duckhu.user.dto.UserRegisterRequest;
-import com.codeit.duckhu.user.service.UserService;
+import com.codeit.duckhu.domain.user.controller.api.UserApi;
+import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

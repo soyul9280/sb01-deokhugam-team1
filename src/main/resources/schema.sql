@@ -16,10 +16,10 @@ CREATE TABLE books (
 -- 사용자
 CREATE TABLE users (
                        id UUID PRIMARY KEY NOT NULL,
+                       email VARCHAR(50) NOT NULL UNIQUE,
                        nickname VARCHAR(50) NOT NULL,
                        password VARCHAR(50) NOT NULL,
                        created_at TIMESTAMP NOT NULL,
-                       email VARCHAR(50) NOT NULL UNIQUE,
                        is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 

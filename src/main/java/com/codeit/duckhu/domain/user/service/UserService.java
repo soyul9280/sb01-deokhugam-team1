@@ -1,7 +1,7 @@
-package com.codeit.duckhu.user.service;
+package com.codeit.duckhu.domain.user.service;
 
-import com.codeit.duckhu.user.dto.UserDto;
-import com.codeit.duckhu.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 
 public interface UserService {
     UserDto create(UserRegisterRequest userRegisterRequest);

@@ -1,9 +1,12 @@
-package com.codeit.duckhu.user.exception;
+package com.codeit.duckhu.domain.user.exception;
 
+
+import lombok.Getter;
 
 import java.time.Instant;
 import java.util.Map;
 
+@Getter
 public class UserErrorResponse {
     private Instant timestamp;
     private String code;

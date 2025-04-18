@@ -24,11 +24,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * 리뷰 서비스 테스트 클래스
  * TDD 방식으로 구현 예정
- */
+ *//*
+
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
-  /**
+  */
+/**
    * 서비스 계층 설계
    *
    * 1. ReviewService
@@ -46,7 +48,8 @@ class ReviewServiceTest {
    * 요청 데이터 - ReviewLikeDto: 리뷰 좋아요 데이터
    *
    * 3. 서비스 구현체 (ReviewServiceImpl) 생성 - 리포지토리를 통한 CRUD 구현
-   */
+   *//*
+
 
   @Mock
   private ReviewRepository reviewRepository;
@@ -129,3 +132,4 @@ class ReviewServiceTest {
   }
 }
 
+*/

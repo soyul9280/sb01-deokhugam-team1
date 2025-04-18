@@ -20,9 +20,21 @@ public class UserExceptionHandler {
                 e.getErrorCode().getMessage(),
                 e.getDetails(),
                 e.getClass().getSimpleName(),
-                HttpStatus.BAD_REQUEST.value()
+                HttpStatus.CONFLICT.value()
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidLoginException.class)
+    public ResponseEntity<UserErrorResponse> handleUserException(InvalidLoginException e) {
+        UserErrorResponse error=new UserErrorResponse(
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage(),
+                e.getDetails(),
+                e.getClass().getSimpleName(),
+                HttpStatus.UNAUTHORIZED.value()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

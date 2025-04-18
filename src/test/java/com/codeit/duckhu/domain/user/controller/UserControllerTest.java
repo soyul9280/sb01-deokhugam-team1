@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.user.controller;
 
 import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.exception.UserExceptionHandler;
 import com.codeit.duckhu.domain.user.service.UserService;
@@ -68,6 +69,44 @@ class UserControllerTest {
                 null, "testA", null
         );
 
+        //when
+        //then
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+
+                .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
+                .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
+    }
+
+    @Test
+    @DisplayName("POST /api/users/login-성공")
+    void login_success() throws Exception {
+        //given
+        UserLoginRequest request = new UserLoginRequest("testA@example.com", "testA");
+        UserDto dto = new UserDto(UUID.randomUUID(), "testA@example.com", "testA", Instant.now());
+        given(userService.login(any(UserLoginRequest.class))).willReturn(dto);
+
+        //when
+        //then
+        mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.email").value("testA@example.com"))
+                .andExpect(jsonPath("$.nickname").value("testA"));
+    }
+
+    @Test
+    @DisplayName("POST /api/users/login-실패")
+    void login_fail() throws Exception {
+        //given
+        UserLoginRequest request = new UserLoginRequest(
+                null, "testA1!!!!"
+        );
         //when
         //then
         mockMvc.perform(post("/api/users")

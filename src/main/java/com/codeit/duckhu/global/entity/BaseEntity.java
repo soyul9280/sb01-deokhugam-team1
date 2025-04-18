@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import lombok.Getter;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -20,7 +21,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  */
 @MappedSuperclass
 @Getter
-@EntityListeners(AuditingEntityListener.class) //Entity의 Auditing 정보 주입 클래스
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
   @Id
@@ -29,7 +30,7 @@ public abstract class BaseEntity {
   private UUID id;
 
   @CreatedDate
-  @Column(name = "created_at", updatable = false, insertable = false)
+  @Column(name = "created_at", updatable = false, nullable = false)
   private Instant createdAt;
 
 }

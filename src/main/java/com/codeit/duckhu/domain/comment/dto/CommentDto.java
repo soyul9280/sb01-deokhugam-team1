@@ -2,16 +2,18 @@ package com.codeit.duckhu.domain.comment.dto;
 
 import java.time.Instant;
 import java.util.UUID;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class CommentDto {
-  UUID id;
-  UUID reviewId;
-  UUID userId;
-  String userNickname;
-  String content;
-  Instant createdAt;
-  Instant updatedAt;
+  private UUID id;
+  private UUID reviewId;
+  private UUID userId;
+  private String userNickname;
+  private String content;
+  private Instant createdAt;
+  private Instant updatedAt;
 
 }

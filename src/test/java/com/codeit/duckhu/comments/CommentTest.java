@@ -12,7 +12,9 @@ public class CommentTest {
   @Test
   void get(){
         User user = new User();
-        Comment comment = new Comment(user,new Review(),"content test");
+        Comment comment = Comment.builder()
+            .user(user).review(new Review())
+            .content("content test").build();
 
         assertEquals(user, comment.getUser());
   }

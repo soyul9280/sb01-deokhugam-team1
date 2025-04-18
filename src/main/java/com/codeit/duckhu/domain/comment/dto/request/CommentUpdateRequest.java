@@ -1,8 +1,10 @@
 package com.codeit.duckhu.domain.comment.dto.request;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class CommentUpdateRequest {
-  String content;
+  private String content;
 }

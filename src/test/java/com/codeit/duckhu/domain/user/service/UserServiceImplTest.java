@@ -5,6 +5,7 @@ import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
+import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
 import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
@@ -96,6 +97,22 @@ class UserServiceImplTest {
             //then
             assertThat(result.getEmail()).isEqualTo("testA@example.com");
             assertThat(result.getNickname()).isEqualTo("testA");
+            verify(userRepository, times(1)).findByEmail("testA@example.com");
+        }
+
+        @Test
+        @DisplayName("로그인 실패- 일치하지 않는 비밀번호")
+        void login_fail() {
+            //given
+            UUID id = UUID.randomUUID();
+            Instant now = Instant.now();
+            UserLoginRequest request=new UserLoginRequest("testA@example.com","aaaa1234!");
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            given(userRepository.findByEmail(request.getEmail())).willReturn(Optional.of(user));
+
+            //when
+            //then
+            assertThatThrownBy(() -> sut.login(request)).isInstanceOf(InvalidLoginException.class);
             verify(userRepository, times(1)).findByEmail("testA@example.com");
         }
     }

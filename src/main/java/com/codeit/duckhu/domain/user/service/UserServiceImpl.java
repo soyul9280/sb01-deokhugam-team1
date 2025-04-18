@@ -25,11 +25,9 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = new User(
-                UUID.randomUUID(),
                 request.getEmail(),
                 request.getNickname(),
                 request.getPassword(),
-                Instant.now(),
                 false);
 
         User savedUser=userRepository.save(user);

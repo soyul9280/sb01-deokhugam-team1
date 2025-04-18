@@ -24,7 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -38,14 +38,14 @@ public class UserServiceImplTest {
     class RegisterUserTest {
         @Test
         @DisplayName("회원가입 성공")
-        void UserRegisterSuccess() {
+        void register_success() {
             //given
             UUID id = UUID.randomUUID();
             Instant now = Instant.now();
             UserRegisterRequest request = new UserRegisterRequest(
                     "testA@example.com", "testA", "testa1234!"
             );
-            User user = new User(id, "testA@example.com", "testA", "testa1234!", now,false);
+            User user = new User( "testA@example.com", "testA", "testa1234!", false);
             UserDto dto = new UserDto(id, "testA@example.com", "testA", now);
             given(userRepository.existsByEmail("testA@example.com")).willReturn(false);
             given(userRepository.save(any(User.class))).willReturn(user);
@@ -62,7 +62,7 @@ public class UserServiceImplTest {
 
         @Test
         @DisplayName("회원가입 실패 - 중복된 이메일")
-        void UserRegisterFail() {
+        void register_fail() {
             //given
             UserRegisterRequest dto = new UserRegisterRequest("testA@example.com", "testA", "testa1234!");
             given(userRepository.existsByEmail("testA@example.com")).willReturn(true);

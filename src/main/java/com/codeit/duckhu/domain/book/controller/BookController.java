@@ -4,7 +4,6 @@ import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

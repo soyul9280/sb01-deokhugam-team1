@@ -26,7 +26,7 @@ public class NotificationServiceTest {
 	private NotificationRepsitory notificationRepository;
 
 	@InjectMocks
-	private NotificationServiceImpl notificationService;
+	private NotificationService notificationService;
 
 	private UUID reviewId;
 	private UUID triggerUserId;

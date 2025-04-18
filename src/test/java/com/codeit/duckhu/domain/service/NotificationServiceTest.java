@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.codeit.duckhu.domain.notification.service.NotificationService;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;

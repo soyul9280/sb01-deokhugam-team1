@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
@@ -133,16 +134,17 @@ class ReviewServiceTest {
   @Test
   @DisplayName("ID로 리뷰 삭제 테스트")
   void deleteReviewById_shouldReturnSuccess() {
-    // Given
-    when(reviewRepository.findById(any(UUID.class))).thenReturn(Optional.of(testReview));
-    willDoNothing().given(reviewRepository).delete(any(Review.class));
+    // Given: findById 리턴과 delete 설정
+    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+    willDoNothing().given(reviewRepository).delete(testReview);
 
-    // When
+    // When : 서비스 호출 시 예외가 나지 않아야 하고
     assertDoesNotThrow(() -> reviewService.deleteReviewById(testReviewId));
 
-    // Then
-    verify(reviewRepository).deleteById(testReviewId);
-    verify(reviewRepository, atLeastOnce()).deleteById(testReviewId);
+    // Then: repository.findById + repository.delete 가 호출됐는지 검증, 불필요한 추가 호출이 없는지도 검증
+    verify(reviewRepository).findById(testReviewId);
+    verify(reviewRepository).delete(testReview);
+    verifyNoMoreInteractions(reviewRepository);
   }
 }
 

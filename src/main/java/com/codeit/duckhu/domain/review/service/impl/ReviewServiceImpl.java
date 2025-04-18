@@ -67,4 +67,12 @@ public class ReviewServiceImpl implements ReviewService {
     // DTO로 변환하여 반환
     return reviewMapper.toDto(review);
   }
+
+  @Override
+  public void deleteReviewById(UUID testReviewId) {
+    Review review = reviewRepository.findById(testReviewId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+    reviewRepository.delete(review);
+  }
 }

@@ -8,8 +8,8 @@ public record CursorPageResponsePopularBookDto(
     List<ReviewDto> content,
     String nextCursor,
     Instant nextAfter,
-    Integer size,
-    Integer totalElements,
+    int size,
+    int totalElements,
     Boolean hasNext
 ) {
 

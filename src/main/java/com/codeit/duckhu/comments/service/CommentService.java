@@ -19,7 +19,7 @@ public class CommentService {
 
    public CommentDto get(UUID id){
      if(repository.findById(id).isEmpty()){
-       throw new NoCommentException("해당하는 댓글이 없습니다.");
+       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
      }
 
      Comment comment = repository.findById(id).get();
@@ -38,7 +38,7 @@ public class CommentService {
 
    public void delete(UUID id){
      if(repository.findById(id).isEmpty()){
-       throw new NoCommentException("해당하는 댓글이 없습니다.");
+       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
      }
 
      repository.deleteById(id);
@@ -46,7 +46,7 @@ public class CommentService {
 
    public CommentDto update(UUID id, CommentUpdateRequest request){
      if(repository.findById(id).isEmpty()){
-       throw new NoCommentException("해당하는 댓글이 없습니다.");
+       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
      }
 
      Comment comment = repository.findById(id).get();

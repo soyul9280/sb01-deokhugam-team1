@@ -1,4 +1,4 @@
-package com.codeit.duckhu.comments.domain;
+package com.codeit.duckhu.domain.comment.domain;
 
 
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;

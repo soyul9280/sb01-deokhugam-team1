@@ -1,7 +1,7 @@
-package com.codeit.duckhu.comments.exception;
+package com.codeit.duckhu.domain.comment.exception;
 
 
-import com.codeit.duckhu.comments.service.ErrorCode;
+import com.codeit.duckhu.domain.comment.service.ErrorCode;
 
 public class NoCommentException extends RuntimeException {
 

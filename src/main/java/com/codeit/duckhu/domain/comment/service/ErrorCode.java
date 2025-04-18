@@ -1,4 +1,4 @@
-package com.codeit.duckhu.comments.service;
+package com.codeit.duckhu.domain.comment.service;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

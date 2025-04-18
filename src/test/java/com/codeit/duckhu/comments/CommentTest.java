@@ -2,7 +2,7 @@ package com.codeit.duckhu.comments;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.codeit.duckhu.comments.domain.Comment;
+import com.codeit.duckhu.domain.comment.domain.Comment;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

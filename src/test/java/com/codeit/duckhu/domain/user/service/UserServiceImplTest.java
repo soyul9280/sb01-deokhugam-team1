@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -71,6 +72,30 @@ class UserServiceImplTest {
             //when
             //then
             assertThatThrownBy(() -> sut.create(dto)).isInstanceOf(EmailDuplicateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("로그인 테스트")
+    class LoginUserTest {
+        @Test
+        @DisplayName("로그인 성공")
+        void login_success() {
+            //given
+            UUID id = UUID.randomUUID();
+            Instant now = Instant.now();
+            UserLoginRequest request=new UserLoginRequest("testA@example.com","testa1234!");
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            given(userRepository.findById(id)).willReturn(Optional.of(user));
+            given(userMapper.toDto(user)).willReturn(new UserDto(id, "testA@example.com", "testA", now));
+
+            //when
+            UserDto result=sut.login(request);
+
+            //then
+            assertThat(result.getEmail()).isEqualTo("testA@example.com");
+            assertThat(result.getNickname()).isEqualTo("testA");
+            verify(userRepository, times(1)).findById(id);
         }
     }
 

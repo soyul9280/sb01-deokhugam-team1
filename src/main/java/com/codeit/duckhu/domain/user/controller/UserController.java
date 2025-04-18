@@ -4,7 +4,9 @@ import com.codeit.duckhu.user.controller.api.UserApi;
 import com.codeit.duckhu.user.dto.UserDto;
 import com.codeit.duckhu.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +22,8 @@ public class UserController implements UserApi {
 
     @Override
     @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public ResponseEntity<UserDto> create(@Valid @RequestBody UserRegisterRequest userRegisterRequest) {
         UserDto result = userService.create(userRegisterRequest);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 }

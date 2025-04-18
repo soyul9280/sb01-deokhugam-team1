@@ -1,6 +1,5 @@
 package com.codeit.duckhu.user.exception;
 
-import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 

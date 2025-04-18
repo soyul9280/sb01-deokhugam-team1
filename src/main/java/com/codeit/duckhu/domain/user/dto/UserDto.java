@@ -9,8 +9,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 public class UserDto {
-    private UUID id;
-    private String email;
-    private String nickname;
-    private Instant createdAt;
+    private final UUID id;
+    private final String email;
+    private final String nickname;
+    private final Instant createdAt;
 }

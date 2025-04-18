@@ -1,10 +1,13 @@
 package com.codeit.duckhu.domain.book.client;
 
+import com.codeit.duckhu.domain.book.dto.NaverApiResponse;
+import com.codeit.duckhu.domain.book.dto.NaverApiResponse.Item;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -18,7 +21,6 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class NaverBookClient {
 
-  private final ObjectMapper objectMapper;
   @Value("${naver.client-id}")
   private String clientId;
 
@@ -36,32 +38,28 @@ public class NaverBookClient {
 
     HttpEntity<Void> request = new HttpEntity<>(headers);
 
-    ResponseEntity<String> response = restTemplate.exchange(
+    ResponseEntity<NaverApiResponse> response = restTemplate.exchange(
         url,
         HttpMethod.GET,
         request,
-        String.class
+        NaverApiResponse.class
     );
 
-    try {
-      JsonNode root = objectMapper.readTree(response.getBody());
-      JsonNode itemNode = root.path("items").get(0);
-
-      if (itemNode == null || itemNode.isEmpty())  {
-        throw new RuntimeException("ISBN으로 책 정보를 찾을 수 없습니다");
-      }
-
-      return new NaverBookDto(
-          itemNode.path("title").asText(),
-          itemNode.path("author").asText(),
-          itemNode.path("description").asText(),
-          itemNode.path("publisher").asText(),
-          LocalDate.parse(itemNode.path("pubdate").asText(), DateTimeFormatter.ofPattern("yyyyMMdd")),
-          isbn,
-          itemNode.path("image").asText()
-      );
-    } catch (Exception e) {
-      throw new RuntimeException("Naver 응답 파싱 실패", e);
+    List<Item> items = response.getBody().items();
+    if (items == null || items.isEmpty()) {
+      throw new RuntimeException("ISBN으로 책 정보를 찾을 수 없습니다.");
     }
+
+    NaverApiResponse.Item item = items.get(0); // 첫 번째 결과 사용
+    return new NaverBookDto(
+        item.title(),
+        item.author(),
+        item.description(),
+        item.publisher(),
+        LocalDate.parse(item.pubdate(), DateTimeFormatter.ofPattern("yyyyMMdd")),
+        isbn,
+        item.image()
+    );
   }
 }
+

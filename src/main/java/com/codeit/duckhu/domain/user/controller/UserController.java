@@ -30,7 +30,7 @@ public class UserController implements UserApi {
 
     @Override
     @PostMapping("/login")
-    public ResponseEntity<UserDto> create(@Valid @RequestBody UserLoginRequest userLoginRequest) {
+    public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginRequest userLoginRequest) {
         UserDto result = userService.login(userLoginRequest);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }

@@ -42,6 +42,6 @@ public interface UserApi {
         @ApiResponse(responseCode = "500", description = "서버오류",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
     })
-    ResponseEntity<UserDto> create(
+    ResponseEntity<UserDto> login(
             @Parameter(description = "로그인 정보") @RequestBody UserLoginRequest userLoginRequest);
 }

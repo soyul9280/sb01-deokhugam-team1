@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.user.service;
 
 import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
@@ -95,7 +96,7 @@ class UserServiceImplTest {
             //then
             assertThat(result.getEmail()).isEqualTo("testA@example.com");
             assertThat(result.getNickname()).isEqualTo("testA");
-            verify(userRepository, times(1)).findById(id);
+            verify(userRepository, times(1)).findByEmail("testA@example.com");
         }
     }
 

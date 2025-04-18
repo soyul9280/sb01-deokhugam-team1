@@ -25,6 +25,18 @@ public class UserExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(InvalidLoginException.class)
+    public ResponseEntity<UserErrorResponse> handleUserException(InvalidLoginException e) {
+        UserErrorResponse error=new UserErrorResponse(
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage(),
+                e.getDetails(),
+                e.getClass().getSimpleName(),
+                HttpStatus.UNAUTHORIZED.value()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<UserErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String,Object> details= e.getBindingResult().getFieldErrors().stream()

@@ -22,11 +22,13 @@ public interface UserApi {
                 content = @Content(schema = @Schema(implementation = UserDto.class))),
         @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 중복된 이메일",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+        @ApiResponse(responseCode = "409", description = "이메일 중복",
+                content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
         @ApiResponse(responseCode = "500", description = "서버오류",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
     })
     ResponseEntity<UserDto> create(
-            @Parameter(description = "로그인 정보") @RequestBody UserRegisterRequest userRegisterRequest);
+            @Parameter(description = "회원가입 정보") @RequestBody UserRegisterRequest userRegisterRequest);
 
 
     @Operation(summary = "로그인", description = "사용자 로그인을 처리합니다.")

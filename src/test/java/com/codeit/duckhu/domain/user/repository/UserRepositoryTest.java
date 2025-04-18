@@ -1,6 +1,7 @@
-package com.codeit.duckhu.user.repository;
+package com.codeit.duckhu.domain.user.repository;
 
-import com.codeit.duckhu.user.entity.User;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

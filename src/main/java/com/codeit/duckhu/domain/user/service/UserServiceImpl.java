@@ -1,16 +1,13 @@
-package com.codeit.duckhu.user.service;
+package com.codeit.duckhu.domain.user.service;
 
-import com.codeit.duckhu.user.dto.UserDto;
-import com.codeit.duckhu.user.dto.UserRegisterRequest;
-import com.codeit.duckhu.user.entity.User;
-import com.codeit.duckhu.user.exception.EmailDuplicateException;
-import com.codeit.duckhu.user.mapper.UserMapper;
-import com.codeit.duckhu.user.repository.UserRepository;
+import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
+import com.codeit.duckhu.domain.user.mapper.UserMapper;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

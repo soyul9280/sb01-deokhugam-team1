@@ -1,4 +1,4 @@
-package com.codeit.duckhu.user.exception;
+package com.codeit.duckhu.domain.user.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,16 +13,16 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class UserExceptionHandler {
-    @ExceptionHandler(UserException.class)
-    public ResponseEntity<UserErrorResponse> handleUserException(UserException e) {
+    @ExceptionHandler(EmailDuplicateException.class)
+    public ResponseEntity<UserErrorResponse> handleUserException(EmailDuplicateException e) {
         UserErrorResponse error=new UserErrorResponse(
-                e.getErrorCode().toString(),
+                e.getErrorCode().getCode(),
                 e.getErrorCode().getMessage(),
                 e.getDetails(),
-                e.getClass().getTypeName(),
-                e.getErrorCode().getStatus().value()
+                e.getClass().getSimpleName(),
+                HttpStatus.BAD_REQUEST.value()
         );
-        return ResponseEntity.status(e.getErrorCode().getStatus()).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -33,7 +33,7 @@ public class UserExceptionHandler {
                 "InvalidMethodArgumentException",
                 "요청 값 검증 실패하였습니다.",
                 details,
-                e.getClass().getTypeName(),
+                e.getClass().getSimpleName(),
                 HttpStatus.BAD_REQUEST.value()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -45,7 +45,7 @@ public class UserExceptionHandler {
                 "EXCEPTION_500",
                 "예기치 않은 오류가 발생했습니다.",
                 Collections.emptyMap(),
-                e.getClass().getTypeName(),
+                e.getClass().getSimpleName(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);

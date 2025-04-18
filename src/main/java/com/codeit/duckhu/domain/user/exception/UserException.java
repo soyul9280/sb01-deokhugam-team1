@@ -1,4 +1,4 @@
-package com.codeit.duckhu.user.exception;
+package com.codeit.duckhu.domain.user.exception;
 
 
 import lombok.Getter;
@@ -12,10 +12,10 @@ public class UserException extends RuntimeException {
     private final UserErrorCode errorCode;
     private final Map<String,Object> details;
 
-    public UserException(UserErrorCode errorCode, Map<String,Object> details) {
+    public UserException(Instant timestamp, UserErrorCode errorCode,Map<String,Object> details) {
         super(errorCode.getMessage());
-        this.timestamp = Instant.now();
-        this.errorCode = errorCode;
-        this.details = details;
+        this.timestamp = timestamp;
+        this.errorCode=errorCode;
+        this.details=details;
     }
 }

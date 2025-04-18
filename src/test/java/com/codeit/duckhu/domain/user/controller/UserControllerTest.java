@@ -1,9 +1,9 @@
-package com.codeit.duckhu.user.controller;
+package com.codeit.duckhu.domain.user.controller;
 
-import com.codeit.duckhu.user.dto.UserDto;
-import com.codeit.duckhu.user.dto.UserRegisterRequest;
-import com.codeit.duckhu.user.exception.UserExceptionHandler;
-import com.codeit.duckhu.user.service.UserService;
+import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.exception.UserExceptionHandler;
+import com.codeit.duckhu.domain.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

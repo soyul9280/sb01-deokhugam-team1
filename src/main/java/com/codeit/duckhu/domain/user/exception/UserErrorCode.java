@@ -1,4 +1,4 @@
-package com.codeit.duckhu.user.exception;
+package com.codeit.duckhu.domain.user.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum UserErrorCode {
-    EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST,"이미 존재하는 이메일입니다.");
+    EMAIL_DUPLICATION("USER_400_1","이미 존재하는 이메일입니다.");
 
-    private final HttpStatus status;
+    private final String code;
     private final String message;
 }

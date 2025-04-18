@@ -1,6 +1,6 @@
-package com.codeit.duckhu.user.repository;
+package com.codeit.duckhu.domain.user.repository;
 
-import com.codeit.duckhu.user.entity.User;
+import com.codeit.duckhu.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

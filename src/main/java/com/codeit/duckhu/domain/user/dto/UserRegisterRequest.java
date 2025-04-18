@@ -1,4 +1,4 @@
-package com.codeit.duckhu.user.dto;
+package com.codeit.duckhu.domain.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

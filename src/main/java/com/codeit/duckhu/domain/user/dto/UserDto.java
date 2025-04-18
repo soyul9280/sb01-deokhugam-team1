@@ -1,4 +1,4 @@
-package com.codeit.duckhu.user.dto;
+package com.codeit.duckhu.domain.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

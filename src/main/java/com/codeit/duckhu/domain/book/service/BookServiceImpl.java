@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.book.service;
 
+import com.codeit.duckhu.domain.book.client.NaverBookClient;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
@@ -32,6 +33,7 @@ public class BookServiceImpl implements BookService {
 
   private final ThumbnailImageStorage thumbnailImageStorage;
 
+  private final NaverBookClient naverBookClient;
   /**
    * 도서 등록
    * @param bookData 도서 생성 요청 DTO
@@ -81,9 +83,15 @@ public class BookServiceImpl implements BookService {
 //    return null;
 //  }
 //
+
+  /**
+   * 도서 Isbn을 입력하면 Naver API에서 해당하는 도서 정보를 받습니다
+   * @param isbn 도서 Isbn
+   * @return NaverBook Dto
+   */
   @Override
   public NaverBookDto getBookByIsbn(String isbn) {
-    return null;
+    return naverBookClient.searchByIsbn(isbn);
   }
 
   @Override

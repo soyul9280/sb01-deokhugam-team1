@@ -86,7 +86,7 @@ class UserServiceImplTest {
             Instant now = Instant.now();
             UserLoginRequest request=new UserLoginRequest("testA@example.com","testa1234!");
             User user = new User("testA@example.com", "testA", "testa1234!", false);
-            given(userRepository.findById(id)).willReturn(Optional.of(user));
+            given(userRepository.findByEmail(request.getEmail())).willReturn(Optional.of(user));
             given(userMapper.toDto(user)).willReturn(new UserDto(id, "testA@example.com", "testA", now));
 
             //when

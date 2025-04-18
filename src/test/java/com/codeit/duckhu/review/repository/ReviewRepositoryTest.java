@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 public class ReviewRepositoryTest {
 
   @Autowired
-  private ReviewRepository repo;
+  private ReviewRepository repository;
 
   @Test
   @DisplayName("리뷰 저장 확인")
@@ -29,7 +29,7 @@ public class ReviewRepositoryTest {
             .build();
 
     // When
-    Review foundReview = repo.save(savedReview);
+    Review foundReview = repository.save(savedReview);
 
     // Then
     assertThat(foundReview).isNotNull();

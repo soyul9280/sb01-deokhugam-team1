@@ -38,3 +38,8 @@ out/
 
 ### 환경 변수 파일 ###
 .env
+
+# 환경별 설정 파일 무시
+application-dev.yml
+application-prod.yml
+application-test.yml

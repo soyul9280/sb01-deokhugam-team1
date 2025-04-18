@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.review.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -145,6 +146,31 @@ class ReviewServiceTest {
     verify(reviewRepository).findById(testReviewId);
     verify(reviewRepository).delete(testReview);
     verifyNoMoreInteractions(reviewRepository);
+  }
+
+  @Test
+  @DisplayName("리뷰 업데이트 테스트")
+  void updateReview_shouldReturnUpdateReview() {
+    // Given
+    Review updatedReview = Review.builder()
+        .content("재밌어요")
+        .rating(5)
+        .likeCount(0)
+        .commentCount(0)
+        .build();
+
+    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+    when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
+    when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
+
+    // When
+    ReviewDto result = reviewService.updateReview(testReviewId, testCreateRequest);
+
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getContent()).isEqualTo(updatedReview);
+    then(reviewRepository).should().save(any(Review.class));
   }
 }
 

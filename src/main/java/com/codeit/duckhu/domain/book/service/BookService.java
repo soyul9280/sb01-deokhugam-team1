@@ -29,7 +29,7 @@ public interface BookService {
 //
   NaverBookDto getBookByIsbn(String isbn);
 
-  String extractIsbnFromImage(MultipartFile image) throws IOException;
+  String extractIsbnFromImage(MultipartFile image);
 
 //  void deleteBookLogically(UUID id);
 //

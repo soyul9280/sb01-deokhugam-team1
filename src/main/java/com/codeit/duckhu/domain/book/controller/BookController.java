@@ -55,7 +55,7 @@ public class BookController {
   @PostMapping(value = "/isbn/ocr", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<String> extractIsbnOcr(
       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
-  ) throws IOException {
+  ) {
     String isbn = bookService.extractIsbnFromImage(thumbnailImage);
     return ResponseEntity.ok(isbn);
   }

@@ -4,5 +4,5 @@ import java.io.IOException;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface OcrExtractor {
-  String extractOCR(MultipartFile image) throws IOException;
+  String extractOCR(MultipartFile image);
 }

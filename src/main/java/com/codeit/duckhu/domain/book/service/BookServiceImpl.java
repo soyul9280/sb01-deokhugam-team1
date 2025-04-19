@@ -107,7 +107,7 @@ public class BookServiceImpl implements BookService {
   }
 
   @Override
-  public String extractIsbnFromImage(MultipartFile image) throws IOException {
+  public String extractIsbnFromImage(MultipartFile image) {
     return ocrExtractor.extractOCR(image);
   }
 

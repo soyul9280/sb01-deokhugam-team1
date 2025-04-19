@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 
 @Getter
@@ -33,4 +34,5 @@ public class User extends BaseEntity {
         this.password = password;
         this.isDeleted = isDeleted;
     }
+
 }

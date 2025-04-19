@@ -1,17 +1,13 @@
 package com.codeit.duckhu.domain.user.repository;
 
-import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.domain.user.entity.User;
-import com.codeit.duckhu.domain.user.repository.UserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 import java.util.Optional;
 
@@ -19,7 +15,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({JpaConfig.class})
+@Sql("/data.sql")
 class UserRepositoryTest {
 
     @Autowired
@@ -57,17 +53,15 @@ class UserRepositoryTest {
     @DisplayName("이메일 존재 여부 성공")
     void existsByEmail_success() {
         //given
-        userRepository.save(new User("testA@example.com", "testA", "testa1234!", false));
         //when
         //then
-        assertThat(userRepository.existsByEmail("testA@example.com")).isTrue();
+        assertThat(userRepository.existsByEmail("test@example.com")).isTrue();
     }
 
     @Test
     @DisplayName("이메일 존재 여부 실패")
     void existsByEmail_fail() {
         //given
-        userRepository.save(new User("testA@example.com", "testA", "testa1234!", false));
         //when
         //then
         assertThat(userRepository.existsByEmail("testB@example.com")).isFalse();
@@ -77,15 +71,12 @@ class UserRepositoryTest {
     @DisplayName("email로 사용자 조회 성공")
     void findByNickname_success() {
         //given
-        User user = new User("testA@example.com", "testA", "testa1234!", false);
-        userRepository.saveAndFlush(user);
-
         //when
-        Optional<User> findUser = userRepository.findByEmail("testA@example.com");
+        Optional<User> findUser = userRepository.findByEmail("test@example.com");
 
         //then
         assertThat(findUser).isPresent();
-        assertThat(findUser.get().getNickname()).isEqualTo("testA");
+        assertThat(findUser.get().getNickname()).isEqualTo("테스트유저");
     }
 
     @Test

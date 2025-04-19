@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,13 +31,14 @@ public class BookController {
       @RequestParam(defaultValue = "title") String orderBy,
       @RequestParam(defaultValue = "DESC") String direction,
       @RequestParam(required = false) String cursor,
-      @RequestParam(required = false)Instant after,
+      @RequestParam(required = false) Instant after,
       @RequestParam(defaultValue = "50") int limit
   ) {
-    return ResponseEntity.ok(bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
+    return ResponseEntity.ok(
+        bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
   }
 
-  @PostMapping
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<BookDto> createBook(
       @RequestPart("bookData") BookCreateRequest bookData,
       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
@@ -47,5 +49,13 @@ public class BookController {
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(createBook);
+  }
+
+  @PostMapping(value = "/isbn/ocr", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<String> extractIsbnOcr(
+      @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+  ) {
+    String isbn = bookService.extractIsbnFromImage(thumbnailImage);
+    return ResponseEntity.ok(isbn);
   }
 }

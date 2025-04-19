@@ -1,6 +1,6 @@
 package com.codeit.duckhu.domain.book.dto;
 
-import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.review.dto.ReviewDto;
 import java.time.Instant;
 import java.util.List;
 

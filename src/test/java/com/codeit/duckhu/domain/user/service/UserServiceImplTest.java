@@ -1,9 +1,11 @@
 package com.codeit.duckhu.domain.user.service;
 
 import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
+import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
 import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -71,6 +74,46 @@ class UserServiceImplTest {
             //when
             //then
             assertThatThrownBy(() -> sut.create(dto)).isInstanceOf(EmailDuplicateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("로그인 테스트")
+    class LoginUserTest {
+        @Test
+        @DisplayName("로그인 성공")
+        void login_success() {
+            //given
+            UUID id = UUID.randomUUID();
+            Instant now = Instant.now();
+            UserLoginRequest request=new UserLoginRequest("testA@example.com","testa1234!");
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            given(userRepository.findByEmail(request.getEmail())).willReturn(Optional.of(user));
+            given(userMapper.toDto(user)).willReturn(new UserDto(id, "testA@example.com", "testA", now));
+
+            //when
+            UserDto result=sut.login(request);
+
+            //then
+            assertThat(result.getEmail()).isEqualTo("testA@example.com");
+            assertThat(result.getNickname()).isEqualTo("testA");
+            verify(userRepository, times(1)).findByEmail("testA@example.com");
+        }
+
+        @Test
+        @DisplayName("로그인 실패- 일치하지 않는 비밀번호")
+        void login_fail() {
+            //given
+            UUID id = UUID.randomUUID();
+            Instant now = Instant.now();
+            UserLoginRequest request=new UserLoginRequest("testA@example.com","aaaa1234!");
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            given(userRepository.findByEmail(request.getEmail())).willReturn(Optional.of(user));
+
+            //when
+            //then
+            assertThatThrownBy(() -> sut.login(request)).isInstanceOf(InvalidLoginException.class);
+            verify(userRepository, times(1)).findByEmail("testA@example.com");
         }
     }
 

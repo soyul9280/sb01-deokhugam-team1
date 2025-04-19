@@ -1,6 +1,5 @@
 package com.codeit.duckhu.notification.service;
 
-import com.codeit.duckhu.domain.notification.service.NotificationService;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -13,8 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.codeit.duckhu.domain.notification.entity.Notification;
-import com.codeit.duckhu.domain.notification.repository.NotificationRepsitory;
+import com.codeit.duckhu.notification.entity.Notification;
+import com.codeit.duckhu.notification.repository.NotificationRepsitory;
 
 import lombok.extern.slf4j.Slf4j;
 

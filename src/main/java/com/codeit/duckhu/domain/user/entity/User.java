@@ -1,14 +1,12 @@
 package com.codeit.duckhu.domain.user.entity;
 
 import com.codeit.duckhu.global.entity.BaseEntity;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 
 
 @Getter

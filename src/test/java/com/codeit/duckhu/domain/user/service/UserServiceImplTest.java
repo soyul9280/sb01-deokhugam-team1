@@ -6,6 +6,7 @@ import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
 import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
+import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
 import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -114,6 +115,32 @@ class UserServiceImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("사용자 상세조회 실패 테스트")
+    class FindUserTest {
+        @Test
+        @DisplayName("사용자 상세 조회 실패 - isDeleted=true")
+        void find_fail() {
+            //given
+            UUID id = UUID.randomUUID();
+            User user = new User("testA@example.com", "testA", "testa1234!", true);
+            given(userRepository.findById(id)).willReturn(Optional.of(user));
 
+            //when
+            //then
+            assertThatThrownBy(() -> sut.findById(id)).isInstanceOf(NotFoundUserException.class);
+            verify(userRepository, times(1)).findById(id);
+        }
 
+        @Test
+        @DisplayName("사용자 상세 조회 실패 - 사용자 null")
+        void find_fail_null() {
+            //given
+            UUID id = UUID.randomUUID();
+            //when
+            //then
+            assertThatThrownBy(() -> sut.findById(id)).isInstanceOf(NotFoundUserException.class);
+            verify(userRepository, times(1)).findById(id);
+        }
+    }
 }

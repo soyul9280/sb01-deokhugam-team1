@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -25,7 +26,7 @@ class UserRepositoryTest {
     @DisplayName("저장 성공")
     void save_success() {
         //given
-        User user=new User("testA@example.com", "testA", "testa1234!", false);
+        User user = new User("testA@example.com", "testA", "testa1234!", false);
 
         //when
         User result = userRepository.save(user);
@@ -40,7 +41,7 @@ class UserRepositoryTest {
     @DisplayName("저장 실패")
     void save_fail() {
         //given
-        User user=new User(null, null, "testa1234!", false);
+        User user = new User(null, null, "testa1234!", false);
         //when
         //then
         assertThatThrownBy(() -> {
@@ -83,7 +84,7 @@ class UserRepositoryTest {
     @DisplayName("email로 사용자 조회 실패")
     void findByNickname_fail() {
         //given
-        String nonExistEmail="te@example.com";
+        String nonExistEmail = "te@example.com";
 
         //when
         Optional<User> findUser = userRepository.findByEmail(nonExistEmail);
@@ -93,5 +94,13 @@ class UserRepositoryTest {
     }
 
 
+    @Test
+    @DisplayName("findById - null")
+    void findById_fail() {
+        UUID id = UUID.randomUUID();
 
+        Optional<User> findUser = userRepository.findById(id);
+
+        assertThat(findUser).isEmpty();
+    }
 }

@@ -2,7 +2,6 @@ package com.codeit.duckhu.domain.user.integration;
 
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
-import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Sql("/data.sql")
 public class UserTest {
 
     @Autowired
@@ -66,16 +64,13 @@ public class UserTest {
 
     @Test
     @DisplayName("사용자 상세 조회- 성공")
+    @Sql("/data.sql")
     void find_success() throws Exception {
         //given
         UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         //when
         ResponseEntity<UserDto> response = restTemplate.getForEntity("/api/users/" + id, UserDto.class);
 
-
-        User user = userRepository.findById(id).get();
-        System.out.println(user.getNickname());
-        System.out.println(user.isDeleted());
         //then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("테스트유저", response.getBody().getNickname());

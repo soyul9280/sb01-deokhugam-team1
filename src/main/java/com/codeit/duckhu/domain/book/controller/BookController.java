@@ -4,6 +4,7 @@ import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class BookController {
   @PostMapping(value = "/isbn/ocr", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<String> extractIsbnOcr(
       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
-  ) {
+  ) throws IOException {
     String isbn = bookService.extractIsbnFromImage(thumbnailImage);
     return ResponseEntity.ok(isbn);
   }

@@ -7,6 +7,7 @@ import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.global.type.PeriodType;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +29,7 @@ public interface BookService {
 //
   NaverBookDto getBookByIsbn(String isbn);
 
-  String extractIsbnFromImage(MultipartFile image);
+  String extractIsbnFromImage(MultipartFile image) throws IOException;
 
 //  void deleteBookLogically(UUID id);
 //

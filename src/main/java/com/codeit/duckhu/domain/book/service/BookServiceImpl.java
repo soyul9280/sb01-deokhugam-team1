@@ -6,10 +6,12 @@ import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.mapper.BookMapper;
+import com.codeit.duckhu.domain.book.ocr.OcrExtractor;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.Tesseract;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +44,8 @@ public class BookServiceImpl implements BookService {
   private final ThumbnailImageStorage thumbnailImageStorage;
 
   private final NaverBookClient naverBookClient;
+
+  private final OcrExtractor ocrExtractor;
   /**
    * 도서 등록
    * @param bookData 도서 생성 요청 DTO
@@ -102,45 +107,10 @@ public class BookServiceImpl implements BookService {
   }
 
   @Override
-  public String extractIsbnFromImage(MultipartFile image) {
-    try {
-      log.info("OCR 요청: {}, size = {} bytes", image.getOriginalFilename(), image.getSize());
-      BufferedImage bufferedImage = ImageIO.read(image.getInputStream());
-      if (bufferedImage == null) {
-        return "0";
-      }
-
-      Tesseract tesseract = new Tesseract();
-      File tessdataDir = new ClassPathResource("tessdata").getFile();
-      tesseract.setDatapath(tessdataDir.getAbsolutePath());
-      tesseract.setLanguage("eng+kor");
-
-      String ocrResult = tesseract.doOCR(bufferedImage);
-      log.info("OCR 결과: \n{}", ocrResult);
-
-      return extractIsbnFromText(ocrResult);
-
-    } catch (Exception e) {
-      return "0";
-    }
+  public String extractIsbnFromImage(MultipartFile image) throws IOException {
+    return ocrExtractor.extractOCR(image);
   }
 
-  private String extractIsbnFromText(String text) {
-    String cleaned = text.replaceAll("[\\n\\r]", " ").replaceAll("\\s+", " ");
-
-    Pattern pattern = Pattern.compile(
-        "ISBN[\\s:-]*((?:97[89][- ]?)?\\d{1,5}[- ]?\\d{1,7}[- ]?\\d{1,7}[- ]?\\d)",
-        Pattern.CASE_INSENSITIVE
-    );
-
-    Matcher matcher = pattern.matcher(cleaned);
-    if (matcher.find()) {
-      String rawIsbn = matcher.group(1);
-      return rawIsbn.replaceAll("[- ]", "");
-    }
-
-    return "0";
-  }
 //
 //  @Override
 //  public void deleteBookLogically(UUID id) {

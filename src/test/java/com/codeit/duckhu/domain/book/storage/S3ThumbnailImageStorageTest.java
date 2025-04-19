@@ -44,7 +44,6 @@ class S3ThumbnailImageStorageTest {
   void setUp() {
     // ReflectionTestUtils를 통해 @Value로 주입되는 필드를 강제로 설정
     ReflectionTestUtils.setField(storage, "bucket", "test-bucket");
-    ReflectionTestUtils.setField(storage, "region", "us-east-1");
     ReflectionTestUtils.setField(storage, "presignedUrlExpirationSeconds", 3600L);
   }
 

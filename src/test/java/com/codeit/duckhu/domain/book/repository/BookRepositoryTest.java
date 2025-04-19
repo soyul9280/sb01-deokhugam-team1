@@ -1,7 +1,7 @@
 package com.codeit.duckhu.domain.book.repository;
 
+import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
-import com.codeit.duckhu.global.config.AuditingConfig;
 import java.time.LocalDate;
 import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -12,15 +12,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(AuditingConfig.class)
+@Import(JpaConfig.class)
 class BookRepositoryTest {
 
   @Autowired

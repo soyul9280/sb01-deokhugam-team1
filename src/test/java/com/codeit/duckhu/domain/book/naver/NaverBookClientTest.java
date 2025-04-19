@@ -1,4 +1,4 @@
-package com.codeit.duckhu.domain.book.client;
+package com.codeit.duckhu.domain.book.naver;
 
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,10 +1,8 @@
-package com.codeit.duckhu.domain.book.client;
+package com.codeit.duckhu.domain.book.naver;
 
 import com.codeit.duckhu.domain.book.dto.NaverApiResponse;
 import com.codeit.duckhu.domain.book.dto.NaverApiResponse.Item;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;

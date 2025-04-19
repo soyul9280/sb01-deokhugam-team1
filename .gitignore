@@ -42,8 +42,7 @@ src/main/resources/application-test.yml
 .vscode/
 
 ### 환경 변수 파일 ###
-.env.test
-.env.*
+.env
 
 # Ignore all application-*
 src/main/resources/application-*.yml

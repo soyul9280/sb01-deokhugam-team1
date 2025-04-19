@@ -1,16 +1,13 @@
 package com.codeit.duckhu.domain.book.service;
 
-import com.codeit.duckhu.domain.book.client.NaverBookClient;
+import com.codeit.duckhu.domain.book.naver.NaverBookClient;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
-import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
-import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.mapper.BookMapper;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
-import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;

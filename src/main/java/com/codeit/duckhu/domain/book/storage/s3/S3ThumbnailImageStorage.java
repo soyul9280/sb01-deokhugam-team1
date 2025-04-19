@@ -24,13 +24,10 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
   private final S3Client s3Client;
   private final S3Presigner s3Presigner;
 
-  @Value("${discodeit.storage.s3.bucket}")
+  @Value("${duckhu.storage.s3.bucket}")
   private String bucket;
 
-  @Value("${discodeit.storage.s3.region}")
-  private String region;
-
-  @Value("${discodeit.storage.s3.presigned-url-expiration:3600}")
+  @Value("${duckhu.storage.s3.presigned-url-expiration:3600}")
   private long presignedUrlExpirationSeconds;
 
   //S3에 이미지를 저장하고 해당 파일의 key를 반환

@@ -1,4 +1,4 @@
-package com.codeit.duckhu.domain.book.client;
+package com.codeit.duckhu.domain.book.naver;
 
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import java.time.LocalDate;
@@ -15,10 +15,10 @@ TestPropertySource에 직접 clientId와 secret 값을 입력하여 테스트 �
  */
 @ActiveProfiles("test")
 @SpringBootTest
-@TestPropertySource(properties = {
-    "naver.client-id={client-id}}",
-    "naver.client-secret={secret}}"
-})
+//@TestPropertySource(properties = {
+//    "naver.client-id={client-id}}",
+//    "naver.client-secret={secret}}"
+//})
 class NaverBookClientIntegrationTest {
 
   @Autowired

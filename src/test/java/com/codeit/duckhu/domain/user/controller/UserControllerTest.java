@@ -5,7 +5,6 @@ import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.exception.UserExceptionHandler;
 import com.codeit.duckhu.domain.user.service.UserService;
-import com.codeit.duckhu.domain.user.service.UserServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

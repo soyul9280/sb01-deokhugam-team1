@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -57,10 +59,18 @@ public class UserTest {
     //로그인은 Security설정 때문에 나중에 고려하기
 
     @Test
-    @DisplayName("사용자 조회- 성공")
+    @DisplayName("사용자 상세 조회- 성공")
     @Transactional
     void find_success() throws Exception {
+        //given
+        UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        //when
+        ResponseEntity<UserDto> response = restTemplate.getForEntity("api/users/" + id, UserDto.class);
 
+        //then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("테스트유저", response.getBody().getNickname());
+        assertEquals("test@example.com", response.getBody().getEmail());
     }
 
 }

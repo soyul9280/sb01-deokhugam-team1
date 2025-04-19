@@ -3,10 +3,7 @@ package com.codeit.duckhu.comments.domain;
 
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
-<<<<<<< HEAD:src/main/java/com/codeit/duckhu/domain/comments/domain/Comment.java
 import com.codeit.duckhu.review.entity.Review;
-=======
->>>>>>> dev:src/main/java/com/codeit/duckhu/comments/domain/Comment.java
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;

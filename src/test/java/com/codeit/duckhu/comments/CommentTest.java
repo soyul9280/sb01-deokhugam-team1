@@ -20,3 +20,5 @@ public class CommentTest {
         assertEquals(user, comment.getUser());
   }
 }
+
+*/

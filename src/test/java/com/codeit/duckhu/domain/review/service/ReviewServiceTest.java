@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
@@ -17,6 +19,10 @@ import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
+import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +62,11 @@ class ReviewServiceTest {
    * 3. 서비스 구현체 (ReviewServiceImpl) 생성 - 리포지토리를 통한 CRUD 구현
    *//*
 
+  @Mock
+  private UserRepository userRepository;
+
+  @Mock
+  private BookRepository bookRepository;
 
   @Mock
   private ReviewRepository reviewRepository;
@@ -66,16 +77,54 @@ class ReviewServiceTest {
   @InjectMocks
   private ReviewServiceImpl reviewService;
 
+  private User testUser;
+  private UserDto testUserDto;
+  private Book testBook;
+  private Book testBookDto;
   private Review testReview;
   private ReviewDto testReviewDto;
   private ReviewCreateRequest testCreateRequest;
   private UUID testReviewId;
+  private UUID testUserId;
+  private UUID testBookId;
+  private ReviewUpdateRequest testreviewUpdateRequest;
 
   @BeforeEach
   void setUp() {
     // 테스트용 ID 생성
     testReviewId = UUID.randomUUID();
-    
+    testUserId = UUID.randomUUID();
+    testBookId = UUID.randomUUID();
+
+    // 테스트용 유저 엔티티 생성
+    testUser = User.builder()
+        .nickname("testUsser")
+        .email("test@test.com")
+        .password("qwer1234")
+        .build();
+
+    // 테스트용 유저 DTO 생성
+    testUserDto = UserDto.builder()
+        .nickname("testUser")
+        .email("test@test.com")
+        .build();
+
+    // 테스트용 도서 엔티티 생성
+    testBook = Book.builder()
+        .title("테스트 도서")
+        .author("테스트 저자")
+        .publisher("테스트 출판사")
+        .isbn("1234567890123")
+        .build();
+
+    // 테스트용 도서 DTO 생성
+    testBookDto = Book.builder()
+        .title("테스트 도서")
+        .author("테스트 저자")
+        .publisher("테스트 출판사")
+        .isbn("1234567890123")
+        .build();
+
     // 테스트용 리뷰 엔티티 생성
     testReview = Review.builder()
         .content("볼만해요")
@@ -143,7 +192,7 @@ class ReviewServiceTest {
   }
 
   @Test
-  @DisplayName("ID로 리뷰 삭제 테스트.")
+  @DisplayName("ID로 리뷰 삭제 테스트")
   void deleteReviewById_shouldReturnSuccess() {
     // Given: findById 리턴과 delete 설정
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));

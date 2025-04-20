@@ -1,5 +1,7 @@
 package com.codeit.duckhu.domain.book.service;
 
+import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.domain.book.naver.NaverBookClient;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
@@ -9,6 +11,7 @@ import com.codeit.duckhu.domain.book.mapper.BookMapper;
 import com.codeit.duckhu.domain.book.ocr.OcrExtractor;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(readOnly = true)
 public class BookServiceImpl implements BookService {
 
-  private final BookRepository repository;
+  private final BookRepository bookRepository;
 
   private final BookMapper bookMapper;
 
@@ -54,7 +57,36 @@ public class BookServiceImpl implements BookService {
    */
   @Override
   public BookDto registerBook(BookCreateRequest bookData, Optional<MultipartFile> thumbnailImage) {
-    return null;
+    // isbn은 중복될 수 없다.
+    String isbn = bookData.isbn();
+    if (isbn != null && bookRepository.existsByIsbn(isbn)) {
+      log.info("[회원 생성 실패] 중복된 ISBN: {}", isbn);
+      throw new BookException(ErrorCode.DUPLICATE_ISBN);
+    }
+
+    // 썸네일 S3 업로드
+    String thumbnailUrl = thumbnailImage
+        .filter(file -> !file.isEmpty())
+        .map(thumbnailImageStorage::upload)
+        .orElse(null);
+    log.info("[이미지 업로드] S3에 업로드 완료: {}", thumbnailUrl);
+
+    Book book = Book.builder()
+        .title(bookData.title())
+        .author(bookData.author())
+        .description(bookData.description())
+        .publisher(bookData.publisher())
+        .publishedDate(bookData.publishedDate())
+        .isbn(bookData.isbn())
+        .thumbnailUrl(thumbnailUrl)
+        .isDeleted(false)
+        .build();
+
+    bookRepository.save(book);
+    log.info("[도서 등록 완료] id: {}, isbn: {}", book.getId(), book.getIsbn());
+
+    // 도서 등록 시 초기 리뷰수와 평점은 0이다.
+    return bookMapper.toDto(book, 0, 0.0);
   }
 
   /**

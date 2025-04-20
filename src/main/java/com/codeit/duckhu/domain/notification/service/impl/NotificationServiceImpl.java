@@ -30,8 +30,8 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@Transactional
 	public Notification createNotifyByLike(UUID reviewId, UUID triggerUserId, UUID receiverId) {
-		// 실제 닉네임은 이후 UserService에서 조회하도록 리팩터링 예정
-		String content = "[닉네임]님이 나의 리뷰를 좋아합니다.";
+		// Todo 실제 triggerNickname,receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
+		String content = generateLikeMessage();
 
 		// 알림 객체 생성
 		Notification notification = new Notification(
@@ -40,8 +40,7 @@ public class NotificationServiceImpl implements NotificationService {
 			triggerUserId,
 			content
 		);
-		notificationRepsitory.save(notification);
-		return notification;
+		return notificationRepsitory.save(notification);
 	}
 
 	/**
@@ -56,7 +55,8 @@ public class NotificationServiceImpl implements NotificationService {
 	@Transactional
 	public Notification createNotifyByComment(UUID reviewId, UUID triggerUserId, UUID receiverId) {
 		// 리팩터링 대상: 실제 닉네임, 댓글 내용 포함 가능
-		String content = "[닉네임]님이 나의 리뷰에 댓글을 남겼습니다.\n" + "1234";
+		// Todo 실제 triggerNickname,comment, receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
+		String content = generateCommentMessage();
 
 		// 알림 객체 생성
 		Notification notification = new Notification(
@@ -65,8 +65,23 @@ public class NotificationServiceImpl implements NotificationService {
 			triggerUserId,
 			content
 		);
-		notificationRepsitory.save(notification);
 
-		return notification;
+		return notificationRepsitory.save(notification);
+	}
+
+	// 내부 메시지 생성 메서드
+	private static String generateLikeMessage() {
+		return "[닉네임] 님이 나의 리뷰를 좋아합니다.";
+	}
+	private static String generateLikeMessage(String nickname) {
+		return nickname + "님이 나의 리뷰를 좋아합니다.";
+	}
+
+
+	private static String generateCommentMessage() {
+		return "님이 나의 리뷰에 댓글을 남겼습니다.";
+	}
+	private static String generateCommentMessage(String nickname, String comment) {
+		return nickname + "님이 나의 리뷰에 댓글을 남겼습니다." + comment;
 	}
 }

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -20,7 +19,6 @@ import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.dto.UserDto;
-import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import java.util.Optional;
@@ -131,6 +129,8 @@ class ReviewServiceTest {
         .rating(3)
         .likeCount(0)
         .commentCount(0)
+        .user(testUser)
+        .book(testBook)
         .build();
 
     // 테스트용 DTO 생성
@@ -140,16 +140,21 @@ class ReviewServiceTest {
         .commentCount(0)
         .likeCount(0)
         .likedByMe(false)
+        .userId(testUserId)
+        .bookId(testBookId)
         .build();
         
     // 테스트용 Create 요청 생성
     testCreateRequest = ReviewCreateRequest.builder()
         .content("볼만해요")
         .rating(3)
+        .userId(testUserId)
+        .bookId(testBookId)
         .build();
 
     // 테스트용 Update 요청 생성
     testreviewUpdateRequest = ReviewUpdateRequest.builder()
+        .userId(testUserId)
         .content("재밌어요")
         .rating(5)
         .build();
@@ -159,6 +164,8 @@ class ReviewServiceTest {
   @DisplayName("리뷰 생성 성공")
   void createReview_shouldCreateReview() {
     // Given
+    when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+    when(bookRepository.findById(testBookId)).thenReturn(Optional.of(testBook));
     when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
     when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
 
@@ -171,6 +178,10 @@ class ReviewServiceTest {
     assertThat(result.getContent()).isEqualTo(testCreateRequest.getContent());
     assertThat(result.getLikeCount()).isEqualTo(0);
     assertThat(result.getCommentCount()).isEqualTo(0);
+    assertThat(result.getUserId()).isEqualTo(testUserId);
+    assertThat(result.getBookId()).isEqualTo(testBookId);
+    verify(userRepository).findById(testUserId);
+    verify(bookRepository).findById(testBookId);
     verify(reviewRepository).save(any(Review.class));
     verify(reviewMapper).toDto(any(Review.class));
   }
@@ -189,6 +200,8 @@ class ReviewServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getContent()).isEqualTo("볼만해요");
     assertThat(result.getRating()).isEqualTo(3);
+    assertThat(result.getUserId()).isEqualTo(testUserId);
+    assertThat(result.getBookId()).isEqualTo(testBookId);
   }
 
   @Test
@@ -217,6 +230,8 @@ class ReviewServiceTest {
     Review updatedReview = Review.builder()
         .content(updatedContent)
         .rating(updatedRating)
+        .user(testUser)
+        .book(testBook)
         .build();
 
     ReviewDto updatedReviewDto = ReviewDto.builder()
@@ -225,6 +240,8 @@ class ReviewServiceTest {
         .likeCount(0)
         .commentCount(0)
         .likedByMe(false)
+        .userId(testUserId)
+        .bookId(testBookId)
         .build();
 
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
@@ -239,6 +256,8 @@ class ReviewServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getContent()).isEqualTo(updatedContent);
     assertThat(result.getRating()).isEqualTo(updatedRating);
+    assertThat(result.getUserId()).isEqualTo(testUserId);
+    assertThat(result.getBookId()).isEqualTo(testBookId);
     then(reviewRepository).should().save(any(Review.class));
   }
 }

@@ -45,7 +45,6 @@ public class NotificationServiceImpl implements NotificationService {
 			content
 		);
 
-
 		// Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
 		// return notificationMapper.toDto(notificationRepository.save(notification));
 		return notificationRepsitory.save(notification);

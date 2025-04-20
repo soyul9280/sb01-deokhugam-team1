@@ -45,17 +45,12 @@ public class ReviewServiceImpl implements ReviewService {
         // TODO: 사용자, 도서 추가
         .build();
 
-    try {
       // 리뷰 저장
       Review savedReview = reviewRepository.save(review);
       log.info("저장 성공, ID: {}", savedReview.getId());
       
       // DTO로 변환하여 반환
       return reviewMapper.toDto(savedReview);
-    } catch (Exception e) {
-      log.debug("리뷰 생성 실패 : {}", e.getMessage(), e);
-      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-    }
   }
 
   @Override

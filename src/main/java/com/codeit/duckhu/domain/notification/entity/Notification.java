@@ -1,4 +1,4 @@
-package com.codeit.duckhu.notification.entity;
+package com.codeit.duckhu.domain.notification.entity;
 
 import java.util.UUID;
 

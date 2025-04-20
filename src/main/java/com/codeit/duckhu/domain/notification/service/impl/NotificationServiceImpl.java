@@ -1,13 +1,13 @@
-package com.codeit.duckhu.notification.service.impl;
+package com.codeit.duckhu.domain.notification.service.impl;
 
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.codeit.duckhu.notification.entity.Notification;
-import com.codeit.duckhu.notification.repository.NotificationRepsitory;
-import com.codeit.duckhu.notification.service.NotificationService;
+import com.codeit.duckhu.domain.notification.entity.Notification;
+import com.codeit.duckhu.domain.notification.repository.NotificationRepsitory;
+import com.codeit.duckhu.domain.notification.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

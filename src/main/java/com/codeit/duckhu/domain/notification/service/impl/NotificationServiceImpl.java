@@ -33,6 +33,10 @@ public class NotificationServiceImpl implements NotificationService {
 		// Todo 실제 triggerNickname,receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
 		String content = generateLikeMessage();
 
+		// Todo
+		// 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
+		// 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
+
 		// 알림 객체 생성
 		Notification notification = new Notification(
 			reviewId,
@@ -40,6 +44,10 @@ public class NotificationServiceImpl implements NotificationService {
 			triggerUserId,
 			content
 		);
+
+
+		// Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
+		// return notificationMapper.toDto(notificationRepository.save(notification));
 		return notificationRepsitory.save(notification);
 	}
 
@@ -58,6 +66,10 @@ public class NotificationServiceImpl implements NotificationService {
 		// Todo 실제 triggerNickname,comment, receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
 		String content = generateCommentMessage();
 
+		// Todo
+		// 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
+		// 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
+
 		// 알림 객체 생성
 		Notification notification = new Notification(
 			reviewId,
@@ -66,6 +78,8 @@ public class NotificationServiceImpl implements NotificationService {
 			content
 		);
 
+		// Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
+		// return notificationMapper.toDto(notificationRepository.save(notification));
 		return notificationRepsitory.save(notification);
 	}
 

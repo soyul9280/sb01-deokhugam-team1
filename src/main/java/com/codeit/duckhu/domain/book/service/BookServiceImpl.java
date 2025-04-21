@@ -135,6 +135,7 @@ public class BookServiceImpl implements BookService {
   }
 
   @Override
+  @Transactional
   public BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest,
       Optional<MultipartFile> thumbnailImage) {
     // 도서 존재 여부 확인
@@ -224,6 +225,7 @@ public class BookServiceImpl implements BookService {
    * @param id 도서 아이디
    */
   @Override
+  @Transactional
   public void deleteBookLogically(UUID id) {
     Book book = bookRepository.findById(id)
         .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));
@@ -236,6 +238,7 @@ public class BookServiceImpl implements BookService {
    * @param id 도서 아이디
    */
   @Override
+  @Transactional
   public void deleteBookPhysically(UUID id) {
     Book book = bookRepository.findById(id)
         .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));

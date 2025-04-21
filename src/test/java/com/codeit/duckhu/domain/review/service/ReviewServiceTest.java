@@ -141,7 +141,7 @@ class ReviewServiceTest {
   }
 
   @Test
-  @DisplayName("ID로 리뷰 삭제 테스트")
+  @DisplayName("ID로 리뷰 삭제 테스트.")
   void deleteReviewById_shouldReturnSuccess() {
     // Given: findById 리턴과 delete 설정
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));

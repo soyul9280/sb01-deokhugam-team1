@@ -1,5 +1,4 @@
-package com.codeit.duckhu.comments;
-
+package com.codeit.duckhu.domain.comments;
 
 import static org.hamcrest.Matchers.any;
 import static org.mockito.ArgumentMatchers.eq;

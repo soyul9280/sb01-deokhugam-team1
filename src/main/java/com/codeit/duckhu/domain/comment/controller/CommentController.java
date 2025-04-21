@@ -24,10 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentController {
     private final CommentService commentService;
 
-  @PostMapping
-  public ResponseEntity<CommentDto> createComment(@RequestBody CommentCreateRequest commentCreateRequest){
-    return ResponseEntity.status(HttpStatus.CREATED).body(commentService.create(commentCreateRequest));
-  }
+//  @PostMapping
+//  public ResponseEntity<CommentDto> createComment(@RequestBody CommentCreateRequest commentCreateRequest){
+//    return ResponseEntity.status(HttpStatus.CREATED).body(commentService.create(commentCreateRequest));
+//  }
 
   @PatchMapping("/{commentId}")
   public ResponseEntity<CommentDto> updateComment(@RequestBody CommentUpdateRequest commentUpdateRequest,
@@ -47,10 +47,10 @@ public class CommentController {
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
-  @GetMapping
-  public ResponseEntity<Slice<CommentDto>> getCommentsList(){
-    return ResponseEntity.status(HttpStatus.OK).body(commentService.getList());
-  }
+//  @GetMapping
+//  public ResponseEntity<Slice<CommentDto>> getCommentsList(){
+//    return ResponseEntity.status(HttpStatus.OK).body(commentService.getList());
+//  }
 
   @GetMapping("/{commentId}")
   public ResponseEntity<CommentDto> getComment(@PathVariable UUID commentId){

@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.book.entity;
 
+import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -48,6 +49,10 @@ public class Book extends BaseUpdatableEntity {
   @Builder.Default
   @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted = false;
+
+
+  @OneToMany(mappedBy = "book")
+  private List<Review> review = new ArrayList<>();
 
   @Builder.Default
   @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)

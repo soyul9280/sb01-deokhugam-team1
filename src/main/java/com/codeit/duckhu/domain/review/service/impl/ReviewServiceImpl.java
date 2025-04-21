@@ -1,8 +1,8 @@
 package com.codeit.duckhu.domain.review.service.impl;
 
+import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
-import com.codeit.duckhu.global.exception.CustomException;
-import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.entity.Review;
@@ -11,6 +11,8 @@ import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,32 +33,36 @@ public class ReviewServiceImpl implements ReviewService {
 
   private final ReviewRepository reviewRepository;
   private final ReviewMapper reviewMapper;
+  private final BookRepository bookRepository;
+  private final UserRepository userRepository;
 
   @Override
   @Transactional
-  public ReviewDto createReview(@Valid ReviewCreateRequest request) {
+  public ReviewDto createReview(ReviewCreateRequest request) {
     log.info("새로운 리뷰 생성, rating: {}", request.getRating());
 
-    Review review = Review.builder()
-        .content(request.getContent())
-        .rating(request.getRating())
-        .likeCount(0)
-        .commentCount(0)
-        // TODO: 사용자, 도서 추가
-        .build();
-
-    try {
-      // 리뷰 저장
-      Review savedReview = reviewRepository.save(review);
-      log.info("저장 성공, ID: {}", savedReview.getId());
-      
-      // DTO로 변환하여 반환
-      return reviewMapper.toDto(savedReview);
-    } catch (Exception e) {
-      log.debug("리뷰 생성 실패 : {}", e.getMessage(), e);
-      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-    }
+    // 사용자 찾기
+    User user = userRepository.findById(request.getUserId())
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+    
+    // 도서 찾기
+    Book book = bookRepository.findById(request.getBookId())
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.BOOK_NOT_FOUND));
+    
+    // 동일한 도서에 대한 리뷰가 이미 존재하는지 확인
+    reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId())
+        .ifPresent(existingReview -> {
+            throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
+        });
+    
+    // 매퍼를 사용하여 엔티티 생성
+    Review review = reviewMapper.toEntity(request, user, book);
+    
+    // 저장 및 DTO 반환
+    Review savedReview = reviewRepository.save(review);
+    return reviewMapper.toDto(savedReview);
   }
+
 
   @Override
   public ReviewDto getReviewById(UUID id) {
@@ -81,14 +87,21 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Transactional
   @Override
-  public ReviewDto updateReview(UUID id, ReviewUpdateRequest reviewUpdateRequest) {
+  public ReviewDto updateReview(UUID id, ReviewUpdateRequest request) {
     Review review = reviewRepository.findById(id)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-    // TODO:작성자 확인 - 작성자와 현재 사용자가 같은지 확인하는 로직 추가 필요 (User 통합시 추가)
+    // 사용자 찾기
+    User user = userRepository.findById(request.getUserId())
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
 
-    review.updateContent(reviewUpdateRequest.getContent());
-    review.updateRating(reviewUpdateRequest.getRating());
+    if(!user.getId().equals(review.getUser().getId()))  {
+      throw new ReviewCustomException(ReviewErrorCode.USER_NOT_OWNER);
+    }
+
+
+    review.updateContent(request.getContent());
+    review.updateRating(request.getRating());
 
     Review updatedReview = reviewRepository.save(review);
     log.info("리뷰 업데이트 성공, ID: {}", updatedReview.getId());

@@ -168,5 +168,19 @@ class UserServiceImplTest {
             verify(userRepository, times(1)).findById(id);
         }
 
+        @Test
+        @DisplayName("사용자 수정 실패 - 존재하지 않는 사용자")
+        void update_fail() {
+            //given
+            UUID id=UUID.randomUUID();
+            given(userRepository.findById(id)).willReturn(Optional.empty());
+
+            //when
+            //then
+            assertThatThrownBy(()->sut.update(id,new UserUpdateRequest("updateName")))
+                    .isInstanceOf(NotFoundUserException.class)
+                    .hasMessage("해당 유저가 존재하지 않습니다.");
+        }
+
     }
 }

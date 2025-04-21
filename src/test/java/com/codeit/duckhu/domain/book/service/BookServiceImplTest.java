@@ -54,6 +54,7 @@ public class BookServiceImplTest {
   @Nested
   @DisplayName("도서 저장")
   class SaveBookTest {
+
     @Test
     @DisplayName("도서 등록 성공 - 썸네일 있음")
     void registerBook_withThumbnail() {
@@ -63,7 +64,8 @@ public class BookServiceImplTest {
           LocalDate.of(2018, 1, 1), "9780134685991"
       );
 
-      MultipartFile file = new MockMultipartFile("file", "image.jpg", "image/jpeg", "image-content".getBytes());
+      MultipartFile file = new MockMultipartFile("file", "image.jpg", "image/jpeg",
+          "image-content".getBytes());
       String thumbnailUrl = "https://s3.com/image.jpg";
 
       Book savedBook = Book.builder()
@@ -146,6 +148,22 @@ public class BookServiceImplTest {
       given(bookRepository.existsByIsbn(request.isbn())).willReturn(true);
 
       // when & then
+      assertThatThrownBy(() -> bookService.registerBook(request, Optional.empty()))
+          .isInstanceOf(BookException.class);
+
+      verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("ISBN 형식에 맞지 않으면 예외 발생")
+    void registerBook_invalidIsbn_exceptionThrown() {
+      //given
+      BookCreateRequest request = new BookCreateRequest(
+          "Invalid Book", "Author", "Invalid ISBN format", "Publisher",
+          LocalDate.of(2020, 1, 1), "INVALID_ISBN"
+      );
+
+      //when & then
       assertThatThrownBy(() -> bookService.registerBook(request, Optional.empty()))
           .isInstanceOf(BookException.class);
 

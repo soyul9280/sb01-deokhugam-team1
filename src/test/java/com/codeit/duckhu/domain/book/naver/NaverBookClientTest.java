@@ -1,8 +1,10 @@
 package com.codeit.duckhu.domain.book.naver;
 
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
+import com.codeit.duckhu.domain.book.exception.BookException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,5 +77,16 @@ class NaverBookClientTest {
     assertThat(book.isbn()).isEqualTo(isbn);
     assertThat(book.thumbnailImage()).contains("clean.jpg");
     assertThat(book.publishedDate()).isEqualTo(LocalDate.of(2013, 11, 1));
+  }
+
+  @Test
+  @DisplayName("잘못된 ISBN 형식이면 예외가 발생한다.")
+  void getBookByIsbn_invalidIsbnFormat_throwsException() {
+    //given
+    String invalidIsbn = "123456789";
+
+    //when & then
+    assertThatThrownBy(() -> naverBookClient.searchByIsbn(invalidIsbn))
+        .isInstanceOf(BookException.class);
   }
 }

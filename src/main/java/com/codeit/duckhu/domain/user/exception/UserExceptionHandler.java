@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.user.exception;
 
+import org.aspectj.weaver.ast.Not;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -13,6 +14,18 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class UserExceptionHandler {
+    @ExceptionHandler(ForbiddenUpdateException.class)
+    public ResponseEntity<UserErrorResponse> handleUserException(ForbiddenUpdateException e) {
+        UserErrorResponse error=new UserErrorResponse(
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage(),
+                e.getDetails(),
+                e.getClass().getSimpleName(),
+                HttpStatus.FORBIDDEN.value()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(EmailDuplicateException.class)
     public ResponseEntity<UserErrorResponse> handleUserException(EmailDuplicateException e) {
         UserErrorResponse error=new UserErrorResponse(
@@ -23,6 +36,18 @@ public class UserExceptionHandler {
                 HttpStatus.CONFLICT.value()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(NotFoundUserException.class)
+    public ResponseEntity<UserErrorResponse> handleUserException(NotFoundUserException e) {
+        UserErrorResponse error=new UserErrorResponse(
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage(),
+                e.getDetails(),
+                e.getClass().getSimpleName(),
+                HttpStatus.NOT_FOUND.value()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(InvalidLoginException.class)

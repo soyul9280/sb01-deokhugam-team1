@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.user.controller;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.exception.UserExceptionHandler;
 import com.codeit.duckhu.domain.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @Import(UserExceptionHandler.class)
-@ActiveProfiles("test")
 class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -109,7 +109,7 @@ class UserControllerTest {
         );
         //when
         //then
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -117,5 +117,46 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
     }
+
+    @Test
+    @DisplayName("PATCH /api/users/{userId} - 입력값 검증 실패")
+    void update_fail() throws Exception {
+        //given
+        UUID loginId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("u");
+        //when
+        //then
+        mockMvc.perform(patch("/api/users/{userId}",loginId)
+                        .header("X-User-Id",loginId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+
+                .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
+                .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"))
+                .andExpect(jsonPath("$.details.nickname").value("닉네임은 2자 이상 20자 이하로 입력해주세요."));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/{userId} - 권한없음 (실패)")
+    void update_userForbidden_fail() throws Exception {
+        //given
+        UUID targetId = UUID.randomUUID(); //타겟(다른 사람)
+        UUID loginId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("newName");
+
+        //when
+        //then
+        mockMvc.perform(patch("/api/users/{userId}",targetId)
+                .header("X-User-Id",loginId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("USER_403"))
+                .andExpect(jsonPath("$.message").value("사용자 정보 수정 권한 없음"))
+                .andExpect(jsonPath("$.exceptionType").value("ForbiddenUpdateException"));
+    }
+
 
 }

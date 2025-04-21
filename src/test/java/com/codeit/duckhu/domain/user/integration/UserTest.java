@@ -1,11 +1,10 @@
 package com.codeit.duckhu.domain.user.integration;
 
 import com.codeit.duckhu.domain.user.dto.UserDto;
-import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,17 +12,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class UserTest {
 
     @Autowired
@@ -31,6 +34,8 @@ public class UserTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("사용자 생성-성공")
@@ -57,30 +62,45 @@ public class UserTest {
         assertEquals("testA@example.com", response.getBody().getEmail());
     }
 
+    //로그인은 Security설정 때문에 나중에 고려하기
+
     @Test
-    @DisplayName("사용자 로그인-성공")
-    @Transactional
-    void login_success() throws Exception {
+    @DisplayName("사용자 상세 조회- 성공")
+    @Sql("/data.sql")
+    void find_success(){
         //given
-        UserLoginRequest request = new UserLoginRequest(
-                "testA@example.com", "testa1234!"
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        String json = objectMapper.writeValueAsString(request);
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
-
+        UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         //when
-        ResponseEntity<UserDto> response = restTemplate.postForEntity("/api/users/login", requestEntity, UserDto.class);
+        ResponseEntity<UserDto> response = restTemplate.getForEntity("/api/users/" + id, UserDto.class);
 
         //then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody().getId());
-        assertEquals("testA", response.getBody().getNickname());
-        assertEquals("testA@example.com", response.getBody().getEmail());
+        assertEquals("테스트유저", response.getBody().getNickname());
+        assertEquals("test@example.com", response.getBody().getEmail());
+    }
+
+    @Test
+    @DisplayName("사용자 수정 - 성공")
+    @Sql("/data.sql")
+    void update_success() throws Exception {
+        //given
+        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        UserUpdateRequest request = new UserUpdateRequest("newName");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-User-Id", targetId.toString());
+        HttpEntity<String> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
+        //when
+        ResponseEntity<UserDto> response = restTemplate.exchange("/api/users/" + targetId,
+                HttpMethod.PATCH, httpEntity, UserDto.class);
+
+        //then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("newName", response.getBody().getNickname());
+
+
     }
 
 
 }
+

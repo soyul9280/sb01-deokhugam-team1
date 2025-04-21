@@ -153,7 +153,7 @@ class UserControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("USER_403"))
                 .andExpect(jsonPath("$.message").value("사용자 정보 수정 권한 없음"))
-                .andExpect(jsonPath("$.exceptionType").value("UnauthorizedUserException"));
+                .andExpect(jsonPath("$.exceptionType").value("ForbiddenUpdateException"));
     }
 
 

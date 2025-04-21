@@ -52,6 +52,10 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private int commentCount = 0;
 
+  @Builder.Default
+  @Column(name = "is_deleted", nullable = false)
+  private Boolean isDeleted = false;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn
   private User user;

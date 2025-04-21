@@ -105,4 +105,10 @@ public class Review extends BaseUpdatableEntity {
       return true;
     }
   }
+
+  public void softDelete() {
+    if(!this.isDeleted()) {
+      this.deleted = true;
+    }
+  }
 }

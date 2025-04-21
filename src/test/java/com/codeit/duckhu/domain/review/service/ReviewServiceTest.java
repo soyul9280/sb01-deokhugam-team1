@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -213,9 +214,18 @@ class ReviewServiceTest {
   @Test
   @DisplayName("ID로 리뷰 소프트 삭제 테스트")
   void softDeleteReviewById_shouldReturnSuccess() {
+    // Given
+    doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
+    willDoNothing().given(reviewRepository).delete(testReview);
 
+    // When
+    reviewService.softDeleteReviewById(testReviewId);
 
+    // Then
+    assertThat(testReview.isDeleted()).isTrue();
+    verify(userRepository, times(1)).findById(testUserId);
   }
+
   @Test
   @DisplayName("리뷰 업데이트 테스트")
   void updateReview_shouldReturnUpdateReview() {

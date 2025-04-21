@@ -21,11 +21,11 @@ public class ReviewRepositoryTest {
   void saveReview_shouldSavedReview() {
     // Given
     Review savedReview = Review.builder()
-            .rating(5)
-            .content("재밌어요")
-            .likeCount(0)
-            .commentCount(0)
-            .build();
+        .rating(5)
+        .content("재밌어요")
+        .likeCount(0)
+        .commentCount(0)
+        .build();
 
     // When
     Review foundReview = repository.save(savedReview);

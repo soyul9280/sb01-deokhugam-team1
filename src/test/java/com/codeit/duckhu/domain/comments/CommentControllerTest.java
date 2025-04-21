@@ -54,8 +54,8 @@ public class CommentControllerTest {
 
 
     mockMvc.perform(post("/api/comments")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(request)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
   }
 

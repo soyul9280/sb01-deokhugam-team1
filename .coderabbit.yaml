@@ -8,9 +8,11 @@ reviews:
   poem: true
   review_status: true
   collapse_walkthrough: false
-  base_branch_only: false
   auto_review:
     enabled: true
     drafts: false
+    base_branches:
+      - "main"
+      - "develop"
 chat:
   auto_reply: true

@@ -195,14 +195,14 @@ class ReviewServiceTest {
   }
 
   @Test
-  @DisplayName("ID로 리뷰 삭제 테스트")
-  void deleteReviewById_shouldReturnSuccess() {
+  @DisplayName("ID로 리뷰 하드 삭제 테스트")
+  void hardDeleteReviewById_shouldReturnSuccess() {
     // Given: findById 리턴과 delete 설정
     doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
     willDoNothing().given(reviewRepository).delete(testReview);
 
     // When : 서비스 호출 시 예외가 나지 않아야 하고
-    assertDoesNotThrow(() -> reviewService.deleteReviewById(testReviewId));
+    assertDoesNotThrow(() -> reviewService.hardDeleteReviewById(testReviewId));
 
     // Then: repository.findById + repository.delete 가 호출됐는지 검증, 불필요한 추가 호출이 없는지도 검증
     verify(reviewRepository).findById(testReviewId);
@@ -210,6 +210,12 @@ class ReviewServiceTest {
     verifyNoMoreInteractions(reviewRepository);
   }
 
+  @Test
+  @DisplayName("ID로 리뷰 소프트 삭제 테스트")
+  void softDeleteReviewById_shouldReturnSuccess() {
+
+
+  }
   @Test
   @DisplayName("리뷰 업데이트 테스트")
   void updateReview_shouldReturnUpdateReview() {

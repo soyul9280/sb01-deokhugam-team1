@@ -79,7 +79,7 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Transactional
   @Override
-  public void deleteReviewById(UUID id) {
+  public void hardDeleteReviewById(UUID id) {
     Review review = reviewRepository.findById(id)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 

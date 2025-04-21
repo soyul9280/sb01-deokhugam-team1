@@ -27,8 +27,6 @@ public class NotificationRepositoryTest {
 
     @Autowired
     private NotificationRepsitory notificationRepository;
-    @Autowired
-    private NotificationService notificationService;
 
     @Nested
     @DisplayName("알림 저장")

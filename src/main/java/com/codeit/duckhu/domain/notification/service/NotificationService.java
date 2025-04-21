@@ -11,4 +11,6 @@ public interface NotificationService {
 	NotificationDto createNotifyByComment(UUID reviewId, UUID triggerUserId, UUID receiverId);
 
 	NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId, boolean confirmed);
+
+	void updateAllConfirmedStatus(UUID receiverId);
 }

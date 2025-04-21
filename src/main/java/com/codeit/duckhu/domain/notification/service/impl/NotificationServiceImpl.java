@@ -4,6 +4,7 @@ import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.exception.NotificationAccessDeniedException;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
 import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -61,7 +62,8 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     @Transactional
-    public NotificationDto createNotifyByComment(UUID reviewId, UUID triggerUserId, UUID receiverId) {
+    public NotificationDto createNotifyByComment(UUID reviewId, UUID triggerUserId,
+        UUID receiverId) {
         // 리팩터링 대상: 실제 닉네임, 댓글 내용 포함 가능
         // Todo 실제 triggerNickname,comment, receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
         String triggerNickname = "buzz"; // 임시
@@ -88,16 +90,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * 알림의 확인(읽음) 상태를 업데이트합니다.
+     *
      * @param notificationId 읽음 상태를 변경할 알림의 ID
      * @param receiverId     현재 요청을 보낸 사용자(알림 수신자)의 ID
      * @param confirmed      읽음 상태(true면 확인 처리)
      * @return 읽음 처리된 알림의 DTO 정보
-     * @throws NotificationNotFoundException       알림이 존재하지 않는 경우
-     * @throws NotificationAccessDeniedException   알림의 수신자와 요청자가 일치하지 않는 경우
+     * @throws NotificationNotFoundException     알림이 존재하지 않는 경우
+     * @throws NotificationAccessDeniedException 알림의 수신자와 요청자가 일치하지 않는 경우
      */
     @Override
     @Transactional
-    public NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId, boolean confirmed) {
+    public NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId,
+        boolean confirmed) {
         // 1. 알림 ID로 알림을 조회한다. 없으면 404 예외 발생
         Notification notification = notificationRepsitory.findById(notificationId)
             .orElseThrow(() -> new NotificationNotFoundException(notificationId));
@@ -114,6 +118,23 @@ public class NotificationServiceImpl implements NotificationService {
 
         // 4. 업데이트된 알림 정보를 DTO로 변환하여 반환
         return notificationMapper.toDto(notification);
+    }
+
+    /**
+     * 사용자의 모든 알림을 읽음 상태로 일괄 처리합니다.
+     *
+     * @param receiverId 알림을 읽음 처리할 사용자 ID
+     */
+    @Override
+    @Transactional
+    public void updateAllConfirmedStatus(UUID receiverId) {
+        // 1. 수신자 ID로 등록된 모든 알림을 조회
+        List<Notification> notifications = notificationRepsitory.findAllByReceiverId(receiverId);
+
+        // 2. 이미 읽지 않은 알림만 선별하여 확인 처리
+        notifications.stream()
+            .filter(n -> !n.isConfirmed())
+            .forEach(Notification::markAsConfirmed); // JPA dirty checking
     }
 
 }

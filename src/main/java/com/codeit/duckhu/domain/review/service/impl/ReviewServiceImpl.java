@@ -49,6 +49,12 @@ public class ReviewServiceImpl implements ReviewService {
     Book book = bookRepository.findById(request.getBookId())
         .orElseThrow(() -> new IllegalArgumentException("도서를 찾을 수 없습니다."));
     
+    // 동일한 도서에 대한 리뷰가 이미 존재하는지 확인
+    reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId())
+        .ifPresent(existingReview -> {
+            throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
+        });
+    
     // 매퍼를 사용하여 엔티티 생성
     Review review = reviewMapper.toEntity(request, user, book);
     

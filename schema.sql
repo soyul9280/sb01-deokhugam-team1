@@ -13,19 +13,16 @@ CREATE TABLE books (
                        is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- 댓글
-CREATE TABLE comments (
-                          id UUID PRIMARY KEY NOT NULL,
-                          created_at TIMESTAMP NOT NULL default now(),
-                          updated_at TIMESTAMP NOT NULL,
-                          user_id UUID NOT NULL,
-                          review_id UUID NOT NULL,
-                          content VARCHAR(225) NOT NULL,
-                          is_deleted BOOLEAN NOT NULL,
-
-                          CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                          CONSTRAINT fk_comment_review FOREIGN KEY (review_id) REFERENCES reviews(id)  ON DELETE CASCADE
+-- 사용자
+CREATE TABLE users (
+                       id UUID PRIMARY KEY NOT NULL,
+                       nickname VARCHAR(50) NOT NULL,
+                       password VARCHAR(50) NOT NULL,
+                       created_at TIMESTAMP NOT NULL,
+                       email VARCHAR(50) NOT NULL UNIQUE,
+                       is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
+
 
 -- 리뷰
 CREATE TABLE reviews (
@@ -48,25 +45,36 @@ CREATE TABLE reviews (
                                  REFERENCES users(id)
 );
 
--- 사용자
-CREATE TABLE users (
-                       id UUID PRIMARY KEY NOT NULL,
-                       nickname VARCHAR(50) NOT NULL,
-                       password VARCHAR(50) NOT NULL,
-                       created_at TIMESTAMP NOT NULL,
-                       email VARCHAR(50) NOT NULL UNIQUE,
-                       is_deleted BOOLEAN NOT NULL DEFAULT FALSE
+
+-- 댓글
+CREATE TABLE comments (
+                          id UUID PRIMARY KEY NOT NULL,
+                          created_at TIMESTAMP NOT NULL default now(),
+                          updated_at TIMESTAMP NOT NULL,
+                          user_id UUID NOT NULL,
+                          review_id UUID NOT NULL,
+                          content VARCHAR(225) NOT NULL,
+                          is_deleted BOOLEAN NOT NULL,
+
+                          CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                          CONSTRAINT fk_comment_review FOREIGN KEY (review_id) REFERENCES reviews(id)  ON DELETE CASCADE
 );
 
 -- 알림
-CREATE TABLE notification (
-                              id UUID PRIMARY KEY	NOT NULL,
-                              review_id UUID  NOT NULL,
-                              user_id	UUID NOT NULL,
-                              confirmed	BOOLEAN NOT NULL,
+CREATE TABLE notifications (
+                              id UUID PRIMARY KEY NOT NULL,
+                              review_id UUID,  -- nullable로 바꿔야 SET NULL 동작 가능
+                              user_id UUID,    -- 마찬가지로 nullable
+                              content VARCHAR(100) NOT NULL,
+                              confirmed BOOLEAN NOT NULL,
                               started_at TIMESTAMP NOT NULL,
-                              updated_at TIMESTAMP NOT NULL
+                              updated_at TIMESTAMP NOT NULL,
 
+                              CONSTRAINT fk_notification_review
+                                  FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE SET NULL,
+
+                              CONSTRAINT fk_notification_user
+                                  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- period ENUM 정의

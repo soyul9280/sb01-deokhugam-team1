@@ -1,13 +1,13 @@
-package com.codeit.duckhu.domain.comments;
+package com.codeit.duckhu.comments;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.codeit.duckhu.domain.comments.domain.Comment;
-import com.codeit.duckhu.domain.comments.dto.CommentDto;
-import com.codeit.duckhu.domain.comments.repository.CommentRepository;
-import com.codeit.duckhu.domain.comments.dto.request.CommentCreateRequest;
-import com.codeit.duckhu.domain.comments.dto.request.CommentUpdateRequest;
-import com.codeit.duckhu.domain.comments.service.CommentService;
+import com.codeit.duckhu.domain.comment.domain.Comment;
+import com.codeit.duckhu.domain.comment.dto.CommentDto;
+import com.codeit.duckhu.domain.comment.repository.CommentRepository;
+import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
+import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
+import com.codeit.duckhu.domain.comment.service.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

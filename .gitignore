@@ -44,6 +44,6 @@ src/main/resources/application-test.yml
 ### 환경 변수 파일 ###
 .env
 
-# Ignore all application-*
-src/main/resources/application-*.yml
-!src/main/resources/application.yml
+
+### dev/prod/tset.yml ###
+/src/main/resources/application-*.yml

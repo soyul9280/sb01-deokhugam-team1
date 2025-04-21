@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.user.controller;
 
 import com.codeit.duckhu.domain.user.controller.api.UserApi;
 import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.service.UserService;
 import jakarta.validation.Valid;
@@ -26,4 +27,13 @@ public class UserController implements UserApi {
         UserDto result = userService.create(userRegisterRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
+
+    @Override
+    @PostMapping("/login")
+    public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginRequest userLoginRequest) {
+        UserDto result = userService.login(userLoginRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+
 }

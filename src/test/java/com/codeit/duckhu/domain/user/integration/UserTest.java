@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.user.integration;
 
 import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +52,31 @@ public class UserTest {
 
         //then
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody().getId());
+        assertEquals("testA", response.getBody().getNickname());
+        assertEquals("testA@example.com", response.getBody().getEmail());
+    }
+
+    @Test
+    @DisplayName("사용자 로그인-성공")
+    @Transactional
+    void login_success() throws Exception {
+        //given
+        UserLoginRequest request = new UserLoginRequest(
+                "testA@example.com", "testa1234!"
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String json = objectMapper.writeValueAsString(request);
+        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+
+        //when
+        ResponseEntity<UserDto> response = restTemplate.postForEntity("/api/users/login", requestEntity, UserDto.class);
+
+        //then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody().getId());
         assertEquals("testA", response.getBody().getNickname());
         assertEquals("testA@example.com", response.getBody().getEmail());

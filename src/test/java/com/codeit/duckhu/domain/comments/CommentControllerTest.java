@@ -1,4 +1,4 @@
-package com.codeit.duckhu.domain.comments;
+package com.codeit.duckhu.comments;
 
 
 import static org.hamcrest.Matchers.any;
@@ -11,11 +11,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.codeit.duckhu.domain.comments.conntroller.CommentController;
-import com.codeit.duckhu.domain.comments.dto.CommentDto;
-import com.codeit.duckhu.domain.comments.dto.request.CommentCreateRequest;
-import com.codeit.duckhu.domain.comments.dto.request.CommentUpdateRequest;
-import com.codeit.duckhu.domain.comments.service.CommentService;
+import com.codeit.duckhu.domain.comment.controller.CommentController;
+import com.codeit.duckhu.domain.comment.dto.CommentDto;
+import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
+import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
+import com.codeit.duckhu.domain.comment.service.CommentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

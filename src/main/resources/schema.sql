@@ -60,19 +60,20 @@ CREATE TABLE comments (
 
 -- 알림
 CREATE TABLE notifications (
-                               id UUID PRIMARY KEY NOT NULL,
-                               review_id UUID,  -- nullable로 바꿔야 SET NULL 동작 가능
-                               user_id UUID,    -- 마찬가지로 nullable
-                               content VARCHAR(100) NOT NULL,
-                               confirmed BOOLEAN NOT NULL,
-                               started_at TIMESTAMP NOT NULL,
-                               updated_at TIMESTAMP NOT NULL,
+                        id UUID PRIMARY KEY NOT NULL,
+                        review_id UUID,  -- nullable, ON DELETE SET NULL 가능
+                        user_id UUID,    -- nullable, ON DELETE SET NULL 가능
+                        trigger_user_id UUID,
+                        content VARCHAR(100) NOT NULL,
+                        confirmed BOOLEAN NOT NULL,
+                        created_at TIMESTAMP NOT NULL,
+                        updated_at TIMESTAMP NOT NULL,
 
-                               CONSTRAINT fk_notification_review
-                                   FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE SET NULL,
+                        CONSTRAINT fk_notification_review
+                            FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE SET NULL,
 
-                               CONSTRAINT fk_notification_user
-                                   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+                        CONSTRAINT fk_notification_user
+                            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 

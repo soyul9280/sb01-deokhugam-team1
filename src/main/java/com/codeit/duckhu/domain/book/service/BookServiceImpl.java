@@ -57,11 +57,19 @@ public class BookServiceImpl implements BookService {
    */
   @Override
   public BookDto registerBook(BookCreateRequest bookData, Optional<MultipartFile> thumbnailImage) {
-    // isbn은 중복될 수 없다.
     String isbn = bookData.isbn();
-    if (isbn != null && bookRepository.existsByIsbn(isbn)) {
-      log.info("[회원 생성 실패] 중복된 ISBN: {}", isbn);
-      throw new BookException(ErrorCode.DUPLICATE_ISBN);
+    if (isbn != null) {
+      //isbn 형식 검사
+      if (!validIsbn(isbn)) {
+        log.info("[도서 등록 실패] 잘못된 ISBN 형식 : {}", isbn);
+        throw new BookException(ErrorCode.INVALID_ISBN_FORMAT);
+      }
+
+      // isbn은 중복될 수 없다.
+      if (bookRepository.existsByIsbn(isbn)) {
+        log.info("[도서 등록 실패] 중복된 ISBN: {}", isbn);
+        throw new BookException(ErrorCode.DUPLICATE_ISBN);
+      }
     }
 
     // 썸네일 S3 업로드
@@ -135,7 +143,35 @@ public class BookServiceImpl implements BookService {
    */
   @Override
   public NaverBookDto getBookByIsbn(String isbn) {
+    if (!validIsbn(isbn)) {
+      log.info("[도서 조회 실패] 잘못된 ISBN 형식 : {}", isbn);
+      throw new BookException(ErrorCode.INVALID_ISBN_FORMAT);
+    }
+
     return naverBookClient.searchByIsbn(isbn);
+  }
+
+  /**
+   *  입력값으로 주어진 isbn을 검증합니다.
+   * @param isbn isbn-13만 허용합니다.
+   * @return
+   */
+  private boolean validIsbn(String isbn) {
+    // 하이픈이나 공백을 제거
+    String cleanIsbn = isbn.replaceAll("[-\\s]", "");
+
+    //숫자가 13자리인지 확인
+    if (!cleanIsbn.matches("\\d{13}")) {
+      return false;
+    }
+
+    int sum = 0;
+    for (int i = 0; i < 13; i++) {
+      int digit = cleanIsbn.charAt(i) - '0';
+      sum += (i % 2 == 0) ? digit : digit * 3;
+    }
+
+    return sum % 10 == 0;
   }
 
   @Override

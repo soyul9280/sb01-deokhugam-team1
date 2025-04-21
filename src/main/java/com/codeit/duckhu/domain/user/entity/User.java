@@ -51,4 +51,10 @@ public class User extends BaseEntity {
         }
     }
 
+    public void softDelete() {
+        if(!this.isDeleted()) {
+            this.deleted = true;
+        }
+    }
+
 }

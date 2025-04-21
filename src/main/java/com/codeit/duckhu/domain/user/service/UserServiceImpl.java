@@ -12,12 +12,14 @@ import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -40,6 +42,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto login(UserLoginRequest userLoginRequest) {
         String email = userLoginRequest.getEmail();
         String password = userLoginRequest.getPassword();
@@ -51,6 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto findById(UUID id) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
         if (user.isDeleted()) {
@@ -76,5 +80,17 @@ public class UserServiceImpl implements UserService {
         }
 
         return user;
+    }
+
+    @Override
+    public void softDelete(UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
+        user.softDelete();
+    }
+
+    @Override
+    public void hardDelete(UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
+        userRepository.deleteById(user.getId());
     }
 }

@@ -158,5 +158,22 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.exceptionType").value("ForbiddenUpdateException"));
     }
 
+    @Test
+    @DisplayName("DELETE /api/users/{userId} - 권한없음(실패)")
+    void softDelete_fail() throws Exception {
+        //given
+        UUID targetId = UUID.randomUUID(); //타겟(다른 사람)
+        UUID loginId = UUID.randomUUID();
+
+        //when
+        //then
+        mockMvc.perform(patch("/api/users/{userId}", targetId)
+                        .header("X-User-Id", loginId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("USER_403"))
+                .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
+    }
+
 
 }

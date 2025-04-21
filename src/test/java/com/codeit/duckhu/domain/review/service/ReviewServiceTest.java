@@ -15,9 +15,11 @@ import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
+import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
@@ -267,8 +269,90 @@ class ReviewServiceTest {
   }
   
   @Test
-  @DisplayName("리뷰 좋아요 증가 테스트")
-  void review_shouldIncreaseLikeCount() {
+  @DisplayName("좋아요가 없는 상태에서 좋아요 누르면 likeCount 증가 및 liked=true 반환")
+  void likeReview_firstTime_likeCountIncreased() {
+    // Given: 좋아요가 없는 상태의 리뷰
+    Review mockReview = Mockito.mock(Review.class);
+
+    // 처음에는 좋아요가 없음
+    when(mockReview.liked(testUserId)).thenReturn(false, true);
+    
+    doReturn(testReviewId).when(mockReview).getId();
+    
+    doReturn(Optional.of(testUser)).when(userRepository).findById(testUserId);
+    doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
+
+    // When
+    ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
+
+    // Then
+    assertThat(result.isLiked()).isTrue();
+    assertThat(result.getUserId()).isEqualTo(testUserId);
+    assertThat(result.getReviewId()).isEqualTo(testReviewId);
+    
+    // 메서드 호출 검증
+    verify(mockReview, Mockito.times(2)).liked(testUserId);
+    verify(mockReview).increaseLikeCount(testUserId);
+    verify(mockReview, never()).decreaseLikeCount(testUserId);
+    verify(mockReview).getId();
+  }
+
+  @Test
+  @DisplayName("좋아요가 된 상태에서 다시 누르면 언라이크 처리, liked=false 반환")
+  void likeReview_toggleOff_likeCountDecreased() {
+    // Given: 이미 좋아요가 있는 리뷰
+    Review mockReview = Mockito.mock(Review.class);
+    
+    when(mockReview.liked(testUserId)).thenReturn(true, false);
+    
+    doReturn(testReviewId).when(mockReview).getId();
+    
+    doReturn(Optional.of(testUser)).when(userRepository).findById(testUserId);
+    doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
+
+    // When
+    ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
+
+    // Then
+    assertThat(result.isLiked()).isFalse();
+    assertThat(result.getUserId()).isEqualTo(testUserId);
+    assertThat(result.getReviewId()).isEqualTo(testReviewId);
+    
+    // 메서드 호출 검증
+    verify(mockReview, Mockito.times(2)).liked(testUserId);
+    verify(mockReview).decreaseLikeCount(testUserId);
+    verify(mockReview, never()).increaseLikeCount(testUserId);
+    verify(mockReview).getId();
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 리뷰 ID로 호출 시 예외 발생")
+  void likeReview_nonexistentReview_throwsNotFound() {
+    // given
+    doReturn(Optional.empty()).when(reviewRepository).findById(testReviewId);
+
+    // when & then
+    ReviewCustomException ex = assertThrows(ReviewCustomException.class,
+        () -> reviewService.likeReview(testReviewId, testUserId));
+    assertThat(ex.getErrorCode()).isEqualTo(ReviewErrorCode.REVIEW_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 유저 ID로 호출 시 예외 발생")
+  void likeReview_nonexistentUser_throwsNotFound() {
+    // given
+    doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
+    doReturn(Optional.empty()).when(userRepository).findById(testUserId);
+
+    // when & then
+    ReviewCustomException ex = assertThrows(ReviewCustomException.class,
+        () -> reviewService.likeReview(testReviewId, testUserId));
+    assertThat(ex.getErrorCode()).isEqualTo(ReviewErrorCode.USER_NOT_FOUND);
+  }
+  
+  @Test
+  @DisplayName("좋아요 토글 기능 검증")
+  void review_toggleLike_shouldWork() {
     // Given
     Review review = Review.builder()
         .content("볼만해요")
@@ -278,37 +362,25 @@ class ReviewServiceTest {
         .user(testUser)
         .book(testBook)
         .build();
-        
-    // When
-    review.increaseLikeCount();
+    
+    UUID userId = UUID.randomUUID();
+    
+    // When - 첫 번째 토글
+    boolean firstToggle = review.toggleLike(userId);
     
     // Then
+    assertThat(firstToggle).isTrue();
     assertThat(review.getLikeCount()).isEqualTo(1);
-  }
-  
-  @Test
-  @DisplayName("리뷰 좋아요 감소 테스트")
-  void review_shouldDecreaseLikeCount() {
-    // Given
-    Review review = Review.builder()
-        .content("볼만해요")
-        .rating(3)
-        .likeCount(3)
-        .commentCount(0)
-        .user(testUser)
-        .book(testBook)
-        .build();
-        
-    // When
-    review.decreaseLikeCount();
+    assertThat(review.liked(userId)).isTrue();
+    
+    // When - 두 번째 토글
+    boolean secondToggle = review.toggleLike(userId);
     
     // Then
-    assertThat(review.getLikeCount()).isEqualTo(2);
-    
-    // 0 이하로 떨어지지 않는지 확인
-    review.decreaseLikeCount();
-    review.decreaseLikeCount();
+    assertThat(secondToggle).isFalse();
     assertThat(review.getLikeCount()).isEqualTo(0);
+    assertThat(review.liked(userId)).isFalse();
   }
 }
+
 

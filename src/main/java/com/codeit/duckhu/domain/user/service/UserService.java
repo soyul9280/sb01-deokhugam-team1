@@ -12,4 +12,6 @@ public interface UserService {
     UserDto login(UserLoginRequest userLoginRequest);
     UserDto findById(UUID id);
     UserDto update(UUID id, UserUpdateRequest userUpdateRequest);
+    void softDelete(UUID id);
+    void hardDelete(UUID id);
 }

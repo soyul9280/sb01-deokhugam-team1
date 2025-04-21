@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -90,6 +91,7 @@ public class UserTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-User-Id", targetId.toString());
         HttpEntity<String> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
+
         //when
         ResponseEntity<UserDto> response = restTemplate.exchange("/api/users/" + targetId,
                 HttpMethod.PATCH, httpEntity, UserDto.class);
@@ -97,9 +99,49 @@ public class UserTest {
         //then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("newName", response.getBody().getNickname());
-
-
     }
+
+    @Test
+    @DisplayName("사용자 논리삭제 - 성공")
+    @Sql("/data.sql")
+    void softDelete_success() {
+        //given
+        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-User-Id", targetId.toString());
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+
+        //when
+        ResponseEntity<Void> response = restTemplate.exchange("/api/users/" + targetId,
+                HttpMethod.DELETE, httpEntity, Void.class);
+
+        //then
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+
+    @Test
+    @DisplayName("사용자 물리삭제 - 성공")
+    @Sql("/data.sql")
+    void hardDelete_success() {
+        //given
+        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-User-Id", targetId.toString());
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+
+        //when
+        ResponseEntity<Void> response = restTemplate.exchange("/api/users/" + targetId+"/hard",
+                HttpMethod.DELETE, httpEntity, Void.class);
+
+        //then
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        boolean exists=userRepository.existsById(targetId);
+        assertFalse(exists);
+    }
+
 
 
 }

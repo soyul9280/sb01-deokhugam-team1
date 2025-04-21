@@ -4,6 +4,8 @@ import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.exception.NotificationAccessDeniedException;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
 import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -137,4 +139,10 @@ public class NotificationServiceImpl implements NotificationService {
             .forEach(Notification::markAsConfirmed); // JPA dirty checking
     }
 
+    @Override
+    @Transactional
+    public void deleteConfirmedNotificationsOlderThanAWeek() {
+        Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
+        notificationRepsitory.deleteOldConfirmedNotifications(cutoff);
+    }
 }

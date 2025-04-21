@@ -7,6 +7,8 @@ import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.notification.entity.Notification;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @Slf4j
 @DataJpaTest
@@ -108,6 +111,38 @@ public class NotificationRepositoryTest {
             // Then
             assertThat(result).hasSize(2)
                 .allMatch(n -> n.getReceiverId().equals(receiverId));
+        }
+    }
+
+    @Nested
+    @DisplayName("알림 삭제")
+    class DeleteNotificationTest {
+
+        @Test
+        @DisplayName("1주일이 지난 확인된 알림은 삭제된다")
+        void deleteOldConfirmedNotifications() {
+            // given: 알림 3개 생성 (1개는 8일 전, 나머지는 최근 생성 or 미확인 상태)
+            UUID receiverId = UUID.randomUUID();
+
+            Notification oldConfirmed = Notification.forLike(UUID.randomUUID(), receiverId, UUID.randomUUID(), "buzz");
+            oldConfirmed.markAsConfirmed();
+            // 8일 전으로 updatedAt 강제 설정
+            ReflectionTestUtils.setField(oldConfirmed, "updatedAt", Instant.now().minus(8, ChronoUnit.DAYS));
+
+            Notification recentConfirmed = Notification.forLike(UUID.randomUUID(), receiverId, UUID.randomUUID(), "buzz");
+            recentConfirmed.markAsConfirmed();
+
+            Notification unconfirmed = Notification.forLike(UUID.randomUUID(), receiverId, UUID.randomUUID(), "buzz");
+
+            notificationRepository.saveAll(List.of(oldConfirmed, recentConfirmed, unconfirmed));
+
+            // when: 삭제 실행 (현재 미구현 상태)
+            Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
+            notificationRepository.deleteOldConfirmedNotifications(cutoff);
+
+            // then: oldConfirmed만 삭제되고 나머지는 살아있어야 함
+            List<Notification> remaining = notificationRepository.findAll();
+            assertThat(remaining).containsExactlyInAnyOrder(recentConfirmed, unconfirmed);
         }
     }
 }

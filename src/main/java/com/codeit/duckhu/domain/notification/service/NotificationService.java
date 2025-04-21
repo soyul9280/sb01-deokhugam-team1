@@ -13,4 +13,7 @@ public interface NotificationService {
 	NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId, boolean confirmed);
 
 	void updateAllConfirmedStatus(UUID receiverId);
+
+	// 사용자가 확인을 한 일주일을 지난 알림들 삭제
+	void deleteConfirmedNotificationsOlderThanAWeek();
 }

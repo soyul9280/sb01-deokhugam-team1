@@ -9,6 +9,7 @@ import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
 import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -159,11 +160,13 @@ public class NotificationServiceTest {
                 Instant.now()
             );
 
-            given(notificationRepository.findById(notificationId)).willReturn(Optional.of(notification));
+            given(notificationRepository.findById(notificationId)).willReturn(
+                Optional.of(notification));
             given(notificationMapper.toDto(notification)).willReturn(expectedDto);
 
             // when
-            NotificationDto result = notificationService.updateConfirmedStatus(notificationId, receiverId, true);
+            NotificationDto result = notificationService.updateConfirmedStatus(notificationId,
+                receiverId, true);
 
             // then
             assertThat(notification.isConfirmed()).isTrue();
@@ -197,7 +200,8 @@ public class NotificationServiceTest {
             UUID receiverId = UUID.randomUUID();
 
             Notification n1 = Notification.forLike(reviewId, receiverId, triggerUserId, "buzz");
-            Notification n2 = Notification.forComment(reviewId, receiverId, triggerUserId, "buzz", "댓글");
+            Notification n2 = Notification.forComment(reviewId, receiverId, triggerUserId, "buzz",
+                "댓글");
             Notification n3 = Notification.forLike(reviewId, receiverId, triggerUserId, "buzz");
 
             List<Notification> notifications = List.of(n1, n2, n3);
@@ -210,6 +214,36 @@ public class NotificationServiceTest {
             // then
             assertThat(notifications).allMatch(Notification::isConfirmed);
             then(notificationRepository).should(times(1)).findAllByReceiverId(receiverId);
+        }
+    }
+
+    @Nested
+    @DisplayName("알림 삭제")
+    class DeleteNotificationTest {
+
+        @Test
+        @DisplayName("1주일이 지난 확인된 알림을 삭제한다")
+        void deleteConfirmedNotificationsOlderThanAWeek() {
+            // given
+            Instant expectedCutoff = Instant.now().minus(7, ChronoUnit.DAYS);
+
+            // when
+            notificationService.deleteConfirmedNotificationsOlderThanAWeek();
+
+            // then
+            // repository의 삭제 메서드가 단 1번 호출되었는지 검증
+            // 그리고 인자로 넘겨진 cutoff 값이 예상한 시점과 비슷한지 검증
+            then(notificationRepository).should(times(1))
+                .deleteOldConfirmedNotifications(argThat(actualCutoff -> {
+                    // 현재 시각 기준으로 삭제 커트오프가 미래가 아니어야 하고
+                    boolean isBeforeNow = actualCutoff.isBefore(Instant.now());
+
+                    // expectedCutoff와 비교했을 때 너무 차이 나지 않도록 허용 오차 1초
+                    boolean isCloseToExpected = !actualCutoff.isAfter(
+                        expectedCutoff.plus(1, ChronoUnit.SECONDS));
+
+                    return isBeforeNow && isCloseToExpected;
+                }));
         }
     }
 }

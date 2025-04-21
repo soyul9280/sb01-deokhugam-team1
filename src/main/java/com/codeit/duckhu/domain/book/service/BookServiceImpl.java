@@ -57,6 +57,7 @@ public class BookServiceImpl implements BookService {
    * @return 도서 DTO
    */
   @Override
+  @Transactional
   public BookDto registerBook(BookCreateRequest bookData, Optional<MultipartFile> thumbnailImage) {
     String isbn = bookData.isbn();
     if (isbn != null) {

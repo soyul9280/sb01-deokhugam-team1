@@ -122,10 +122,12 @@ class UserControllerTest {
     @DisplayName("PATCH /api/users/{userId} - 입력값 검증 실패")
     void update_fail() throws Exception {
         //given
+        UUID loginId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest("u");
         //when
         //then
-        mockMvc.perform(patch("/api/users/{userId}",UUID.randomUUID())
+        mockMvc.perform(patch("/api/users/{userId}",loginId)
+                        .header("X-User-Id",loginId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())

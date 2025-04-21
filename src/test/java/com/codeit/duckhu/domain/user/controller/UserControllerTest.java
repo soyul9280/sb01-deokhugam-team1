@@ -109,7 +109,7 @@ class UserControllerTest {
         );
         //when
         //then
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -135,6 +135,26 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.details.nickname").value("닉네임은 2자 이상 20자 이하로 입력해주세요."));
     }
 
+    @Test
+    @DisplayName("PATCH /api/users/{userId} - 권한없음 (실패)")
+    void update_userForbidden_fail() throws Exception {
+        //given
+        UUID targetId = UUID.randomUUID(); //타겟(다른 사람)
+        UUID loginId = UUID.randomUUID();
+        UserUpdateRequest request = new UserUpdateRequest("newName");
+
+        //when
+        //then
+        mockMvc.perform(patch("/api/users/{userId}",targetId)
+                .header("X-User-Id",loginId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("USER_403"))
+                .andExpect(jsonPath("$.message").value("사용자 정보 수정 권한 없음"))
+                .andExpect(jsonPath("$.exceptionType").value("UnauthorizedUserException"));
+    }
 
 
 }

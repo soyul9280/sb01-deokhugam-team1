@@ -37,6 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
 		// 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
 		// 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
 
+
 		// 알림 객체 생성
 		Notification notification = new Notification(
 			reviewId,

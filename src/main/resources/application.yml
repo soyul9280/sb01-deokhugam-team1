@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: duckhu
   profiles:
@@ -12,6 +14,20 @@ spring:
     database: postgresql
   transaction:
     default-timeout: 30
+
+duckhu:
+  storage:
+    type: s3
+    s3:
+      access-key: dummy #Github secret에 올릴 예정
+      secret-key: dummy
+      region: dummy
+      bucket: dummy
+      presigned-url-expiration: 3600
+
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
 
 springdoc:
   swagger-ui:

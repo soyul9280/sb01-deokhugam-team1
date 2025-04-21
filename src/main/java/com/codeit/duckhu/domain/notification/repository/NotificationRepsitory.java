@@ -9,4 +9,5 @@ import com.codeit.duckhu.domain.notification.entity.Notification;
 
 @Repository
 public interface NotificationRepsitory extends JpaRepository<Notification, UUID> {
+
 }

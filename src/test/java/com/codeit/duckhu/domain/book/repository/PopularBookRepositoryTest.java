@@ -1,9 +1,9 @@
 package com.codeit.duckhu.domain.book.repository;
 
 
+import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.entity.PopularBook;
-import com.codeit.duckhu.global.config.AuditingConfig;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.LocalDate;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -14,11 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(AuditingConfig.class)
+@Import(JpaConfig.class)
 class PopularBookRepositoryTest {
 
   @Autowired

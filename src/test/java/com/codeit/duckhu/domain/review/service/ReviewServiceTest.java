@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.atLeast;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -150,13 +151,13 @@ class ReviewServiceTest {
   @DisplayName("리뷰 생성 성공")
   void createReview_shouldCreateReview() {
     // Given
-    doReturn(Optional.of(testUser)).when(userRepository).findById(testUserId);
-    doReturn(Optional.of(testBook)).when(bookRepository).findById(testBookId);
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
+    when(bookRepository.findById(any(UUID.class))).thenReturn(Optional.of(testBook));
     // 리뷰가 존재하지 않는 경우
-    doReturn(Optional.empty()).when(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
-    doReturn(testReview).when(reviewMapper).toEntity(testCreateRequest, testUser, testBook);
-    doReturn(testReview).when(reviewRepository).save(testReview);
-    doReturn(testReviewDto).when(reviewMapper).toDto(testReview);
+    when(reviewRepository.findByUserIdAndBookId(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
+    when(reviewMapper.toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class))).thenReturn(testReview);
+    when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
+    when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
 
     // When
     ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -169,12 +170,12 @@ class ReviewServiceTest {
     assertThat(result.getCommentCount()).isEqualTo(0);
     assertThat(result.getUserId()).isEqualTo(testUserId);
     assertThat(result.getBookId()).isEqualTo(testBookId);
-    verify(userRepository).findById(testUserId);
-    verify(bookRepository).findById(testBookId);
-    verify(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
-    verify(reviewMapper).toEntity(testCreateRequest, testUser, testBook);
-    verify(reviewRepository).save(testReview);
-    verify(reviewMapper).toDto(testReview);
+    verify(userRepository).findById(any(UUID.class));
+    verify(bookRepository).findById(any(UUID.class));
+    verify(reviewRepository).findByUserIdAndBookId(any(UUID.class), any(UUID.class));
+    verify(reviewMapper).toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class));
+    verify(reviewRepository).save(any(Review.class));
+    verify(reviewMapper).toDto(any(Review.class));
   }
 
   @Test

@@ -12,7 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.UUID;
 
 @Tag(name = "사용자 관리", description = "사용자 관련 API")
 public interface UserApi {
@@ -24,7 +27,7 @@ public interface UserApi {
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
         @ApiResponse(responseCode = "409", description = "이메일 중복",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
-        @ApiResponse(responseCode = "500", description = "서버오류",
+        @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
     })
     ResponseEntity<UserDto> create(
@@ -39,9 +42,22 @@ public interface UserApi {
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
         @ApiResponse(responseCode = "401", description = "로그인 실패(이메일 또는 비밀번호 불일치)",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
-        @ApiResponse(responseCode = "500", description = "서버오류",
+        @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                 content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
     })
     ResponseEntity<UserDto> login(
             @Parameter(description = "로그인 정보") @RequestBody UserLoginRequest userLoginRequest);
+
+
+    @Operation(summary = "사용자 정보 조회", description = "사용자 ID로 상세 정보를 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공",
+                content = @Content(schema = @Schema(implementation = UserDto.class))),
+        @ApiResponse(responseCode = "404", description = "사용자 정보 없음",
+                content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+        @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+    })
+    ResponseEntity<UserDto> findById(
+            @Parameter(description = "사용자 ID") @PathVariable UUID userId);
 }

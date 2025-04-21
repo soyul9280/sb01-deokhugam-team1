@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.user.service;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
 import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
@@ -55,6 +56,16 @@ public class UserServiceImpl implements UserService {
         if (user.isDeleted()) {
             throw new NotFoundUserException(id);
         }
+        return userMapper.toDto(user);
+    }
+
+    @Override
+    public UserDto update(UUID id, UserUpdateRequest userUpdateRequest) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
+        if (user.isDeleted()) {
+            throw new NotFoundUserException(id);
+        }
+        user.update(userUpdateRequest);
         return userMapper.toDto(user);
     }
 }

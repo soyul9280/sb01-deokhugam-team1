@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.user.integration;
 
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +67,7 @@ public class UserTest {
     @Test
     @DisplayName("사용자 상세 조회- 성공")
     @Sql("/data.sql")
-    void find_success() throws Exception {
+    void find_success(){
         //given
         UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         //when
@@ -76,6 +78,29 @@ public class UserTest {
         assertEquals("테스트유저", response.getBody().getNickname());
         assertEquals("test@example.com", response.getBody().getEmail());
     }
+
+    @Test
+    @DisplayName("사용자 수정 - 성공")
+    @Sql("/data.sql")
+    void update_success() throws Exception {
+        //given
+        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        UserUpdateRequest request = new UserUpdateRequest("newName");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-User-Id", targetId.toString());
+        HttpEntity<String> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
+        //when
+        ResponseEntity<UserDto> response = restTemplate.exchange("/api/users/" + targetId,
+                HttpMethod.PATCH, httpEntity, UserDto.class);
+
+        //then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("newName", response.getBody().getNickname());
+
+
+    }
+
 
 }
 

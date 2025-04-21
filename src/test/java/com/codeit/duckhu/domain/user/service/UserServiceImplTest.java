@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.user.service;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
 import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
@@ -47,7 +48,7 @@ class UserServiceImplTest {
             UserRegisterRequest request = new UserRegisterRequest(
                     "testA@example.com", "testA", "testa1234!"
             );
-            User user = new User( "testA@example.com", "testA", "testa1234!", false);
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
             UUID id = user.getId();
             UserDto dto = new UserDto(id, "testA@example.com", "testA", user.getCreatedAt());
             given(userRepository.existsByEmail("testA@example.com")).willReturn(false);
@@ -84,7 +85,7 @@ class UserServiceImplTest {
         @DisplayName("로그인 성공")
         void login_success() {
             //given
-            UserLoginRequest request=new UserLoginRequest("testA@example.com","testa1234!");
+            UserLoginRequest request = new UserLoginRequest("testA@example.com", "testa1234!");
             User user = new User("testA@example.com", "testA", "testa1234!", false);
             UUID id = user.getId();
 
@@ -92,7 +93,7 @@ class UserServiceImplTest {
             given(userMapper.toDto(user)).willReturn(new UserDto(id, "testA@example.com", "testA", user.getCreatedAt()));
 
             //when
-            UserDto result=sut.login(request);
+            UserDto result = sut.login(request);
 
             //then
             assertThat(result.getEmail()).isEqualTo("testA@example.com");
@@ -104,7 +105,7 @@ class UserServiceImplTest {
         @DisplayName("로그인 실패- 일치하지 않는 비밀번호")
         void login_fail() {
             //given
-            UserLoginRequest request=new UserLoginRequest("testA@example.com","aaaa1234!");
+            UserLoginRequest request = new UserLoginRequest("testA@example.com", "aaaa1234!");
             User user = new User("testA@example.com", "testA", "testa1234!", false);
             given(userRepository.findByEmail(request.getEmail())).willReturn(Optional.of(user));
 
@@ -142,5 +143,44 @@ class UserServiceImplTest {
             assertThatThrownBy(() -> sut.findById(id)).isInstanceOf(NotFoundUserException.class);
             verify(userRepository, times(1)).findById(id);
         }
+    }
+
+    @Nested
+    @DisplayName("사용자 수정 테스트")
+    class UpdateUserTest {
+        @Test
+        @DisplayName("사용자 수정 성공")
+        void update_success() {
+            //given
+            UUID id=UUID.randomUUID();
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            given(userRepository.findById(id)).willReturn(Optional.of(user));
+
+            UserUpdateRequest request = new UserUpdateRequest("updateName");
+            given(userMapper.toDto(user)).willReturn(new UserDto(id, "testA@example.com", "updateName", user.getCreatedAt()));
+
+            //when
+            UserDto result=sut.update(id,request);
+
+            //then
+            assertThat(result.getEmail()).isEqualTo("testA@example.com");
+            assertThat(user.getNickname()).isEqualTo("updateName");
+            verify(userRepository, times(1)).findById(id);
+        }
+
+        @Test
+        @DisplayName("사용자 수정 실패 - 존재하지 않는 사용자")
+        void update_fail() {
+            //given
+            UUID id=UUID.randomUUID();
+            given(userRepository.findById(id)).willReturn(Optional.empty());
+
+            //when
+            //then
+            assertThatThrownBy(()->sut.update(id,new UserUpdateRequest("updateName")))
+                    .isInstanceOf(NotFoundUserException.class)
+                    .hasMessage("해당 유저가 존재하지 않습니다.");
+        }
+
     }
 }

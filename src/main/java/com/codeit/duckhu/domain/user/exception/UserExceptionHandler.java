@@ -14,6 +14,18 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class UserExceptionHandler {
+    @ExceptionHandler(ForbiddenUpdateException.class)
+    public ResponseEntity<UserErrorResponse> handleUserException(ForbiddenUpdateException e) {
+        UserErrorResponse error=new UserErrorResponse(
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage(),
+                e.getDetails(),
+                e.getClass().getSimpleName(),
+                HttpStatus.FORBIDDEN.value()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(EmailDuplicateException.class)
     public ResponseEntity<UserErrorResponse> handleUserException(EmailDuplicateException e) {
         UserErrorResponse error=new UserErrorResponse(

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -175,6 +176,8 @@ class BookControllerTest {
 
       mockMvc.perform(delete("/api/books/{bookId}", bookId))
           .andExpect(status().isNoContent());
+
+      verify(bookService).deleteBookLogically(bookId);
     }
 
     @Test
@@ -184,6 +187,8 @@ class BookControllerTest {
 
       mockMvc.perform(delete("/api/books/{bookId}/hard", bookId))
           .andExpect(status().isNoContent());
+
+      verify(bookService).deleteBookPhysically(bookId);
     }
   }
 

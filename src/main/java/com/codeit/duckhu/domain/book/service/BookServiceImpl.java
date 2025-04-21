@@ -243,6 +243,13 @@ public class BookServiceImpl implements BookService {
     Book book = bookRepository.findById(id)
         .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));
 
+    // 썸네일 이미지가 있다면 S3에서 삭제
+    if (book.getThumbnailUrl() != null) {
+      thumbnailImageStorage.delete(book.getThumbnailUrl());
+      log.info("[도서 물리 삭제] S3 썸네일 삭제 완료: {}", book.getThumbnailUrl());
+    }
+
     bookRepository.delete(book);
+    log.info("[도서 삭제 완료] 물리적 삭제 처리 ID: {}", id);
   }
 }

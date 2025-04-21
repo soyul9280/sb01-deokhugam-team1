@@ -108,4 +108,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     return reviewMapper.toDto(updatedReview);
   }
+
+  public Review findByIdEntityReturn(UUID reviewId){
+    return reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+  }
 }

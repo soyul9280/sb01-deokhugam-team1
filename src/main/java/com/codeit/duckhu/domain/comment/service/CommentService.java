@@ -7,12 +7,11 @@ import com.codeit.duckhu.domain.comment.dto.CommentDto;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
+import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
-import com.codeit.duckhu.review.service.impl.ReviewServiceImpl;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -47,8 +46,8 @@ public class CommentService {
    //TODO : User & Review service 이용하여 객체 불러오기 필요 : 현재 메서드 미구현 상태
    public CommentDto create(CommentCreateRequest request){
      Comment comment = Comment.builder()
-         .user()
-         .review()
+         .user(userService.findByIdEntityReturn(request.getUserId()))
+         .review(reviewService.findByIdEntityReturn(request.getReviewId()))
          .content(request.getContent())
          .build();
 

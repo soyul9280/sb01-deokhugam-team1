@@ -68,4 +68,9 @@ public class UserServiceImpl implements UserService {
         user.update(userUpdateRequest);
         return userMapper.toDto(user);
     }
+
+    public User findByIdEntityReturn(UUID id){
+        return userRepository.findById(id)
+            .orElseThrow(() -> new NotFoundUserException(id));
+    }
 }

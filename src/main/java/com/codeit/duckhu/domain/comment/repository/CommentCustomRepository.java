@@ -8,5 +8,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 public interface CommentCustomRepository {
-  public Slice<Comment> searchAll(UUID reviewId, String direction, Instant after, UUID cursorId, int limit);
+  Slice<Comment> searchAll(UUID reviewId, String direction, Instant after, UUID cursorId, int limit);
 }

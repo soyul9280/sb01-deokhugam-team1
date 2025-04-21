@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.user.service;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
 import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
@@ -155,7 +156,7 @@ class UserServiceImplTest {
             User user = new User("testA@example.com", "testA", "testa1234!", false);
             given(userRepository.findById(id)).willReturn(Optional.of(user));
 
-            UserUpdateRequest request = new UserUpdateReqeust("updateName");
+            UserUpdateRequest request = new UserUpdateRequest("updateName");
             given(userMapper.toDto(user)).willReturn(new UserDto(id, "testA@example.com", "updateName", user.getCreatedAt()));
 
             //when

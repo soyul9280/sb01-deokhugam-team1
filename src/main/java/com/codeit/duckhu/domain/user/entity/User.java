@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.user.entity;
 
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.global.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,6 +34,12 @@ public class User extends BaseEntity {
         this.nickname = nickname;
         this.password = password;
         this.deleted = isDeleted;
+    }
+
+    public void update(UserUpdateRequest userUpdateRequest) {
+        if(!this.getNickname().equals(userUpdateRequest.getNickname())) {
+            this.nickname = userUpdateRequest.getNickname();
+        }
     }
 
 }

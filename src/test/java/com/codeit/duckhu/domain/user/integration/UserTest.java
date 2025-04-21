@@ -77,8 +77,6 @@ public class UserTest {
         assertEquals("test@example.com", response.getBody().getEmail());
     }
 
-    @Test
-    @DisplayName("사용자 정보 수정")
 
 }
 

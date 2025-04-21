@@ -7,7 +7,6 @@ import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.entity.User;
 import org.junit.jupiter.api.Test;
 
-/*
 public class CommentTest {
 
   @Test
@@ -19,4 +18,4 @@ public class CommentTest {
 
     assertEquals(user, comment.getUser());
   }
-}*/
+}

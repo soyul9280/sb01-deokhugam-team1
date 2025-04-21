@@ -58,32 +58,23 @@ CREATE TABLE comments (
                           CONSTRAINT fk_comment_review FOREIGN KEY (review_id) REFERENCES reviews(id)  ON DELETE CASCADE
 );
 
+
 -- 알림
 CREATE TABLE notifications (
-                        id UUID PRIMARY KEY NOT NULL,
-                        review_id UUID,  -- nullable, ON DELETE SET NULL 가능
-                        user_id UUID,    -- nullable, ON DELETE SET NULL 가능
-                        trigger_user_id UUID,
-                        content VARCHAR(100) NOT NULL,
-                        confirmed BOOLEAN NOT NULL,
-                        created_at TIMESTAMP NOT NULL,
-                        updated_at TIMESTAMP NOT NULL,
+                               id UUID PRIMARY KEY NOT NULL,
+                               review_id UUID,  -- nullable, ON DELETE SET NULL 가능
+                               user_id UUID,    -- nullable, ON DELETE SET NULL 가능
+                               trigger_user_id UUID,
+                               content VARCHAR(255) NOT NULL,
+                               confirmed BOOLEAN NOT NULL,
+                               created_at TIMESTAMP NOT NULL,
+                               updated_at TIMESTAMP NOT NULL,
 
-                        CONSTRAINT fk_notification_review
-                            FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE SET NULL,
+                               CONSTRAINT fk_notification_review FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE SET NULL,
 
-                        CONSTRAINT fk_notification_user
-                            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+                               CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-
--- period ENUM 정의
-CREATE TYPE period_type AS ENUM (
-    'DAILY',
-    'WEEKLY',
-    'MONTHLY',
-    'ALL_TIME'
-);
 
 -- 인기유저
 CREATE TABLE power_user (
@@ -92,7 +83,7 @@ CREATE TABLE power_user (
                             like_count INT,
                             comment_count INT,
                             user_id UUID NOT NULL,
-                            period period_type NOT NULL,
+                            period VARCHAR(20) NOT NULL CHECK (period IN ('DAILY', 'WEEKLY', 'MONTHLY', 'ALL_TIME')), -- 문자열로 수정
                             created_at TIMESTAMP NOT NULL,
                             score DOUBLE PRECISION,
                             rank INT,
@@ -107,7 +98,7 @@ CREATE TABLE popular_book (
                               id UUID PRIMARY KEY NOT NULL,
                               book_id UUID NOT NULL,
                               created_at TIMESTAMP NOT NULL,
-                              period period_type NOT NULL,
+                              period VARCHAR(20) NOT NULL CHECK (period IN ('DAILY', 'WEEKLY', 'MONTHLY', 'ALL_TIME')), -- 문자열로 수정
                               review_count INT,
                               rating DOUBLE PRECISION,
                               rank INT,
@@ -123,7 +114,7 @@ CREATE TABLE popular_reviews (
                                  id UUID PRIMARY KEY,
                                  review_id UUID NOT NULL,
                                  review_rating DOUBLE PRECISION NOT NULL CHECK (review_rating BETWEEN 0 AND 5),
-                                 period period_type NOT NULL,
+                                 period VARCHAR(20) NOT NULL CHECK (period IN ('DAILY', 'WEEKLY', 'MONTHLY', 'ALL_TIME')), -- 문자열로 수정
                                  created_at TIMESTAMP NOT NULL,
                                  like_count INT NOT NULL,
                                  comment_count INT NOT NULL,

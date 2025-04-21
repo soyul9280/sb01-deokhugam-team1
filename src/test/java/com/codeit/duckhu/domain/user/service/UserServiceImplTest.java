@@ -183,4 +183,23 @@ class UserServiceImplTest {
         }
 
     }
+    @Nested
+    @DisplayName("사용자 논리 삭제 테스트")
+    class DeleteUserTest {
+        @Test
+        @DisplayName("논리 삭제 성공")
+        void isDeleted_success() {
+            //given
+            UUID id = UUID.randomUUID();
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            given(userRepository.findById(id)).willReturn(Optional.of(user));
+
+            //when
+            sut.softDelete(id);
+            //then
+            assertThat(user.isDeleted()).isTrue();
+            verify(userRepository, times(1)).findById(id);
+        }
+    }
+
 }

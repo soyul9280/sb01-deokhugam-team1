@@ -86,21 +86,33 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
+    /**
+     * 알림의 확인(읽음) 상태를 업데이트합니다.
+     * @param notificationId 읽음 상태를 변경할 알림의 ID
+     * @param receiverId     현재 요청을 보낸 사용자(알림 수신자)의 ID
+     * @param confirmed      읽음 상태(true면 확인 처리)
+     * @return 읽음 처리된 알림의 DTO 정보
+     * @throws NotificationNotFoundException       알림이 존재하지 않는 경우
+     * @throws NotificationAccessDeniedException   알림의 수신자와 요청자가 일치하지 않는 경우
+     */
     @Override
     @Transactional
-    public NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId,
-        boolean confirmed) {
+    public NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId, boolean confirmed) {
+        // 1. 알림 ID로 알림을 조회한다. 없으면 404 예외 발생
         Notification notification = notificationRepsitory.findById(notificationId)
             .orElseThrow(() -> new NotificationNotFoundException(notificationId));
 
+        // 2. 알림의 수신자가 현재 요청자와 다를 경우 접근 권한 없음 예외 발생
         if (!notification.getReceiverId().equals(receiverId)) {
             throw new NotificationAccessDeniedException(receiverId, notificationId);
         }
 
+        // 3. 요청값이 true인 경우에만 확인 처리 (추후 false 처리 허용 시 확장 가능)
         if (confirmed) {
             notification.markAsConfirmed();
         }
 
+        // 4. 업데이트된 알림 정보를 DTO로 변환하여 반환
         return notificationMapper.toDto(notification);
     }
 

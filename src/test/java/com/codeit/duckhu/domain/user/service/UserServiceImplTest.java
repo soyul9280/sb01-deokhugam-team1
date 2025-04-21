@@ -231,6 +231,18 @@ class UserServiceImplTest {
             verify(userRepository, times(1)).findById(id);
             verify(userRepository, times(1)).deleteById(id);
         }
+
+        @Test
+        @DisplayName("물리 삭제 실패 - 존재하지 않는 사용자")
+        void hardDelete_fail() {
+            //given
+            UUID id = UUID.randomUUID();
+            given(userRepository.findById(id)).willReturn(Optional.empty());
+            //when
+            //then
+            assertThatThrownBy(() -> sut.hardDelete(id)).isInstanceOf(NotFoundUserException.class);
+        }
+
     }
 
 }

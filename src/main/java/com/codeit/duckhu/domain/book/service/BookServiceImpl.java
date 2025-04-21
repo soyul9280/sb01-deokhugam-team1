@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.book.service;
 
+import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.domain.book.exception.OCRException;
@@ -12,6 +13,7 @@ import com.codeit.duckhu.domain.book.mapper.BookMapper;
 import com.codeit.duckhu.domain.book.ocr.OcrExtractor;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
+import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -41,6 +43,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class BookServiceImpl implements BookService {
 
   private final BookRepository bookRepository;
+
+  private final ReviewRepository reviewRepository;
 
   private final BookMapper bookMapper;
 
@@ -130,12 +134,41 @@ public class BookServiceImpl implements BookService {
     return null;
   }
 
-//  @Override
-//  public BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest,
-//      Optional<MultipartFile> thumbnailImage) {
-//    return null;
-//  }
-//
+  @Override
+  public BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest,
+      Optional<MultipartFile> thumbnailImage) {
+    // 도서 존재 여부 확인
+    Book book = bookRepository.findById(id)
+        .filter(b -> !b.getIsDeleted())
+        .orElseThrow(() -> {
+          log.info("[도서 수정 실패] 존재하지 않거나 삭제된 도서입니다. ID : {}", id);
+          return new BookException(ErrorCode.BOOK_NOT_FOUND);
+        });
+
+    // 썸네일 이미지가 있다면 새로 업로드 후 갱신
+    thumbnailImage.filter(file -> !file.isEmpty())
+        .ifPresent(file -> {
+          String uploadUrl = thumbnailImageStorage.upload(file);
+          log.info("[도서 수정] 썸네일 이미지 변경됨: {}", uploadUrl);
+          book.updateThumbnailUrl(uploadUrl);
+        });
+
+    // 일반적인 정보 업데이트
+    book.updateInfo(
+        bookUpdateRequest.title(),
+        bookUpdateRequest.author(),
+        bookUpdateRequest.description(),
+        bookUpdateRequest.publisher(),
+        bookUpdateRequest.publishedDate()
+    );
+
+    int reviewCount = reviewRepository.countByBookId(book.getId());
+    int rating = reviewRepository.calculateAverageRatingByBookId(book.getId());
+
+    log.info("[도서 수정 완료] ID : {}", id);
+    return bookMapper.toDto(book,);
+  }
+
 
   /**
    * 도서 Isbn을 입력하면 Naver API에서 해당하는 도서 정보를 받습니다

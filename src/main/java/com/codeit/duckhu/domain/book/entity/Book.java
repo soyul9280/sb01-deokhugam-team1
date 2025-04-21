@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 @Entity
 @Table(name = "books")
@@ -51,4 +52,17 @@ public class Book extends BaseUpdatableEntity {
   @Builder.Default
   @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<PopularBook> popularBooks = new ArrayList<>();
+
+  public void updateThumbnailUrl(String thumbnailUrl) {
+    this.thumbnailUrl = thumbnailUrl;
+  }
+
+  public void updateInfo(String title, String author, String description, String publisher,
+      LocalDate publishedDate) {
+    this.title = title;
+    this.author = author;
+    this.description = description;
+    this.publisher = publisher;
+    this.publishedDate = publishedDate;
+  }
 }

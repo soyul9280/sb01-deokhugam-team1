@@ -25,8 +25,8 @@ public interface BookService {
 
   BookDto getBookById(UUID id);
 
-//  BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest, Optional<MultipartFile> thumbnailImage);
-//
+  BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest, Optional<MultipartFile> thumbnailImage);
+
   NaverBookDto getBookByIsbn(String isbn);
 
   String extractIsbnFromImage(MultipartFile image);

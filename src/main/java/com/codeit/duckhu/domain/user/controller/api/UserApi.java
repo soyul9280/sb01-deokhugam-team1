@@ -107,4 +107,20 @@ public interface UserApi {
     ResponseEntity<Void> softDelete(
             @RequestHeader("X-User-Id") UUID loginId,
             @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId);
+
+
+    @Operation(summary = "사용자 물리 삭제",description = "사용자를 물리적으로 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "사용자 삭제 성공"),
+            @ApiResponse(responseCode = "403", description = "사용자 삭제 권한 없음",
+                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "사용자 정보 없음",
+                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+    })
+    @DeleteMapping("/api/users/{userId}/hard")
+    ResponseEntity<Void> hardDelete(
+            @RequestHeader("X-User-Id") UUID loginId,
+            @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId);
 }

@@ -72,5 +72,15 @@ public class UserController implements UserApi {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @Override
+    @DeleteMapping("/{userId}/hard")
+    public ResponseEntity<Void> hardDelete(@RequestHeader("X-User-Id") UUID loginId, @PathVariable("userId") UUID targetId) {
+        if (!targetId.equals(loginId)) {
+            throw new ForbiddenDeleteException(loginId, targetId);
+        }
+        userService.hardDelete(targetId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
 
 }

@@ -1,8 +1,13 @@
 package com.codeit.duckhu.domain.review.entity;
 
+import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -38,6 +43,14 @@ public class Review extends BaseUpdatableEntity {
   @Column(name = "comment_count", nullable = false)
   @Builder.Default
   private int commentCount = 0;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn
+  private User user;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn
+  private Book book;
 
   public void updateContent(String content) {
     this.content = content;

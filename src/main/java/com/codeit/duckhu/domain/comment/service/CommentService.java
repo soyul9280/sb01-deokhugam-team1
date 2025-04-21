@@ -13,9 +13,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CommentService {
   private final CommentRepository repository;
   private final CommentMapper commentMapper;
@@ -24,11 +26,9 @@ public class CommentService {
   private final ReviewServiceImpl reviewService;
 
    public CommentDto get(UUID id){
-     if(repository.findById(id).isEmpty()){
-       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
-     }
+     Comment comment = repository.findById(id)
+         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-     Comment comment = repository.findById(id).get();
 
      return commentMapper.toDto(comment);
    }
@@ -59,25 +59,17 @@ public class CommentService {
    }
 
    public void deleteSoft(UUID id){
-     if(repository.findById(id).isEmpty()){
-       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
-     }
+     Comment comment = repository.findById(id)
+         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-     Comment comment = repository.findById(id).get();
      comment.markAsDeleted(true);
-
-     repository.save(comment);
    }
 
    public CommentDto update(UUID id, CommentUpdateRequest request){
-     if(repository.findById(id).isEmpty()){
-       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
-     }
-
-     Comment comment = repository.findById(id).get();
+     Comment comment = repository.findById(id)
+         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
      comment.setContent(request.getContent());
-     repository.save(comment);
 
      return  commentMapper.toDto(comment);
    }

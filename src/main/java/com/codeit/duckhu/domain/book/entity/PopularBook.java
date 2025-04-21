@@ -32,8 +32,7 @@ public class PopularBook extends BaseEntity {
   private Book book;
 
   @Enumerated(EnumType.STRING) // enum을 문자열로 처리
-  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-  @Column(nullable = false, columnDefinition = "period_type")
+  @Column(nullable = false)
   private PeriodType period;
 
   @Column(name = "review_count")

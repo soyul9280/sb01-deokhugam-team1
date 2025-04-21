@@ -44,7 +44,7 @@ public class CommentControllerTest {
   }
 
 
-  /*@Test
+  @Test
   void postMapping() throws Exception {
     CommentCreateRequest request = new CommentCreateRequest();
     request.setContent("create comment");
@@ -57,7 +57,7 @@ public class CommentControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
-  }*/
+  }
 
   @Test
   void deleteMapping() throws Exception {

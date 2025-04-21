@@ -17,26 +17,35 @@
   import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
   import com.codeit.duckhu.domain.user.entity.User;
   import com.codeit.duckhu.domain.user.service.UserServiceImpl;
-  import java.time.Instant;
   import java.time.LocalDate;
   import java.util.ArrayList;
+  import java.util.Optional;
   import java.util.UUID;
   import org.junit.jupiter.api.Test;
-  import org.junit.jupiter.api.extension.ExtendWith;
-  import org.mockito.InjectMocks;
-  import org.mockito.Mock;
-  import org.mockito.junit.jupiter.MockitoExtension;
   import org.springframework.beans.factory.annotation.Autowired;
   import org.springframework.boot.test.context.SpringBootTest;
   import org.springframework.test.context.ActiveProfiles;
   import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-  @ExtendWith(MockitoExtension.class)
+  @SpringBootTest
   @ActiveProfiles(profiles = "test")
   class CommentServiceTest {
 
-    @Mock
+    @Autowired
     private CommentService commentService;
+
+    @MockitoBean
+    private CommentRepository commentRepository;
+
+    @MockitoBean
+    private UserServiceImpl userService;
+
+    @MockitoBean
+    private ReviewServiceImpl reviewService;
+
+    @MockitoBean
+    private CommentMapper commentMapper;
+
 
     @Test
     void create(){
@@ -45,12 +54,16 @@
       request.setReviewId(UUID.randomUUID());
       request.setContent("test comment");
 
-      CommentDto savedComment = new CommentDto();
-      savedComment.setContent("test comment");
-      savedComment.setUserId(request.getUserId());
-      savedComment.setReviewId(request.getReviewId());
+      CommentDto dto = new CommentDto();
+      dto.setContent("test comment");
 
-      given(commentService.create(any(CommentCreateRequest.class))).willReturn(savedComment);
+      given(userService.findByIdEntityReturn(any(UUID.class))).willReturn(new User(
+          "test@mail.com","user","pass",false
+      ));
+      given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(new Review(
+          "test",4,5,7,null,null
+      ));
+      given(commentMapper.toDto(any(Comment.class))).willReturn(dto);
 
       CommentDto commentDto = commentService.create(request);
 
@@ -59,45 +72,68 @@
 
     @Test
     void update(){
+      // given
       UUID commentId = UUID.randomUUID();
-      CommentUpdateRequest updateRequest = new CommentUpdateRequest();
-      updateRequest.setContent("update test comment");
 
+      CommentUpdateRequest updateRequest = new CommentUpdateRequest();
+      updateRequest.setContent("updated content");
+
+      // 기존 Comment 객체 (DB에서 조회된 상태라 가정)
+      Comment existingComment = new Comment();
+      existingComment.setContent("old content");
+
+      // 수정 후 DTO (최종 반환 예상값)
       CommentDto updatedDto = new CommentDto();
       updatedDto.setId(commentId);
-      updatedDto.setContent("update test comment");
+      updatedDto.setContent("updated content");
 
-      given(commentService.update(any(UUID.class), any(CommentUpdateRequest.class)))
-          .willReturn(updatedDto);
+      given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(existingComment));
+      given(commentMapper.toDto(existingComment)).willReturn(updatedDto);
 
+      // when
       CommentDto result = commentService.update(commentId, updateRequest);
 
-      assertEquals("update test comment", result.getContent());
+      // then
+      assertEquals("updated content", result.getContent());
       assertEquals(commentId, result.getId());
     }
 
     @Test
     void delete(){
       UUID commentId = UUID.randomUUID();
+      Comment existingComment = new Comment();
+
+      given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(existingComment));
 
       commentService.delete(commentId);
 
-      verify(commentService).delete(commentId);
+      verify(commentRepository).deleteById(any(UUID.class));
     }
 
     @Test
     void get(){
       UUID commentId = UUID.randomUUID();
-      CommentDto expected = new CommentDto();
-      expected.setId(commentId);
-      expected.setContent("test comment");
 
-      given(commentService.get(commentId)).willReturn(expected);
+      User user = new User("test@mail.com", "user", "pass", false);
+      Book book = new Book("title", "author", "desc", "pub", LocalDate.now(), "isbn", "url", false, new ArrayList<>(), new ArrayList<>());
+      Review review = new Review("test", 4, 5, 7, user, book);
+
+      Comment comment = new Comment();
+      comment.setContent("test comment");
+
+      CommentDto dto = new CommentDto();
+      dto.setContent("test comment");
+
+
+      given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(comment));
+      given(userService.findByIdEntityReturn(any(UUID.class))).willReturn(user);
+      given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(review);
+      given(commentMapper.toDto(comment)).willReturn(dto);
 
       CommentDto result = commentService.get(commentId);
 
       assertEquals("test comment", result.getContent());
-      assertEquals(commentId, result.getId());
+      assertNotNull(result);
     }
 
   }

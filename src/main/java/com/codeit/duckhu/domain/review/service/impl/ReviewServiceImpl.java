@@ -86,6 +86,14 @@ public class ReviewServiceImpl implements ReviewService {
     reviewRepository.delete(review);
   }
 
+  @Override
+  public void softDeleteReviewById(UUID testReviewId) {
+    Review review = reviewRepository.findById(testReviewId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+    review.softDelete();
+  }
+
   @Transactional
   @Override
   public ReviewDto updateReview(UUID id, ReviewUpdateRequest request) {

@@ -215,15 +215,14 @@ class ReviewServiceTest {
   @DisplayName("ID로 리뷰 소프트 삭제 테스트")
   void softDeleteReviewById_shouldReturnSuccess() {
     // Given
-    doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
-    willDoNothing().given(reviewRepository).delete(testReview);
-
+    Review mockReview = Mockito.mock(Review.class);
+    doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
+    
     // When
     reviewService.softDeleteReviewById(testReviewId);
-
+    
     // Then
-    assertThat(testReview.isDeleted()).isTrue();
-    verify(userRepository, times(1)).findById(testUserId);
+    verify(mockReview).softDelete();
   }
 
   @Test

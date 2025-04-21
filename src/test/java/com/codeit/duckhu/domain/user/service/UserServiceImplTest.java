@@ -167,5 +167,6 @@ class UserServiceImplTest {
             assertThat(user.getNickname()).isEqualTo("updateName");
             verify(userRepository, times(1)).findById(id);
         }
+
     }
 }

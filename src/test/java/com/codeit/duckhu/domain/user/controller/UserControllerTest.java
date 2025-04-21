@@ -3,8 +3,10 @@ package com.codeit.duckhu.domain.user.controller;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
+import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.exception.UserExceptionHandler;
 import com.codeit.duckhu.domain.user.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -115,6 +118,25 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
     }
+
+    @Test
+    @DisplayName("PATCH /api/users/{userId} - 입력값 검증 실패")
+    void update_fail() throws Exception {
+        //given
+        UserUpdateRequest request = new UserUpdateRequest("u");
+        //when
+        //then
+        mockMvc.perform(patch("/api/users/{userId}",UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+
+                .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
+                .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"))
+                .andExpect(jsonPath("$.details.nickname").value("닉네임은 2자 이상 20자 이하로 입력해주세요."));
+
+    }
+
 
 
 }

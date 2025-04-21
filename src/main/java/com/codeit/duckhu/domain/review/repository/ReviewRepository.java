@@ -15,7 +15,7 @@ public interface ReviewRepository extends JpaRepository<Review,UUID> {
      * 리뷰가 없을 경우 0을 반환합니다.
      * - 도서 상세 조회 시 reviewCount에 사용됩니다.
      */
-    @Query("SELECT COUNT(r, 0) FROM Review r WHERE r.book.id = :bookId AND r.isDeleted = false")
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.book.id = :bookId AND r.isDeleted = false")
     int countByBookId(@Param("bookId") UUID bookId);
 
     /**

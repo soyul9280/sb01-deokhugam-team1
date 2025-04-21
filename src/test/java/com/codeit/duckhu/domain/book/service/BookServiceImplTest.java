@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.book.service;
 
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
+import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.domain.book.mapper.BookMapper;
@@ -9,6 +10,7 @@ import com.codeit.duckhu.domain.book.naver.NaverBookClient;
 import com.codeit.duckhu.domain.book.ocr.OcrExtractor;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
+import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +38,9 @@ public class BookServiceImplTest {
 
   @Mock
   private BookRepository bookRepository;
+
+  @Mock
+  private ReviewRepository reviewRepository;
 
   @Mock
   private BookMapper bookMapper;
@@ -168,6 +174,97 @@ public class BookServiceImplTest {
           .isInstanceOf(BookException.class);
 
       verify(bookRepository, never()).save(any());
+    }
+  }
+
+  @Nested
+  @DisplayName("도서 업데이트")
+  class UpdateBookTest {
+    @Test
+    @DisplayName("도서 정보와 썸네일을 수정하면 BookDto가 반환된다.")
+    void updateBook_withThumbnailImage_success() {
+      // Given
+      UUID bookId = UUID.randomUUID();
+      Book originalBook = Book.builder()
+          .title("Old Title")
+          .author("Old Author")
+          .description("Old Desc")
+          .publisher("Old Publisher")
+          .publishedDate(LocalDate.of(2000, 1, 1))
+          .isDeleted(false)
+          .build();
+      ReflectionTestUtils.setField(originalBook, "id", bookId);
+
+      BookUpdateRequest request = new BookUpdateRequest(
+          "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
+      );
+
+      MultipartFile thumbnail = new MockMultipartFile("thumbnail", "thumbnail.jpg", "image/jpeg", "fake".getBytes());
+      String uploadedUrl = "https://s3.bucket/thumbnail.jpg";
+
+      int reviewCount = 5;
+      double rating = 4.2;
+      BookDto expectedDto = new BookDto(bookId, "New Title", "New Author", "New Desc",
+          "New Publisher",
+          LocalDate.now(), null, uploadedUrl, reviewCount, rating, Instant.now(), Instant.now());
+
+      given(bookRepository.findById(bookId)).willReturn(Optional.of(originalBook));
+      given(thumbnailImageStorage.upload(thumbnail)).willReturn(uploadedUrl);
+      given(reviewRepository.countByBookId(bookId)).willReturn(reviewCount);
+      given(reviewRepository.calculateAverageRatingByBookId(bookId)).willReturn(rating);
+      given(bookMapper.toDto(originalBook, reviewCount, rating)).willReturn(expectedDto);
+
+      // When
+      BookDto result = bookService.updateBook(bookId, request, Optional.of(thumbnail));
+
+      // Then
+      assertThat(result).isEqualTo(expectedDto);
+      assertThat(originalBook.getTitle()).isEqualTo("New Title");
+      assertThat(originalBook.getThumbnailUrl()).isEqualTo(uploadedUrl);
+    }
+
+
+    @Test
+    @DisplayName("도서 수정 실패 - 존재하지 않는 도서")
+    void updateBook_bookNotFound_throwsException() {
+      // Given
+      UUID bookId = UUID.randomUUID();
+      BookUpdateRequest request = new BookUpdateRequest(
+          "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
+      );
+
+      given(bookRepository.findById(bookId)).willReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> bookService.updateBook(bookId, request, Optional.empty()))
+          .isInstanceOf(BookException.class);
+    }
+
+    @Test
+    @DisplayName("도서 수정 실패 - 논리 삭제된 도서")
+    void updateBook_bookIsDeleted_throwsException() {
+      // Given
+      UUID bookId = UUID.randomUUID();
+      Book deletedBook = Book.builder()
+          .title("Old Title")
+          .author("Author")
+          .description("Desc")
+          .publisher("Publisher")
+          .publishedDate(LocalDate.of(2010, 1, 1))
+          .isDeleted(true) // 논리 삭제된 상태
+          .build();
+
+      ReflectionTestUtils.setField(deletedBook, "id", bookId);
+
+      BookUpdateRequest request = new BookUpdateRequest(
+          "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
+      );
+
+      given(bookRepository.findById(bookId)).willReturn(Optional.of(deletedBook));
+
+      // When & Then
+      assertThatThrownBy(() -> bookService.updateBook(bookId, request, Optional.empty()))
+          .isInstanceOf(BookException.class);
     }
   }
 }

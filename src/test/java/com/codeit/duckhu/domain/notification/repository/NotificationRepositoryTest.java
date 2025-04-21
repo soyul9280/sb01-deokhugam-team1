@@ -39,17 +39,17 @@ public class NotificationRepositoryTest {
             UUID reviewId = UUID.randomUUID();
             UUID triggerUserId = UUID.randomUUID();
             UUID receiverId = UUID.randomUUID();
-            String content = "[buzz]님이 나의 리뷰를 좋아합니다.";
+            String nickname = "buzz";
 
-            Notification notification = new Notification(reviewId, receiverId, triggerUserId,
-                content);
+            Notification notification = Notification.forLike(reviewId, receiverId, triggerUserId,
+                nickname);
 
             // when
             Notification saved = notificationRepository.save(notification);
 
             // then
             assertThat(saved.getId()).isNotNull();
-            assertThat(saved.getContent()).isEqualTo(content);
+            assertThat(saved.getContent()).isEqualTo("[buzz]님이 나의 리뷰를 좋아합니다.");
             assertThat(saved.getReviewId()).isEqualTo(reviewId);
             assertThat(saved.getReceiverId()).isEqualTo(receiverId);
             assertThat(saved.getTriggerUserId()).isEqualTo(triggerUserId);
@@ -65,18 +65,18 @@ public class NotificationRepositoryTest {
             UUID reviewId = UUID.randomUUID();
             UUID triggerUserId = UUID.randomUUID();
             UUID receiverId = UUID.randomUUID();
+            String nickname = "buzz";
             String comment = "12345";
-            String content = "[buzz]님이 나의 리뷰에 댓글을 남겼습니다.\n" + comment;
 
-            Notification notification = new Notification(reviewId, receiverId, triggerUserId,
-                content);
+            Notification notification = Notification.forComment(reviewId, receiverId, triggerUserId,
+                nickname, comment);
 
             // when
             Notification saved = notificationRepository.save(notification);
 
             // then
             assertThat(saved.getId()).isNotNull();
-            assertThat(saved.getContent()).isEqualTo(content);
+            assertThat(saved.getContent()).isEqualTo("[buzz]님이 나의 리뷰에 댓글을 남겼습니다.\n12345");
             assertThat(saved.getReviewId()).isEqualTo(reviewId);
             assertThat(saved.getReceiverId()).isEqualTo(receiverId);
             assertThat(saved.getTriggerUserId()).isEqualTo(triggerUserId);

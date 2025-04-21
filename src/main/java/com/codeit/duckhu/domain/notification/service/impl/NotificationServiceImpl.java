@@ -1,5 +1,9 @@
 package com.codeit.duckhu.domain.notification.service.impl;
 
+import com.codeit.duckhu.domain.notification.dto.NotificationDto;
+import com.codeit.duckhu.domain.notification.exception.NotificationAccessDeniedException;
+import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
+import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -17,85 +21,87 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-	private final NotificationRepsitory notificationRepsitory;
+    private final NotificationRepsitory notificationRepsitory;
+    private final NotificationMapper notificationMapper;
 
-	/**
-	 * 내가 작성한 리뷰에 다른 사용자가 좋아요를 누르면 알림을 생성한다.
-	 *
-	 * @param reviewId        알림 대상 리뷰 ID
-	 * @param triggerUserId   좋아요를 누른 사용자 ID
-	 * @param receiverId      알림을 받을 사용자 ID (리뷰 작성자)
-	 * @return 생성된 알림 객체
-	 */
-	@Override
-	@Transactional
-	public Notification createNotifyByLike(UUID reviewId, UUID triggerUserId, UUID receiverId) {
-		// Todo 실제 triggerNickname,receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
-		String content = generateLikeMessage();
+    /**
+     * 내가 작성한 리뷰에 다른 사용자가 좋아요를 누르면 알림을 생성한다.
+     *
+     * @param reviewId      알림 대상 리뷰 ID
+     * @param triggerUserId 좋아요를 누른 사용자 ID
+     * @param receiverId    알림을 받을 사용자 ID (리뷰 작성자)
+     * @return 생성된 알림 객체
+     */
+    @Override
+    @Transactional
+    public NotificationDto createNotifyByLike(UUID reviewId, UUID triggerUserId, UUID receiverId) {
+        // Todo 실제 triggerNickname,receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
+        String triggerNickname = "buzz"; // 임시
 
-		// Todo
-		// 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
-		// 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
+        // Todo
+        // 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
+        // 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
 
+        // 알림 객체 생성(triggerNickname의 경우 연관관계 맺을때 추가할 예정
+        Notification notification = Notification.forLike(reviewId, receiverId, triggerUserId,
+            triggerNickname);
 
-		// 알림 객체 생성
-		Notification notification = new Notification(
-			reviewId,
-			receiverId,
-			triggerUserId,
-			content
-		);
+        // Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
+        // return notificationMapper.toDto(notificationRepository.save(notification));
+        return notificationMapper.toDto(notificationRepsitory.save(notification));
+    }
 
-		// Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
-		// return notificationMapper.toDto(notificationRepository.save(notification));
-		return notificationRepsitory.save(notification);
-	}
+    /**
+     * 내가 작성한 리뷰에 다른 사용자가 댓글을 남기면 알림을 생성한다.
+     *
+     * @param reviewId      알림 대상 리뷰 ID
+     * @param triggerUserId 댓글을 작성한 사용자 ID
+     * @param receiverId    알림을 받을 사용자 ID (리뷰 작성자)
+     * @return 생성된 알림 객체
+     */
+    @Override
+    @Transactional
+    public NotificationDto createNotifyByComment(UUID reviewId, UUID triggerUserId, UUID receiverId) {
+        // 리팩터링 대상: 실제 닉네임, 댓글 내용 포함 가능
+        // Todo 실제 triggerNickname,comment, receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
+        String triggerNickname = "buzz"; // 임시
+        String commentContent = "댓글 내용입니다"; // 임시
 
-	/**
-	 * 내가 작성한 리뷰에 다른 사용자가 댓글을 남기면 알림을 생성한다.
-	 *
-	 * @param reviewId        알림 대상 리뷰 ID
-	 * @param triggerUserId   댓글을 작성한 사용자 ID
-	 * @param receiverId      알림을 받을 사용자 ID (리뷰 작성자)
-	 * @return 생성된 알림 객체
-	 */
-	@Override
-	@Transactional
-	public Notification createNotifyByComment(UUID reviewId, UUID triggerUserId, UUID receiverId) {
-		// 리팩터링 대상: 실제 닉네임, 댓글 내용 포함 가능
-		// Todo 실제 triggerNickname,comment, receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
-		String content = generateCommentMessage();
+        // Todo
+        // 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
+        // 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
 
-		// Todo
-		// 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
-		// 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
+        // 알림 객체 생성
+        Notification notification = Notification.forComment(
+            reviewId,
+            receiverId,
+            triggerUserId,
+            triggerNickname,
+            commentContent
+        );
 
-		// 알림 객체 생성
-		Notification notification = new Notification(
-			reviewId,
-			receiverId,
-			triggerUserId,
-			content
-		);
-
-		// Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
-		// return notificationMapper.toDto(notificationRepository.save(notification));
-		return notificationRepsitory.save(notification);
-	}
-
-	// 내부 메시지 생성 메서드
-	private static String generateLikeMessage() {
-		return "[닉네임] 님이 나의 리뷰를 좋아합니다.";
-	}
-	private static String generateLikeMessage(String nickname) {
-		return nickname + "님이 나의 리뷰를 좋아합니다.";
-	}
+        // Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
+        // return notificationMapper.toDto(notificationRepository.save(notification));
+        return notificationMapper.toDto(notificationRepsitory.save(notification));
+    }
 
 
-	private static String generateCommentMessage() {
-		return "님이 나의 리뷰에 댓글을 남겼습니다.";
-	}
-	private static String generateCommentMessage(String nickname, String comment) {
-		return nickname + "님이 나의 리뷰에 댓글을 남겼습니다." + comment;
-	}
+    @Override
+    @Transactional
+    public NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId,
+        boolean confirmed) {
+        Notification notification = notificationRepsitory.findById(notificationId)
+            .orElseThrow(() -> new NotificationNotFoundException(notificationId));
+
+        if (!notification.getReceiverId().equals(receiverId)) {
+            throw new NotificationAccessDeniedException(receiverId, notificationId);
+        }
+
+        if (confirmed) {
+            notification.markAsConfirmed();
+        }
+
+        return notificationMapper.toDto(notification);
+    }
+
 }

@@ -5,7 +5,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
+import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
+import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,6 +33,9 @@ public class NotificationServiceTest {
 
     @Mock
     private NotificationRepsitory notificationRepository;
+
+    @Mock
+    private NotificationMapper notificationMapper;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -57,27 +63,39 @@ public class NotificationServiceTest {
             String expectedContent = "[" + expectedNickname + "]님이 나의 리뷰를 좋아합니다.";
 
             //// 알림 저장 시 repository에서 반환할 예상 결과 정의
-            Notification expectedNotification = new Notification(reviewId, receiverId,
-                triggerUserId,
-                expectedContent);
+            Notification expectedNotification = Notification.forLike(reviewId, receiverId,
+                triggerUserId, expectedNickname);
+
+            NotificationDto expectedDto = new NotificationDto(
+                UUID.randomUUID(),
+                receiverId,
+                reviewId,
+                null, // reviewTitle은 현재 null 처리
+                expectedContent,
+                false,
+                Instant.now(),
+                Instant.now()
+            );
 
             // when: 좋아요 발생 시 알림 생성 서비스 호출 (실제 메시지 생성은 서비스 내부 로직)
             // 추가로 review를 mock으로 가져와 검증 및 review의 content를 reviewTitle로 변환
             // notification의 content는 "[buzz]님이 나의 리뷰를 좋아합니다." 형식으로 service에서 생성
             // 프론트로 반환할때 userid로 usernickname도 가져와야된다
-            when(notificationRepository.save(any(Notification.class))).thenReturn(
+            given(notificationRepository.save(any(Notification.class))).willReturn(
                 expectedNotification);
-            Notification result = notificationService.createNotifyByLike(reviewId, triggerUserId,
+            given(notificationMapper.toDto(any(Notification.class))).willReturn(expectedDto);
+
+            NotificationDto result = notificationService.createNotifyByLike(reviewId, triggerUserId,
                 receiverId);
 
             // then: NotificationRepository.save() 호출 확인 + 검증
-            assertThat(result.getReviewId()).isEqualTo(reviewId);
-            assertThat(result.getReceiverId()).isEqualTo(receiverId);
-            assertThat(result.getTriggerUserId()).isEqualTo(triggerUserId);
-            assertThat(result.getContent()).isEqualTo(expectedContent);
-            assertThat(result.isConfirmed()).isFalse(); // 확인 상태는 기본으로 false이다
+            assertThat(result.reviewId()).isEqualTo(reviewId);
+            assertThat(result.userId()).isEqualTo(receiverId);
+            assertThat(result.content()).isEqualTo(expectedContent);
+            assertThat(result.confirmed()).isFalse(); // 확인 상태는 기본으로 false이다
 
-            verify(notificationRepository, times(1)).save(any(Notification.class));
+            then(notificationRepository).should(times(1)).save(any(Notification.class));
+            then(notificationMapper).should(times(1)).toDto(expectedNotification);
         }
 
         @Test
@@ -85,27 +103,30 @@ public class NotificationServiceTest {
         void createsNotificationForOtherUsersReviewComment() {
             // given: 리뷰 ID, 댓글 작성자 ID, 리뷰 작성자 ID BeforeEach로 미리 구현
             String nickname = "buzz";
-            String commentContent = "12345";
-            String expectedContent = "[" + nickname + "]님이 나의 리뷰에 댓글을 남겼습니다.\n" + commentContent;
+            String comment = "12345";
+            String expectedContent = "[" + nickname + "]님이 나의 리뷰에 댓글을 남겼습니다.\n" + comment;
+            Notification expectedNotification = Notification.forComment(reviewId, receiverId,
+                triggerUserId, nickname, comment);
 
-            Notification expectedNotification = new Notification(reviewId, receiverId,
-                triggerUserId,
-                expectedContent);
+            NotificationDto expectedDto = new NotificationDto(UUID.randomUUID(), receiverId,
+                reviewId, null, expectedContent, false, Instant.now(), Instant.now());
 
             // when: 댓글 작성자가 리뷰에 댓글을 남겼을 때 알림이 생성되는 상황을 시뮬레이션
-            when(notificationRepository.save(any(Notification.class))).thenReturn(
+            given(notificationRepository.save(any(Notification.class))).willReturn(
                 expectedNotification);
-            Notification result = notificationService.createNotifyByLike(reviewId, triggerUserId,
-                receiverId);
+            given(notificationMapper.toDto(any(Notification.class))).willReturn(expectedDto);
+
+            NotificationDto result = notificationService.createNotifyByComment(reviewId,
+                triggerUserId, receiverId);
 
             // then: NotificationRepository.save() 호출 확인 및 검증
-            assertThat(result.getReviewId()).isEqualTo(reviewId);
-            assertThat(result.getTriggerUserId()).isEqualTo(triggerUserId);
-            assertThat(result.getReceiverId()).isEqualTo(receiverId);
-            assertThat(result.getContent()).isEqualTo(expectedContent);
-            assertThat(result.isConfirmed()).isFalse(); // ✅ 확인 상태 기본 false
+            assertThat(result.reviewId()).isEqualTo(reviewId);
+            assertThat(result.userId()).isEqualTo(receiverId);
+            assertThat(result.content()).isEqualTo(expectedContent);
+            assertThat(result.confirmed()).isFalse();
 
-            verify(notificationRepository, times(1)).save(any(Notification.class));
+            then(notificationRepository).should(times(1)).save(any(Notification.class));
+            then(notificationMapper).should(times(1)).toDto(expectedNotification);
         }
 
         // Todo: 내가 작성한 리뷰의 인기 순위가 각 기간 별 10위 내에 선정되면 알림이 생성됩니다.
@@ -122,18 +143,32 @@ public class NotificationServiceTest {
             UUID notificationId = UUID.randomUUID();
             UUID receiverId = UUID.randomUUID();
 
-            Notification notification = new Notification(
-                UUID.randomUUID(), receiverId, UUID.randomUUID(), "테스트 알림 내용"
+            Notification notification = Notification.forLike(
+                UUID.randomUUID(), receiverId, UUID.randomUUID(), "buzz"
+            );
+
+            NotificationDto expectedDto = new NotificationDto(
+                notificationId,
+                receiverId,
+                notification.getReviewId(),
+                null,
+                notification.getContent(),
+                true,
+                Instant.now(),
+                Instant.now()
             );
 
             given(notificationRepository.findById(notificationId)).willReturn(Optional.of(notification));
+            given(notificationMapper.toDto(notification)).willReturn(expectedDto);
 
             // when
-            notificationService.updateConfirmedStatus(notificationId, receiverId, true);
+            NotificationDto result = notificationService.updateConfirmedStatus(notificationId, receiverId, true);
 
             // then
             assertThat(notification.isConfirmed()).isTrue();
+            assertThat(result.confirmed()).isTrue();
             then(notificationRepository).should(times(1)).findById(notificationId);
+            then(notificationMapper).should(times(1)).toDto(notification);
         }
 
         @Test

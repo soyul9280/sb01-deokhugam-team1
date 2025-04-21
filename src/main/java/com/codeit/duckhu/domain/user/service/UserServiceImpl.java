@@ -78,4 +78,10 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
         user.softDelete();
     }
+
+    @Override
+    public void hardDelete(UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
+        userRepository.deleteById(user.getId());
+    }
 }

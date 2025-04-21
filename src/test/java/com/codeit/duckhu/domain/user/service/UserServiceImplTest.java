@@ -220,8 +220,8 @@ class UserServiceImplTest {
         @DisplayName("물리 삭제 성공")
         void hardDelete_success() {
             //given
-            UUID id = UUID.randomUUID();
             User user = new User("testA@example.com", "testA", "testa1234!", false);
+            UUID id = user.getId();
             given(userRepository.findById(id)).willReturn(Optional.of(user));
 
             //when

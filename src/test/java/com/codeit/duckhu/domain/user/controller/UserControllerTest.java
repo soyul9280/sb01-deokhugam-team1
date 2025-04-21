@@ -160,7 +160,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/users/{userId} - 권한없음(실패)")
+    @DisplayName("DELETE /api/users/{userId} - 권한없음 (실패)")
     void softDelete_fail() throws Exception {
         //given
         UUID targetId = UUID.randomUUID(); //타겟(다른 사람)

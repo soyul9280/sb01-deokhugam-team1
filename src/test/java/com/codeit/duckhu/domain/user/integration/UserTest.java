@@ -100,6 +100,25 @@ public class UserTest {
         assertEquals("newName", response.getBody().getNickname());
     }
 
+    @Test
+    @DisplayName("사용자 논리삭제 - 성공")
+    @Sql("/data.sql")
+    void softDelete_success() {
+        //given
+        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-User-Id", targetId.toString());
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+
+        //when
+        ResponseEntity<Void> response = restTemplate.exchange("/api/users/" + targetId,
+                HttpMethod.DELETE, httpEntity, Void.class);
+
+        //then
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
 
 }
 

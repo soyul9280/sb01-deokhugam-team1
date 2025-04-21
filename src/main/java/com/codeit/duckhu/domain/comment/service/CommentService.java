@@ -9,7 +9,10 @@ import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
 import com.codeit.duckhu.review.service.impl.ReviewServiceImpl;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -33,8 +36,12 @@ public class CommentService {
      return commentMapper.toDto(comment);
    }
 
-   public Slice<CommentDto> getList(){
+   public List<CommentDto> getList(UUID reviewId,String direction,
+       UUID cursorId, Instant createdAt, int limit){
+     Slice<Comment> list = repository.searchAll(reviewId,direction,createdAt,cursorId,limit);
 
+     return list.getContent().stream()
+         .map(commentMapper::toDto).toList();
    }
 
    //TODO : User & Review service 이용하여 객체 불러오기 필요 : 현재 메서드 미구현 상태

@@ -4,9 +4,12 @@ import com.codeit.duckhu.domain.comment.dto.CommentDto;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.service.CommentService;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -48,8 +52,14 @@ public class CommentController {
   }
 
   @GetMapping
-  public ResponseEntity<Slice<CommentDto>> getCommentsList(){
-    return ResponseEntity.status(HttpStatus.OK).body(commentService.getList());
+  public ResponseEntity<List<CommentDto>> getCommentsList(
+      @RequestParam UUID reviewId,
+      @RequestParam(defaultValue = "DESC") String direction,
+      @RequestParam(required = false) UUID cursorId,
+      @RequestParam(required = false) Instant createdAt,
+      @RequestParam(defaultValue = "30") int limit
+  ){
+    return ResponseEntity.status(HttpStatus.OK).body(commentService.getList(reviewId,direction,cursorId,createdAt,limit));
   }
 
   @GetMapping("/{commentId}")

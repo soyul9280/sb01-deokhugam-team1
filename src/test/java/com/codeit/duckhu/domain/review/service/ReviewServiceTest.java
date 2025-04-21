@@ -34,12 +34,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * 리뷰 서비스 테스트 클래스
  * TDD 방식으로 구현 예정
- *//*
-
+ */
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
-  */
+
 /**
    * 서비스 계층 설계
    *
@@ -58,7 +57,7 @@ class ReviewServiceTest {
    * 요청 데이터 - ReviewLikeDto: 리뷰 좋아요 데이터
    *
    * 3. 서비스 구현체 (ReviewServiceImpl) 생성 - 리포지토리를 통한 CRUD 구현
-   *//*
+   */
 
   @Mock
   private UserRepository userRepository;
@@ -146,15 +145,14 @@ class ReviewServiceTest {
         
     // 테스트용 Create 요청 생성
     testCreateRequest = ReviewCreateRequest.builder()
-        .content("볼만해요")
-        .rating(3)
         .userId(testUserId)
         .bookId(testBookId)
+        .content("볼만해요")
+        .rating(3)
         .build();
 
     // 테스트용 Update 요청 생성
     testreviewUpdateRequest = ReviewUpdateRequest.builder()
-        .userId(testUserId)
         .content("재밌어요")
         .rating(5)
         .build();
@@ -164,10 +162,11 @@ class ReviewServiceTest {
   @DisplayName("리뷰 생성 성공")
   void createReview_shouldCreateReview() {
     // Given
-    when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-    when(bookRepository.findById(testBookId)).thenReturn(Optional.of(testBook));
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
+    when(bookRepository.findById(any(UUID.class))).thenReturn(Optional.of(testBook));
     when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
     when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
+    when(reviewMapper.toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class))).thenReturn(testReview);
 
     // When
     ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -180,8 +179,9 @@ class ReviewServiceTest {
     assertThat(result.getCommentCount()).isEqualTo(0);
     assertThat(result.getUserId()).isEqualTo(testUserId);
     assertThat(result.getBookId()).isEqualTo(testBookId);
-    verify(userRepository).findById(testUserId);
-    verify(bookRepository).findById(testBookId);
+    verify(userRepository).findById(any(UUID.class));
+    verify(bookRepository).findById(any(UUID.class));
+    verify(reviewMapper).toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class));
     verify(reviewRepository).save(any(Review.class));
     verify(reviewMapper).toDto(any(Review.class));
   }
@@ -262,4 +262,3 @@ class ReviewServiceTest {
   }
 }
 
-*/

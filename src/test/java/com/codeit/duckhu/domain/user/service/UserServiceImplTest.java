@@ -200,6 +200,17 @@ class UserServiceImplTest {
             assertThat(user.isDeleted()).isTrue();
             verify(userRepository, times(1)).findById(id);
         }
+
+        @Test
+        @DisplayName("논리 삭제 실패 - 존재하지 않는 사용자")
+        void isDeleted_fail() {
+            //given
+            UUID id = UUID.randomUUID();
+            given(userRepository.findById(id)).willReturn(Optional.empty());
+            //when
+            //then
+            assertThatThrownBy(() -> sut.softDelete(id)).isInstanceOf(NotFoundUserException.class);
+        }
     }
 
 }

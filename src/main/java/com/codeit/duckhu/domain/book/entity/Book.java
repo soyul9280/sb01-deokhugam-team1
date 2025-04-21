@@ -50,10 +50,27 @@ public class Book extends BaseUpdatableEntity {
   private Boolean isDeleted = false;
 
 
-  @OneToMany(mappedBy = "book")
-  private List<Review> review = new ArrayList<>();
+  @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
+  private List<Review> reviews = new ArrayList<>();
 
   @Builder.Default
   @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<PopularBook> popularBooks = new ArrayList<>();
+
+  public void updateThumbnailUrl(String thumbnailUrl) {
+    this.thumbnailUrl = thumbnailUrl;
+  }
+
+  public void updateInfo(String title, String author, String description, String publisher,
+      LocalDate publishedDate) {
+    this.title = title;
+    this.author = author;
+    this.description = description;
+    this.publisher = publisher;
+    this.publishedDate = publishedDate;
+  }
+
+  public void logicallyDelete() {
+    this.isDeleted = true;
+  }
 }

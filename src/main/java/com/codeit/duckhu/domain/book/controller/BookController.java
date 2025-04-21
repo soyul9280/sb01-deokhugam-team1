@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.book.controller;
 
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
+import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
@@ -9,11 +10,15 @@ import jakarta.validation.Valid;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -68,5 +73,39 @@ public class BookController {
       @RequestParam("isbn") String isbn
   ) {
     return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
+  }
+
+  @PatchMapping(value = "/{bookId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<BookDto> updateBook(
+      @PathVariable("bookId") UUID bookId,
+      @RequestPart("bookData") BookUpdateRequest bookData,
+      @RequestParam(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+  ) {
+    BookDto updateBook = bookService.updateBook(bookId, bookData,
+        Optional.ofNullable(thumbnailImage));
+
+    return ResponseEntity.ok(updateBook);
+  }
+
+  @DeleteMapping(value = "/{bookId}")
+  public ResponseEntity<Void> deleteBookLogically(
+      @PathVariable("bookId") UUID bookId
+  ) {
+    bookService.deleteBookLogically(bookId);
+
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
+  }
+
+  @DeleteMapping(value = "/{bookId}/hard")
+  public ResponseEntity<Void> deleteBookPhysically(
+      @PathVariable("bookId") UUID bookId
+  ) {
+    bookService.deleteBookPhysically(bookId);
+
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
   }
 }

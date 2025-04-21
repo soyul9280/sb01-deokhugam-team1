@@ -3,6 +3,8 @@ package com.codeit.duckhu.domain.book.naver;
 import com.codeit.duckhu.domain.book.dto.NaverApiResponse;
 import com.codeit.duckhu.domain.book.dto.NaverApiResponse.Item;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
+import com.codeit.duckhu.domain.book.exception.BookException;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -60,7 +62,7 @@ public class NaverBookClient {
     List<Item> items = response.getBody().items();
     if (items == null || items.isEmpty()) {
       // 검색 결과가 없는 경우 예외 처리
-      throw new RuntimeException("ISBN으로 책 정보를 찾을 수 없습니다.");
+      throw new BookException(ErrorCode.BOOK_NOT_FOUND);
     }
 
     // 첫 번째 검색 결과를 기준으로 NaverBookDto 생성

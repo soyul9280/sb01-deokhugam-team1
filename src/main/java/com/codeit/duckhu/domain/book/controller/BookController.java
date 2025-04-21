@@ -3,7 +3,9 @@ package com.codeit.duckhu.domain.book.controller;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
@@ -41,7 +43,7 @@ public class BookController {
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<BookDto> createBook(
-      @RequestPart("bookData") BookCreateRequest bookData,
+      @Valid @RequestPart("bookData") BookCreateRequest bookData,
       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
   ) {
     //     Integer reviewCount, Double rating 관련 로직 필요 -> TODO
@@ -57,6 +59,14 @@ public class BookController {
       @RequestPart(value = "image", required = false) MultipartFile image
   ) {
     String isbn = bookService.extractIsbnFromImage(image);
+
     return ResponseEntity.ok(isbn);
+  }
+
+  @GetMapping("/info")
+  public ResponseEntity<NaverBookDto> getBookByIsbn(
+      @RequestParam("isbn") String isbn
+  ) {
+    return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
   }
 }

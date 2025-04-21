@@ -1,6 +1,8 @@
 package com.codeit.duckhu.domain.book.storage.s3;
 
+import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -44,7 +46,7 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
     try {
       s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
     } catch (IOException e) {
-      throw new RuntimeException("썸네일 업로드 실패", e);
+      throw new BookException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     return key; // 또는 get(key)로 URL 반환해도 됨

@@ -1,5 +1,7 @@
 package com.codeit.duckhu.domain.book.ocr;
 
+import com.codeit.duckhu.domain.book.exception.OCRException;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.vision.v1.*;
@@ -55,10 +57,10 @@ public class VisionOcrExtractor implements OcrExtractor {
 
     } catch (IOException e) {
       log.error("이미지 스트림 읽기 실패", e);
-      throw new RuntimeException("이미지를 읽는 도중 오류가 발생했습니다.", e);
+      throw new OCRException(ErrorCode.INTERNAL_SERVER_ERROR);
     } catch (Exception e) {
       log.error("Google Vision OCR 처리 실패", e);
-      throw new RuntimeException("OCR 처리 중 예기치 못한 오류가 발생했습니다.", e);
+      throw new OCRException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -77,7 +79,7 @@ public class VisionOcrExtractor implements OcrExtractor {
       return ImageAnnotatorClient.create(settings);
     } catch (IOException e) {
       log.error("Google Vision 클라이언트 생성 실패", e);
-      throw new RuntimeException("Google Vision 클라이언트를 생성하는 데 실패했습니다.", e);
+      throw new OCRException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -87,6 +89,12 @@ public class VisionOcrExtractor implements OcrExtractor {
   private String extractIsbnFromText(String text) {
     String cleanedText = text.replaceAll("[\\n\\r]", " ").replaceAll("\\s+", " ");
     Matcher matcher = ISBN_PATTERN.matcher(cleanedText);
-    return matcher.find() ? matcher.group(1).replaceAll("[- ]", "") : DEFAULT_RESULT;
+
+    if (matcher.find()) {
+      return matcher.group(1).replaceAll("[- ]", "");
+    }
+
+    log.warn("ISBN 추출 실패 - OCR 결과: {}", cleanedText);
+    throw new OCRException(ErrorCode.UNABLE_EXTRACT_ISBN);
   }
 }

@@ -6,12 +6,23 @@ import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.mapper.BookMapper;
+import com.codeit.duckhu.domain.book.ocr.OcrExtractor;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.sourceforge.tess4j.Tesseract;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 /*
 주석 처리한 부분은 차후 구현할 내용들
  */
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -31,6 +44,8 @@ public class BookServiceImpl implements BookService {
   private final ThumbnailImageStorage thumbnailImageStorage;
 
   private final NaverBookClient naverBookClient;
+
+  private final OcrExtractor ocrExtractor;
   /**
    * 도서 등록
    * @param bookData 도서 생성 요청 DTO
@@ -92,9 +107,10 @@ public class BookServiceImpl implements BookService {
   }
 
   @Override
-  public String extractIsbnFromImage(Optional<MultipartFile> image) {
-    return "";
+  public String extractIsbnFromImage(MultipartFile image) {
+    return ocrExtractor.extractOCR(image);
   }
+
 //
 //  @Override
 //  public void deleteBookLogically(UUID id) {

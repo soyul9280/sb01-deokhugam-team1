@@ -13,7 +13,6 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
-import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +97,6 @@ public class ReviewServiceImpl implements ReviewService {
     if(!user.getId().equals(review.getUser().getId()))  {
       throw new ReviewCustomException(ReviewErrorCode.USER_NOT_OWNER);
     }
-
 
     review.updateContent(request.getContent());
     review.updateRating(request.getRating());

@@ -58,4 +58,14 @@ public class Review extends BaseUpdatableEntity {
   public void updateRating(int rating) {
     this.rating = rating;
   }
+  
+  public void increaseLikeCount() {
+    this.likeCount++;
+  }
+  
+  public void decreaseLikeCount() {
+    if (this.likeCount > 0) {
+      this.likeCount--;
+    }
+  }
 }

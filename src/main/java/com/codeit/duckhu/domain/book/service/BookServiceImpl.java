@@ -219,14 +219,20 @@ public class BookServiceImpl implements BookService {
     return ocrExtractor.extractOCR(image);
   }
 
-//
-//  @Override
-//  public void deleteBookLogically(UUID id) {
-//
-//  }
-//
-//  @Override
-//  public void deleteBookPhysically(UUID id) {
-//
-//  }
+
+  @Override
+  public void deleteBookLogically(UUID id) {
+    Book book = bookRepository.findById(id)
+        .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));
+
+    book.logicallyDelete();
+  }
+
+  @Override
+  public void deleteBookPhysically(UUID id) {
+    Book book = bookRepository.findById(id)
+        .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));
+
+    bookRepository.delete(book);
+  }
 }

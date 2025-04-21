@@ -31,7 +31,7 @@ public interface BookService {
 
   String extractIsbnFromImage(MultipartFile image);
 
-//  void deleteBookLogically(UUID id);
-//
-//  void deleteBookPhysically(UUID id);
+  void deleteBookLogically(UUID id);
+
+  void deleteBookPhysically(UUID id);
 }

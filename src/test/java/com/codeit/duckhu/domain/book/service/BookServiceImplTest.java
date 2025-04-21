@@ -180,6 +180,7 @@ public class BookServiceImplTest {
   @Nested
   @DisplayName("도서 업데이트")
   class UpdateBookTest {
+
     @Test
     @DisplayName("도서 정보와 썸네일을 수정하면 BookDto가 반환된다.")
     void updateBook_withThumbnailImage_success() {
@@ -199,7 +200,8 @@ public class BookServiceImplTest {
           "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
       );
 
-      MultipartFile thumbnail = new MockMultipartFile("thumbnail", "thumbnail.jpg", "image/jpeg", "fake".getBytes());
+      MultipartFile thumbnail = new MockMultipartFile("thumbnail", "thumbnail.jpg", "image/jpeg",
+          "fake".getBytes());
       String uploadedUrl = "https://s3.bucket/thumbnail.jpg";
 
       int reviewCount = 5;
@@ -266,5 +268,81 @@ public class BookServiceImplTest {
       assertThatThrownBy(() -> bookService.updateBook(bookId, request, Optional.empty()))
           .isInstanceOf(BookException.class);
     }
+  }
+
+  @Nested
+  @DisplayName("도서 삭제")
+  class DeleteBookTest {
+    @Test
+    @DisplayName("도서 논리 삭제 성공")
+    void deleteBookLogically_success() {
+      // Given
+      UUID bookId = UUID.randomUUID();
+      Book bookToDelete = Book.builder()
+          .title("삭제할 책")
+          .author("작가")
+          .description("설명")
+          .publisher("출판사")
+          .publishedDate(LocalDate.of(2020, 1, 1))
+          .isDeleted(false)
+          .build();
+
+      ReflectionTestUtils.setField(bookToDelete, "id", bookId);
+      given(bookRepository.findById(bookId)).willReturn(Optional.of(bookToDelete));
+
+      // When
+      bookService.deleteBookLogically(bookId);
+
+      // Then
+      assertThat(bookToDelete.getIsDeleted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("도서 논리 삭제 실패 - 존재하지 않는 책")
+    void deleteBookLogically_notFound_throwsException() {
+      // Given
+      UUID invalidId = UUID.randomUUID();
+      given(bookRepository.findById(invalidId)).willReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> bookService.deleteBookLogically(invalidId))
+          .isInstanceOf(BookException.class);
+    }
+
+    @Test
+    @DisplayName("도서 물리 삭제 성공")
+    void deleteBookPhysically_success() {
+      // Given
+      UUID bookId = UUID.randomUUID();
+      Book bookToDelete = Book.builder()
+          .title("물리삭제 책")
+          .author("작가")
+          .description("설명")
+          .publisher("출판사")
+          .publishedDate(LocalDate.of(2020, 1, 1))
+          .build();
+
+      ReflectionTestUtils.setField(bookToDelete, "id", bookId);
+      given(bookRepository.findById(bookId)).willReturn(Optional.of(bookToDelete));
+
+      // When
+      bookService.deleteBookPhysically(bookId);
+
+      // Then
+      verify(bookRepository).delete(bookToDelete);
+    }
+
+    @Test
+    @DisplayName("도서 물리 삭제 실패 - 존재하지 않는 책")
+    void deleteBookPhysically_notFound_throwsException() {
+      // Given
+      UUID invalidId = UUID.randomUUID();
+      given(bookRepository.findById(invalidId)).willReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> bookService.deleteBookPhysically(invalidId))
+          .isInstanceOf(BookException.class);
+    }
+
   }
 }

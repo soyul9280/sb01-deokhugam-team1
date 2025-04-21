@@ -15,7 +15,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
 @Entity
 @Table(name = "books")
@@ -51,8 +50,8 @@ public class Book extends BaseUpdatableEntity {
   private Boolean isDeleted = false;
 
 
-  @OneToMany(mappedBy = "book")
-  private List<Review> review = new ArrayList<>();
+  @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
+  private List<Review> reviews = new ArrayList<>();
 
   @Builder.Default
   @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -69,5 +68,9 @@ public class Book extends BaseUpdatableEntity {
     this.description = description;
     this.publisher = publisher;
     this.publishedDate = publishedDate;
+  }
+
+  public void logicallyDelete() {
+    this.isDeleted = true;
   }
 }

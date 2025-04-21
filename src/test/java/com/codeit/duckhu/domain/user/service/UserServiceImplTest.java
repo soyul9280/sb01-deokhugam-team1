@@ -183,4 +183,66 @@ class UserServiceImplTest {
         }
 
     }
+    @Nested
+    @DisplayName("사용자 논리 삭제 테스트")
+    class SoftDeleteUserTest {
+        @Test
+        @DisplayName("논리 삭제 성공")
+        void softDelete_success() {
+            //given
+            UUID id = UUID.randomUUID();
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            given(userRepository.findById(id)).willReturn(Optional.of(user));
+
+            //when
+            sut.softDelete(id);
+            //then
+            assertThat(user.isDeleted()).isTrue();
+            verify(userRepository, times(1)).findById(id);
+        }
+
+        @Test
+        @DisplayName("논리 삭제 실패 - 존재하지 않는 사용자")
+        void softDelete_fail() {
+            //given
+            UUID id = UUID.randomUUID();
+            given(userRepository.findById(id)).willReturn(Optional.empty());
+            //when
+            //then
+            assertThatThrownBy(() -> sut.softDelete(id)).isInstanceOf(NotFoundUserException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("사용자 물리 삭제 테스트")
+    class HardDeleteTest {
+        @Test
+        @DisplayName("물리 삭제 성공")
+        void hardDelete_success() {
+            //given
+            User user = new User("testA@example.com", "testA", "testa1234!", false);
+            UUID id = user.getId();
+            given(userRepository.findById(id)).willReturn(Optional.of(user));
+
+            //when
+            sut.hardDelete(id);
+
+            //then
+            verify(userRepository, times(1)).findById(id);
+            verify(userRepository, times(1)).deleteById(id);
+        }
+
+        @Test
+        @DisplayName("물리 삭제 실패 - 존재하지 않는 사용자")
+        void hardDelete_fail() {
+            //given
+            UUID id = UUID.randomUUID();
+            given(userRepository.findById(id)).willReturn(Optional.empty());
+            //when
+            //then
+            assertThatThrownBy(() -> sut.hardDelete(id)).isInstanceOf(NotFoundUserException.class);
+        }
+
+    }
+
 }

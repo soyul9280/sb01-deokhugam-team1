@@ -51,6 +51,7 @@ public class Book extends BaseUpdatableEntity {
 
 
   @OneToMany(mappedBy = "book")
+  @Builder.Default
   private List<Review> review = new ArrayList<>();
 
   @Builder.Default

@@ -1,16 +1,15 @@
 package com.codeit.duckhu.domain.review.service;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doReturn;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -42,27 +41,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
-
-
-/**
-   * 서비스 계층 설계
-   *
-   * 1. ReviewService
-   * - createReview: 리뷰 생성
-   * - getReview: ID로 리뷰 조회
-   * - updateReview: 리뷰 업데이트
-   * - deleteReview: 리뷰 삭제
-   * - likeReview: 리뷰 좋아요
-   * - getAll: 목록 조회(커서 페이지네이션)
-   *
-   * 2. DTO 클래스 설계
-   * - ReviewDto: 응답 데이터
-   * - ReviewCreateRequest: 생성 요청 데이터
-   * - ReviewUpdateRequest: 업데이트
-   * 요청 데이터 - ReviewLikeDto: 리뷰 좋아요 데이터
-   *
-   * 3. 서비스 구현체 (ReviewServiceImpl) 생성 - 리포지토리를 통한 CRUD 구현
-   */
 
   @Mock
   private UserRepository userRepository;
@@ -169,13 +147,13 @@ class ReviewServiceTest {
   @DisplayName("리뷰 생성 성공")
   void createReview_shouldCreateReview() {
     // Given
-    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
-    when(bookRepository.findById(any(UUID.class))).thenReturn(Optional.of(testBook));
+    doReturn(Optional.of(testUser)).when(userRepository).findById(testUserId);
+    doReturn(Optional.of(testBook)).when(bookRepository).findById(testBookId);
     // 리뷰가 존재하지 않는 경우
-    when(reviewRepository.findByUserIdAndBookId(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
-    when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
-    when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
-    when(reviewMapper.toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class))).thenReturn(testReview);
+    doReturn(Optional.empty()).when(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
+    doReturn(testReview).when(reviewMapper).toEntity(testCreateRequest, testUser, testBook);
+    doReturn(testReview).when(reviewRepository).save(testReview);
+    doReturn(testReviewDto).when(reviewMapper).toDto(testReview);
 
     // When
     ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -188,20 +166,20 @@ class ReviewServiceTest {
     assertThat(result.getCommentCount()).isEqualTo(0);
     assertThat(result.getUserId()).isEqualTo(testUserId);
     assertThat(result.getBookId()).isEqualTo(testBookId);
-    verify(userRepository).findById(any(UUID.class));
-    verify(bookRepository).findById(any(UUID.class));
-    verify(reviewRepository).findByUserIdAndBookId(any(UUID.class), any(UUID.class));
-    verify(reviewMapper).toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class));
-    verify(reviewRepository).save(any(Review.class));
-    verify(reviewMapper).toDto(any(Review.class));
+    verify(userRepository).findById(testUserId);
+    verify(bookRepository).findById(testBookId);
+    verify(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
+    verify(reviewMapper).toEntity(testCreateRequest, testUser, testBook);
+    verify(reviewRepository).save(testReview);
+    verify(reviewMapper).toDto(testReview);
   }
 
   @Test
   @DisplayName("ID로 리뷰 조회 테스트")
   void getReviewById_shouldReturnReview() {
     // Given : 저장된 리뷰를 찾았다고 가정, 엔티티를 Dto로 변환
-    when(reviewRepository.findById(any(UUID.class))).thenReturn(Optional.of(testReview));
-    when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
+    doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
+    doReturn(testReviewDto).when(reviewMapper).toDto(testReview);
     
     // When : id로 리뷰 찾기
     ReviewDto result = reviewService.getReviewById(testReviewId);
@@ -218,7 +196,7 @@ class ReviewServiceTest {
   @DisplayName("ID로 리뷰 삭제 테스트")
   void deleteReviewById_shouldReturnSuccess() {
     // Given: findById 리턴과 delete 설정
-    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+    doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
     willDoNothing().given(reviewRepository).delete(testReview);
 
     // When : 서비스 호출 시 예외가 나지 않아야 하고
@@ -239,18 +217,18 @@ class ReviewServiceTest {
 
     // 테스트를 위한 Mock 객체 생성
     User mockUser = Mockito.mock(User.class);
-    when(mockUser.getId()).thenReturn(testUserId);
+    doReturn(testUserId).when(mockUser).getId();
     
     Review mockReview = Mockito.mock(Review.class);
-    when(mockReview.getUser()).thenReturn(mockUser);
+    doReturn(mockUser).when(mockReview).getUser();
     
     Review updatedReview = Mockito.mock(Review.class);
     
     // 기본 모킹 설정
-    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(mockReview));
-    when(userRepository.findById(testUserId)).thenReturn(Optional.of(mockUser));
-    when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
-    when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
+    doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
+    doReturn(Optional.of(mockUser)).when(userRepository).findById(testUserId);
+    doReturn(updatedReview).when(reviewRepository).save(mockReview);
+    doReturn(testReviewDto).when(reviewMapper).toDto(updatedReview);
 
     // When
     ReviewDto result = reviewService.updateReview(testReviewId, testreviewUpdateRequest);
@@ -263,19 +241,18 @@ class ReviewServiceTest {
     verify(mockReview).updateContent(updatedContent);
     verify(mockReview).updateRating(updatedRating);
     verify(reviewRepository).save(mockReview);
-    verify(reviewMapper).toDto(any(Review.class));
+    verify(reviewMapper).toDto(updatedReview);
   }
 
   @Test
   @DisplayName("이미 도서에 리뷰가 존재하는 경우 예외가 발생해야 함")
   void createReview_shouldThrowException_whenReviewAlreadyExists() {
     // Given
-    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
-    when(bookRepository.findById(any(UUID.class))).thenReturn(Optional.of(testBook));
+    doReturn(Optional.of(testUser)).when(userRepository).findById(testUserId);
+    doReturn(Optional.of(testBook)).when(bookRepository).findById(testBookId);
     
     // 이미 리뷰가 존재하는 상황 모킹
-    when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId))
-        .thenReturn(Optional.of(testReview));
+    doReturn(Optional.of(testReview)).when(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
     
     // When & Then
     assertThrows(ReviewCustomException.class, () -> {
@@ -283,10 +260,55 @@ class ReviewServiceTest {
     });
     
     // 리뷰 저장이 호출되지 않아야 함
-    verify(userRepository).findById(any(UUID.class));
-    verify(bookRepository).findById(any(UUID.class));
-    verify(reviewRepository).findByUserIdAndBookId(any(UUID.class), any(UUID.class));
+    verify(userRepository).findById(testUserId);
+    verify(bookRepository).findById(testBookId);
+    verify(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
     verify(reviewRepository, never()).save(any(Review.class));
+  }
+  
+  @Test
+  @DisplayName("리뷰 좋아요 증가 테스트")
+  void review_shouldIncreaseLikeCount() {
+    // Given
+    Review review = Review.builder()
+        .content("볼만해요")
+        .rating(3)
+        .likeCount(0)
+        .commentCount(0)
+        .user(testUser)
+        .book(testBook)
+        .build();
+        
+    // When
+    review.increaseLikeCount();
+    
+    // Then
+    assertThat(review.getLikeCount()).isEqualTo(1);
+  }
+  
+  @Test
+  @DisplayName("리뷰 좋아요 감소 테스트")
+  void review_shouldDecreaseLikeCount() {
+    // Given
+    Review review = Review.builder()
+        .content("볼만해요")
+        .rating(3)
+        .likeCount(3)
+        .commentCount(0)
+        .user(testUser)
+        .book(testBook)
+        .build();
+        
+    // When
+    review.decreaseLikeCount();
+    
+    // Then
+    assertThat(review.getLikeCount()).isEqualTo(2);
+    
+    // 0 이하로 떨어지지 않는지 확인
+    review.decreaseLikeCount();
+    review.decreaseLikeCount();
+    assertThat(review.getLikeCount()).isEqualTo(0);
   }
 }
 

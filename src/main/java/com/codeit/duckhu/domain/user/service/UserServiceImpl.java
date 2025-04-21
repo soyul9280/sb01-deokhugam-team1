@@ -70,7 +70,11 @@ public class UserServiceImpl implements UserService {
     }
 
     public User findByIdEntityReturn(UUID id){
-        return userRepository.findById(id)
-            .orElseThrow(() -> new NotFoundUserException(id));
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
+        if (user.isDeleted()) {
+            throw new NotFoundUserException(id);
+        }
+
+        return user;
     }
 }

@@ -18,5 +18,5 @@ public class CursorPageResponseCommentDto {
   Instant nextAfter;
   Integer size;
   Long totalElements;
-  Boolean haxNext;
+  Boolean hasNext;
 }

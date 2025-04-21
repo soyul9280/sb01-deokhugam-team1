@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +59,12 @@ public class UserController implements UserApi {
         }
         UserDto result = userService.update(targetId, userUpdateRequest);
         return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @Override
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> softDelete(@RequestHeader("X-User-Id") UUID loginId, @PathVariable("userId") UUID targetId) {
+        return null;
     }
 
 

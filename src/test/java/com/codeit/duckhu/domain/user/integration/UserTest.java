@@ -90,6 +90,7 @@ public class UserTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-User-Id", targetId.toString());
         HttpEntity<String> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
+
         //when
         ResponseEntity<UserDto> response = restTemplate.exchange("/api/users/" + targetId,
                 HttpMethod.PATCH, httpEntity, UserDto.class);
@@ -97,8 +98,6 @@ public class UserTest {
         //then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("newName", response.getBody().getNickname());
-
-
     }
 
 

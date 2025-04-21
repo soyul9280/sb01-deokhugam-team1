@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,6 +71,7 @@ public interface UserApi {
             @Parameter(description = "사용자 ID") @PathVariable UUID userId);
 
 
+
     @Operation(summary = "사용자 정보 수정", description = "사용자의 닉네임을 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공",
@@ -88,4 +90,21 @@ public interface UserApi {
             @RequestHeader("X-User-Id") UUID loginId,
             @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId,
             @RequestBody @Valid UserUpdateRequest userUpdateRequest);
+
+
+
+    @Operation(summary = "사용자 논리 삭제",description = "사용자를 논리적으로 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "사용자 삭제 성공"),
+            @ApiResponse(responseCode = "403", description = "사용자 삭제 권한 없음",
+                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "사용자 정보 없음",
+                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+    })
+    @DeleteMapping("/api/users/{userId}")
+    ResponseEntity<Void> softDelete(
+            @RequestHeader("X-User-Id") UUID loginId,
+            @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId);
 }

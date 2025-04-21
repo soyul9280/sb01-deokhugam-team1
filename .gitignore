@@ -46,3 +46,5 @@ src/main/resources/application-test.yml
 
 ### dev/prod/tset.yml ###
 /src/main/resources/application-*.yml
+
+/vision-key.json

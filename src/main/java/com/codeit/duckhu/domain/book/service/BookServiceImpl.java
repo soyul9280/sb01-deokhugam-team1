@@ -219,7 +219,10 @@ public class BookServiceImpl implements BookService {
     return ocrExtractor.extractOCR(image);
   }
 
-
+  /**
+   * 도서를 논리 삭제합니다. (리뷰와 댓글 유지)
+   * @param id 도서 아이디
+   */
   @Override
   public void deleteBookLogically(UUID id) {
     Book book = bookRepository.findById(id)
@@ -228,6 +231,10 @@ public class BookServiceImpl implements BookService {
     book.logicallyDelete();
   }
 
+  /**
+   * 도서를 물리 삭제합니다. (리뷰와 댓글도 같이 삭제)
+   * @param id 도서 아이디
+   */
   @Override
   public void deleteBookPhysically(UUID id) {
     Book book = bookRepository.findById(id)

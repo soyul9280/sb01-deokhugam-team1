@@ -58,6 +58,9 @@ public class Review extends BaseUpdatableEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn
   private Book book;
+
+  @Column(name = "is_deleted", nullable = false)
+  private boolean deleted = false;
   
   @ElementCollection
   @CollectionTable(name = "review_likes", joinColumns = @JoinColumn(name = "review_id"), uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "user_id"}))

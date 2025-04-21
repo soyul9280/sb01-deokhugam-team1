@@ -163,10 +163,10 @@ public class BookServiceImpl implements BookService {
     );
 
     int reviewCount = reviewRepository.countByBookId(book.getId());
-    int rating = reviewRepository.calculateAverageRatingByBookId(book.getId());
+    double rating = reviewRepository.calculateAverageRatingByBookId(book.getId());
 
     log.info("[도서 수정 완료] ID : {}", id);
-    return bookMapper.toDto(book,);
+    return bookMapper.toDto(book, reviewCount, rating);
   }
 
 

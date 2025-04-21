@@ -11,9 +11,4 @@ public interface BookMapper {
   @Mapping(target = "reviewCount", source = "reviewCount")
   @Mapping(target = "rating", source = "rating")
   BookDto toDto(Book book, Integer reviewCount, Double rating);
-
-  // 기본 변환 (선택적으로 유지)
-  @Mapping(target = "reviewCount", ignore = true)
-  @Mapping(target = "rating", ignore = true)
-  BookDto toDto(Book book);
 }

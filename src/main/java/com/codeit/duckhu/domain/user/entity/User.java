@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 
 
 @Getter
-@Entity @Builder
+@Entity
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
@@ -35,6 +35,7 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user")
     private List<Review> review = new ArrayList<>();
 
+    @Builder
     public User(String email, String nickname, String password, boolean isDeleted) {
         this.email = email;
         this.nickname = nickname;

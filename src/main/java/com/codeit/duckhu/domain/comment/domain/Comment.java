@@ -1,9 +1,9 @@
 package com.codeit.duckhu.domain.comment.domain;
 
 
+import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
-import com.codeit.duckhu.review.entity.Review;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;

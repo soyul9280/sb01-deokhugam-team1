@@ -14,7 +14,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ReviewErrorCode {
   // 리뷰 에러
-  REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다.", "리뷰를 찾을 수 없습니다.");
+  REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다.", "리뷰를 찾을 수 없습니다."),
+  BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다.", "리뷰를 찾을 수 없습니다.");
 
 
   private final HttpStatus status;

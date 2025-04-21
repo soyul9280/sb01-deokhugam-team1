@@ -1,8 +1,8 @@
 package com.codeit.duckhu.domain.review.service.impl;
 
+import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
-import com.codeit.duckhu.global.exception.CustomException;
-import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.entity.Review;
@@ -11,6 +11,8 @@ import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,27 +33,30 @@ public class ReviewServiceImpl implements ReviewService {
 
   private final ReviewRepository reviewRepository;
   private final ReviewMapper reviewMapper;
+  private final BookRepository bookRepository;
+  private final UserRepository userRepository;
 
   @Override
   @Transactional
-  public ReviewDto createReview(@Valid ReviewCreateRequest request) {
+  public ReviewDto createReview(ReviewCreateRequest request) {
     log.info("새로운 리뷰 생성, rating: {}", request.getRating());
 
-    Review review = Review.builder()
-        .content(request.getContent())
-        .rating(request.getRating())
-        .likeCount(0)
-        .commentCount(0)
-        // TODO: 사용자, 도서 추가
-        .build();
-
-      // 리뷰 저장
-      Review savedReview = reviewRepository.save(review);
-      log.info("저장 성공, ID: {}", savedReview.getId());
-      
-      // DTO로 변환하여 반환
-      return reviewMapper.toDto(savedReview);
+    // 사용자 찾기
+    User user = userRepository.findById(request.getUserId())
+        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    
+    // 도서 찾기
+    Book book = bookRepository.findById(request.getBookId())
+        .orElseThrow(() -> new IllegalArgumentException("도서를 찾을 수 없습니다."));
+    
+    // 매퍼를 사용하여 엔티티 생성
+    Review review = reviewMapper.toEntity(request, user, book);
+    
+    // 저장 및 DTO 반환
+    Review savedReview = reviewRepository.save(review);
+    return reviewMapper.toDto(savedReview);
   }
+
 
   @Override
   public ReviewDto getReviewById(UUID id) {

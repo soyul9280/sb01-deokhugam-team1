@@ -9,6 +9,7 @@ import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
 import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -187,6 +188,28 @@ public class NotificationServiceTest {
                 .hasMessageContaining("해당 알림을 찾을 수 없습니다.");
 
             then(notificationRepository).should(times(1)).findById(notificationId);
+        }
+
+        @Test
+        @DisplayName("사용자의 모든 알림을 읽음 처리한다")
+        void updateAllNotificationsConfirmedSuccessfully() {
+            // given
+            UUID receiverId = UUID.randomUUID();
+
+            Notification n1 = Notification.forLike(reviewId, receiverId, triggerUserId, "buzz");
+            Notification n2 = Notification.forComment(reviewId, receiverId, triggerUserId, "buzz", "댓글");
+            Notification n3 = Notification.forLike(reviewId, receiverId, triggerUserId, "buzz");
+
+            List<Notification> notifications = List.of(n1, n2, n3);
+
+            given(notificationRepository.findAllByReceiverId(receiverId)).willReturn(notifications);
+
+            // when
+            notificationService.updateAllConfirmedStatus(receiverId); // 컴파일 에러 or 미구현 상태
+
+            // then
+            assertThat(notifications).allMatch(Notification::isConfirmed);
+            then(notificationRepository).should(times(1)).findAllByReceiverId(receiverId);
         }
     }
 }

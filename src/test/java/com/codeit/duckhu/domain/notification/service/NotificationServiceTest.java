@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.codeit.duckhu.domain.notification.entity.Notification;
-import com.codeit.duckhu.domain.notification.repository.NotificationRepsitory;
+import com.codeit.duckhu.domain.notification.repository.NotificationRepository;
 import com.codeit.duckhu.domain.notification.service.impl.NotificationServiceImpl;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class NotificationServiceTest {
 
     @Mock
-    private NotificationRepsitory notificationRepository;
+    private NotificationRepository notificationRepository;
 
     @Mock
     private NotificationMapper notificationMapper;

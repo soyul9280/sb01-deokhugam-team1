@@ -1,16 +1,10 @@
 package com.codeit.duckhu.domain.notification.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.notification.entity.Notification;
-import com.codeit.duckhu.domain.notification.service.NotificationService;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -18,11 +12,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @DataJpaTest
@@ -31,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationRepositoryTest {
 
     @Autowired
-    private NotificationRepsitory notificationRepository;
+    private NotificationRepository notificationRepository;
 
     @Nested
     @DisplayName("알림 저장")

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.codeit.duckhu.domain.notification.entity.Notification;
-import com.codeit.duckhu.domain.notification.repository.NotificationRepsitory;
+import com.codeit.duckhu.domain.notification.repository.NotificationRepository;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-    private final NotificationRepsitory notificationRepsitory;
+    private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
 
     /**
@@ -51,7 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
         // return notificationMapper.toDto(notificationRepository.save(notification));
-        return notificationMapper.toDto(notificationRepsitory.save(notification));
+        return notificationMapper.toDto(notificationRepository.save(notification));
     }
 
     /**
@@ -86,7 +86,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
         // return notificationMapper.toDto(notificationRepository.save(notification));
-        return notificationMapper.toDto(notificationRepsitory.save(notification));
+        return notificationMapper.toDto(notificationRepository.save(notification));
     }
 
 
@@ -105,7 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId,
         boolean confirmed) {
         // 1. 알림 ID로 알림을 조회한다. 없으면 404 예외 발생
-        Notification notification = notificationRepsitory.findById(notificationId)
+        Notification notification = notificationRepository.findById(notificationId)
             .orElseThrow(() -> new NotificationNotFoundException(notificationId));
 
         // 2. 알림의 수신자가 현재 요청자와 다를 경우 접근 권한 없음 예외 발생
@@ -131,7 +131,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void updateAllConfirmedStatus(UUID receiverId) {
         // 1. 수신자 ID로 등록된 모든 알림을 조회
-        List<Notification> notifications = notificationRepsitory.findAllByReceiverId(receiverId);
+        List<Notification> notifications = notificationRepository.findAllByReceiverId(receiverId);
 
         // 2. 이미 읽지 않은 알림만 선별하여 확인 처리
         notifications.stream()
@@ -143,6 +143,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void deleteConfirmedNotificationsOlderThanAWeek() {
         Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
-        notificationRepsitory.deleteOldConfirmedNotifications(cutoff);
+        notificationRepository.deleteOldConfirmedNotifications(cutoff);
     }
 }

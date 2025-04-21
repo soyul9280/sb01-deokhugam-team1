@@ -43,11 +43,11 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 사용자 찾기
     User user = userRepository.findById(request.getUserId())
-        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
     
     // 도서 찾기
     Book book = bookRepository.findById(request.getBookId())
-        .orElseThrow(() -> new IllegalArgumentException("도서를 찾을 수 없습니다."));
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.BOOK_NOT_FOUND));
     
     // 동일한 도서에 대한 리뷰가 이미 존재하는지 확인
     reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId())
@@ -87,14 +87,21 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Transactional
   @Override
-  public ReviewDto updateReview(UUID id, ReviewUpdateRequest reviewUpdateRequest) {
+  public ReviewDto updateReview(UUID id, ReviewUpdateRequest request) {
     Review review = reviewRepository.findById(id)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-    // TODO:작성자 확인 - 작성자와 현재 사용자가 같은지 확인하는 로직 추가 필요 (User 통합시 추가)
+    // 사용자 찾기
+    User user = userRepository.findById(request.getUserId())
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
 
-    review.updateContent(reviewUpdateRequest.getContent());
-    review.updateRating(reviewUpdateRequest.getRating());
+    if(!user.getId().equals(review.getUser().getId()))  {
+      throw new ReviewCustomException(ReviewErrorCode.USER_NOT_OWNER);
+    }
+
+
+    review.updateContent(request.getContent());
+    review.updateRating(request.getRating());
 
     Review updatedReview = reviewRepository.save(review);
     log.info("리뷰 업데이트 성공, ID: {}", updatedReview.getId());

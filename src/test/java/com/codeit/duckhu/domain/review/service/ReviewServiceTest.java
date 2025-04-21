@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.review.service;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -158,6 +160,8 @@ class ReviewServiceTest {
     testreviewUpdateRequest = ReviewUpdateRequest.builder()
         .content("재밌어요")
         .rating(5)
+        .userId(testUserId)
+        .bookId(testBookId)
         .build();
   }
 
@@ -233,38 +237,33 @@ class ReviewServiceTest {
     String updatedContent = "재밌어요";
     int updatedRating = 5;
 
-    Review updatedReview = Review.builder()
-        .content(updatedContent)
-        .rating(updatedRating)
-        .user(testUser)
-        .book(testBook)
-        .build();
-
-    ReviewDto updatedReviewDto = ReviewDto.builder()
-        .content("재밌어요")
-        .rating(5)
-        .likeCount(0)
-        .commentCount(0)
-        .likedByMe(false)
-        .userId(testUserId)
-        .bookId(testBookId)
-        .build();
-
-    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+    // 테스트를 위한 Mock 객체 생성
+    User mockUser = Mockito.mock(User.class);
+    when(mockUser.getId()).thenReturn(testUserId);
+    
+    Review mockReview = Mockito.mock(Review.class);
+    when(mockReview.getUser()).thenReturn(mockUser);
+    
+    Review updatedReview = Mockito.mock(Review.class);
+    
+    // 기본 모킹 설정
+    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(mockReview));
+    when(userRepository.findById(testUserId)).thenReturn(Optional.of(mockUser));
     when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
-    when(reviewMapper.toDto(updatedReview)).thenReturn(updatedReviewDto);
+    when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
 
     // When
     ReviewDto result = reviewService.updateReview(testReviewId, testreviewUpdateRequest);
 
-
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getContent()).isEqualTo(updatedContent);
-    assertThat(result.getRating()).isEqualTo(updatedRating);
-    assertThat(result.getUserId()).isEqualTo(testUserId);
-    assertThat(result.getBookId()).isEqualTo(testBookId);
-    then(reviewRepository).should().save(any(Review.class));
+    assertThat(result).isEqualTo(testReviewDto);
+    verify(userRepository).findById(testUserId);
+    verify(reviewRepository).findById(testReviewId);
+    verify(mockReview).updateContent(updatedContent);
+    verify(mockReview).updateRating(updatedRating);
+    verify(reviewRepository).save(mockReview);
+    verify(reviewMapper).toDto(any(Review.class));
   }
 
   @Test

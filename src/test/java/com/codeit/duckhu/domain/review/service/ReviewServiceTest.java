@@ -2,12 +2,14 @@ package com.codeit.duckhu.domain.review.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -15,6 +17,7 @@ import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
@@ -164,6 +167,8 @@ class ReviewServiceTest {
     // Given
     when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
     when(bookRepository.findById(any(UUID.class))).thenReturn(Optional.of(testBook));
+    // 리뷰가 존재하지 않는 경우
+    when(reviewRepository.findByUserIdAndBookId(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
     when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
     when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
     when(reviewMapper.toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class))).thenReturn(testReview);
@@ -181,6 +186,7 @@ class ReviewServiceTest {
     assertThat(result.getBookId()).isEqualTo(testBookId);
     verify(userRepository).findById(any(UUID.class));
     verify(bookRepository).findById(any(UUID.class));
+    verify(reviewRepository).findByUserIdAndBookId(any(UUID.class), any(UUID.class));
     verify(reviewMapper).toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class));
     verify(reviewRepository).save(any(Review.class));
     verify(reviewMapper).toDto(any(Review.class));
@@ -259,6 +265,29 @@ class ReviewServiceTest {
     assertThat(result.getUserId()).isEqualTo(testUserId);
     assertThat(result.getBookId()).isEqualTo(testBookId);
     then(reviewRepository).should().save(any(Review.class));
+  }
+
+  @Test
+  @DisplayName("이미 도서에 리뷰가 존재하는 경우 예외가 발생해야 함")
+  void createReview_shouldThrowException_whenReviewAlreadyExists() {
+    // Given
+    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
+    when(bookRepository.findById(any(UUID.class))).thenReturn(Optional.of(testBook));
+    
+    // 이미 리뷰가 존재하는 상황 모킹
+    when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId))
+        .thenReturn(Optional.of(testReview));
+    
+    // When & Then
+    assertThrows(ReviewCustomException.class, () -> {
+      reviewService.createReview(testCreateRequest);
+    });
+    
+    // 리뷰 저장이 호출되지 않아야 함
+    verify(userRepository).findById(any(UUID.class));
+    verify(bookRepository).findById(any(UUID.class));
+    verify(reviewRepository).findByUserIdAndBookId(any(UUID.class), any(UUID.class));
+    verify(reviewRepository, never()).save(any(Review.class));
   }
 }
 

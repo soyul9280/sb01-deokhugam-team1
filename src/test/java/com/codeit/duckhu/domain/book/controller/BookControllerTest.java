@@ -4,6 +4,7 @@ import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
@@ -116,6 +117,23 @@ class BookControllerTest {
       mockMvc.perform(get("/api/books"))
           .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("ISBN으로 도서 정보를 조회한다")
+    void getBookByIsbn_shouldReturnBookInfo() throws Exception {
+      // given
+      String isbn = "9781234567890";
+      NaverBookDto dto = new NaverBookDto("테스트 책", "저자", "테스트", "테스트", LocalDate.now(), null, null);
+
+      given(bookService.getBookByIsbn(isbn)).willReturn(dto);
+
+      // when & then
+      mockMvc.perform(get("/api/books/info")
+              .param("isbn", isbn))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.title").value("테스트 책"))
+          .andExpect(jsonPath("$.author").value("저자"));
+    }
   }
 
   @Nested
@@ -167,5 +185,26 @@ class BookControllerTest {
       mockMvc.perform(delete("/api/books/{bookId}/hard", bookId))
           .andExpect(status().isNoContent());
     }
+  }
+
+  @Test
+  @DisplayName("OCR 이미지 업로드 시 ISBN을 추출한다")
+  void extractIsbnFromImage_shouldReturnIsbn() throws Exception {
+    // given
+    MockMultipartFile image = new MockMultipartFile(
+        "image",
+        "image.jpg",
+        MediaType.IMAGE_JPEG_VALUE,
+        "fake-image-content".getBytes()
+    );
+
+    given(bookService.extractIsbnFromImage(image)).willReturn("9781234567890");
+
+    // when & then
+    mockMvc.perform(multipart("/api/books/isbn/ocr")
+            .file(image)
+            .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk())
+        .andExpect(content().string("9781234567890"));
   }
 }

@@ -45,6 +45,14 @@ public class Book extends BaseUpdatableEntity {
   @Column(name = "thumbnail_url", length = 255)
   private String thumbnailUrl;
 
+  @Column(name = "review_count", nullable = false)
+  @Builder.Default
+  private int reviewCount = 0;
+
+  @Column(name = "rating", nullable = false)
+  @Builder.Default
+  private double rating = 0.0;
+
   @Builder.Default
   @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted = false;

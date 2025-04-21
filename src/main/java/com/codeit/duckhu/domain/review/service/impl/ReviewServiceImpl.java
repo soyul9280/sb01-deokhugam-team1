@@ -13,6 +13,7 @@ import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import java.lang.reflect.Member;
 import java.util.UUID;
@@ -73,6 +74,10 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findById(id)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
+    if (review.isDeleted()) {
+      throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+    }
+
     // DTO로 변환하여 반환
     return reviewMapper.toDto(review);
   }
@@ -86,9 +91,10 @@ public class ReviewServiceImpl implements ReviewService {
     reviewRepository.delete(review);
   }
 
+  @Transactional
   @Override
-  public void softDeleteReviewById(UUID testReviewId) {
-    Review review = reviewRepository.findById(testReviewId)
+  public void softDeleteReviewById(UUID id) {
+    Review review = reviewRepository.findById(id)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     review.softDelete();
@@ -103,6 +109,10 @@ public class ReviewServiceImpl implements ReviewService {
     // 사용자 찾기
     User user = userRepository.findById(request.getUserId())
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+
+    if (review.isDeleted()) {
+      throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+    }
 
     if(!user.getId().equals(review.getUser().getId()))  {
       throw new ReviewCustomException(ReviewErrorCode.USER_NOT_OWNER);
@@ -123,8 +133,12 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findById(reviewId)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-    userRepository.findById(userId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+    if (review.isDeleted()) {
+      throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+    }
+
+    // 사용자 찾기
+    userRepository.existsById(userId);
 
     boolean likedBefore = review.liked(userId);
 
@@ -133,7 +147,6 @@ public class ReviewServiceImpl implements ReviewService {
     } else {
       review.increaseLikeCount(userId);
     }
-
 
     boolean likedAfter = review.liked(userId);
     return ReviewLikeDto.builder()

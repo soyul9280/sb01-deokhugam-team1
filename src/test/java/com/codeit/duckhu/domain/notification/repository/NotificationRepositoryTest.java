@@ -1,9 +1,13 @@
 package com.codeit.duckhu.domain.notification.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.domain.notification.entity.Notification;
+import com.codeit.duckhu.domain.notification.service.NotificationService;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +27,8 @@ public class NotificationRepositoryTest {
 
     @Autowired
     private NotificationRepsitory notificationRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     @Nested
     @DisplayName("알림 저장")
@@ -37,7 +43,8 @@ public class NotificationRepositoryTest {
             UUID receiverId = UUID.randomUUID();
             String content = "[buzz]님이 나의 리뷰를 좋아합니다.";
 
-            Notification notification = new Notification(reviewId, receiverId, triggerUserId, content);
+            Notification notification = new Notification(reviewId, receiverId, triggerUserId,
+                content);
 
             // when
             Notification saved = notificationRepository.save(notification);
@@ -63,7 +70,8 @@ public class NotificationRepositoryTest {
             String comment = "12345";
             String content = "[buzz]님이 나의 리뷰에 댓글을 남겼습니다.\n" + comment;
 
-            Notification notification = new Notification(reviewId, receiverId, triggerUserId, content);
+            Notification notification = new Notification(reviewId, receiverId, triggerUserId,
+                content);
 
             // when
             Notification saved = notificationRepository.save(notification);

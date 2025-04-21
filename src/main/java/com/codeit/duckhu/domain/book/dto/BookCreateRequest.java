@@ -1,6 +1,8 @@
 package com.codeit.duckhu.domain.book.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 
 /**
@@ -20,8 +22,9 @@ public record BookCreateRequest(
     String description,
     @NotBlank(message = "출판사는 필수 입력값입니다")
     String publisher,
-    @NotBlank(message = "출판일은 필수 입력값입니다.")
+    @NotNull(message = "출판일은 필수 입력값입니다.")
     LocalDate publishedDate,
+    @Pattern(regexp = "^(?=(?:\\D*\\d){10}(?:(?:\\D*\\d){3})?$)[\\d-]+$", message = "올바른 ISBN 형식이 아닙니다.")
     String isbn
 ) {
 

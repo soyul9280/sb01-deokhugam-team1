@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.notification.entity.Notification;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -83,6 +84,30 @@ public class NotificationRepositoryTest {
             assertThat(saved.isConfirmed()).isFalse();
             assertThat(saved.getCreatedAt()).isNotNull();
             assertThat(saved.getUpdatedAt()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("알림 조회")
+    class FindNotificationTest {
+
+        @Test
+        @DisplayName("사용자의 모든 알림을 조회한다")
+        void findAllByReceiverId() {
+            // Given
+            UUID receiverId = UUID.randomUUID();
+            Notification n1 = Notification.forLike(UUID.randomUUID(), receiverId, UUID.randomUUID(), "buzz");
+            Notification n2 = Notification.forComment(UUID.randomUUID(), receiverId, UUID.randomUUID(), "buzz", "댓글");
+            Notification n3 = Notification.forLike(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "buzz"); // 다른 수신자
+
+            notificationRepository.saveAll(List.of(n1, n2, n3));
+
+            // When
+            List<Notification> result = notificationRepository.findAllByReceiverId(receiverId);
+
+            // Then
+            assertThat(result).hasSize(2)
+                .allMatch(n -> n.getReceiverId().equals(receiverId));
         }
     }
 }

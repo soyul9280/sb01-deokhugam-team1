@@ -5,6 +5,7 @@ import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
+import com.codeit.duckhu.domain.user.exception.ForbiddenDeleteException;
 import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
 import com.codeit.duckhu.domain.user.service.UserService;
 import jakarta.validation.Valid;
@@ -64,7 +65,11 @@ public class UserController implements UserApi {
     @Override
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> softDelete(@RequestHeader("X-User-Id") UUID loginId, @PathVariable("userId") UUID targetId) {
-        return null;
+        if (!targetId.equals(loginId)) {
+            throw new ForbiddenDeleteException(loginId, targetId);
+        }
+        userService.softDelete(targetId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 

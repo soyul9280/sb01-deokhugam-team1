@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -167,7 +168,7 @@ class UserControllerTest {
 
         //when
         //then
-        mockMvc.perform(patch("/api/users/{userId}", targetId)
+        mockMvc.perform(delete("/api/users/{userId}", targetId)
                         .header("X-User-Id", loginId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())

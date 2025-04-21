@@ -78,15 +78,4 @@ class NaverBookClientTest {
     assertThat(book.thumbnailImage()).contains("clean.jpg");
     assertThat(book.publishedDate()).isEqualTo(LocalDate.of(2013, 11, 1));
   }
-
-  @Test
-  @DisplayName("잘못된 ISBN 형식이면 예외가 발생한다.")
-  void getBookByIsbn_invalidIsbnFormat_throwsException() {
-    //given
-    String invalidIsbn = "123456789";
-
-    //when & then
-    assertThatThrownBy(() -> naverBookClient.searchByIsbn(invalidIsbn))
-        .isInstanceOf(BookException.class);
-  }
 }

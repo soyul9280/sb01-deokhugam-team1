@@ -58,7 +58,8 @@ public class BookController {
   public ResponseEntity<String> extractIsbnOcr(
       @RequestPart(value = "image", required = false) MultipartFile image
   ) {
-    String isbn = bookService.extractIsbnFromImage(image );
+    String isbn = bookService.extractIsbnFromImage(image);
+
     return ResponseEntity.ok(isbn);
   }
 

@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.book.service;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.exception.BookException;
+import com.codeit.duckhu.domain.book.exception.OCRException;
 import com.codeit.duckhu.domain.book.naver.NaverBookClient;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
@@ -176,6 +177,12 @@ public class BookServiceImpl implements BookService {
 
   @Override
   public String extractIsbnFromImage(MultipartFile image) {
+    // 이미지 형식인지 검증
+    String contentType = image.getContentType();
+    if (contentType == null || !contentType.startsWith("image/")) {
+      throw new OCRException(ErrorCode.INVALID_IMAGE_FORMAT);
+    }
+
     return ocrExtractor.extractOCR(image);
   }
 

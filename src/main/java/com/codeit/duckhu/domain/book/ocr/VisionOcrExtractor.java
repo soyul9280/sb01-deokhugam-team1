@@ -32,12 +32,6 @@ public class VisionOcrExtractor implements OcrExtractor {
 
   @Override
   public String extractOCR(MultipartFile image) {
-    // 이미지 형식인지 검증
-    String contentType = image.getContentType();
-    if (contentType == null || !contentType.startsWith("image/")) {
-      throw new OCRException(ErrorCode.INVALID_IMAGE_FORMAT);
-    }
-
     try {
       ByteString imgBytes = ByteString.readFrom(image.getInputStream());
       Image img = Image.newBuilder().setContent(imgBytes).build();

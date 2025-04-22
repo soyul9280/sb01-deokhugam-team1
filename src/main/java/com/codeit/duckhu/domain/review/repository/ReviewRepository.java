@@ -1,13 +1,17 @@
 package com.codeit.duckhu.domain.review.repository;
 
 import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.domain.review.repository.custom.ReviewRepositoryCustom;
+import com.codeit.duckhu.domain.review.repository.custom.impl.ReviewRepositoryCustomImpl;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-public interface ReviewRepository extends JpaRepository<Review,UUID> {
+@Repository
+public interface ReviewRepository extends JpaRepository<Review,UUID>, ReviewRepositoryCustom {
     Optional<Review> findByUserIdAndBookId(UUID userId, UUID bookId);
 
     /**

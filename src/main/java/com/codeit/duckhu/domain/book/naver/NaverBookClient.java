@@ -5,8 +5,12 @@ import com.codeit.duckhu.domain.book.dto.NaverApiResponse.Item;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.global.exception.ErrorCode;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,8 +69,11 @@ public class NaverBookClient {
       throw new BookException(ErrorCode.BOOK_NOT_FOUND);
     }
 
+    Item item = items.get(0);
+
+    String base64Thumbnail = convertImageUrlToBase64(item.image());
+
     // 첫 번째 검색 결과를 기준으로 NaverBookDto 생성
-    NaverApiResponse.Item item = items.get(0);
     return new NaverBookDto(
         item.title(),
         item.author(),
@@ -74,7 +81,26 @@ public class NaverBookClient {
         item.publisher(),
         LocalDate.parse(item.pubdate(), DateTimeFormatter.ofPattern("yyyyMMdd")), // yyyyMMdd → LocalDate로 변환
         isbn,
-        item.image()
+        base64Thumbnail
     );
+  }
+
+  // Base 64 인코딩된 이미지 데이터로 변경함
+  private String convertImageUrlToBase64(String imageUrl) {
+    try (InputStream in = new URL(imageUrl).openStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+      byte[] buffer = new byte[8192];
+      int bytesRead;
+      while ((bytesRead = in.read(buffer)) != -1) {
+        baos.write(buffer, 0, bytesRead);
+      }
+
+      byte[] imageBytes = baos.toByteArray();
+      return Base64.getEncoder().encodeToString(imageBytes);
+
+    } catch (Exception e) {
+      throw new BookException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 }

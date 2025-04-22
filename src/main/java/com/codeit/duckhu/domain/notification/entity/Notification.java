@@ -34,11 +34,25 @@ public class Notification extends BaseUpdatableEntity {
 	@Column(name = "confirmed", nullable = false)
 	private boolean confirmed = false;
 
-	public Notification(UUID reviewId, UUID receiverId, UUID triggerUserId, String content) {
+	private Notification(UUID reviewId, UUID receiverId, UUID triggerUserId, String content) {
 		this.reviewId = reviewId;
 		this.receiverId = receiverId;
 		this.triggerUserId = triggerUserId;
 		this.content = content;
 		this.confirmed = false;
+	}
+
+	public static Notification forLike(UUID reviewId, UUID receiverId, UUID triggerUserId, String nickname) {
+		String content = String.format("[%s]님이 나의 리뷰를 좋아합니다.", nickname);
+		return new Notification(reviewId, receiverId, triggerUserId, content);
+	}
+
+	public static Notification forComment(UUID reviewId, UUID receiverId, UUID triggerUserId, String nickname, String comment) {
+		String content = String.format("[%s]님이 나의 리뷰에 댓글을 남겼습니다.\n%s", nickname, comment);
+		return new Notification(reviewId, receiverId, triggerUserId, content);
+	}
+
+	public void markAsConfirmed() {
+		this.confirmed = true;
 	}
 }

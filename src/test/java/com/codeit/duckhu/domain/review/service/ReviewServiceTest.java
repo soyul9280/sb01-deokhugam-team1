@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.atLeast;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -155,16 +158,32 @@ class ReviewServiceTest {
   }
 
   @Test
-  @DisplayName("ID로 리뷰 삭제 테스트")
-  void deleteReviewById_shouldReturnSuccess() {
+  @DisplayName("ID로 리뷰 하드 삭제 테스트")
+  void hardDeleteReviewById_shouldReturnSuccess() {
+    // Given: findById 리턴과 delete 설정
+    doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
+    willDoNothing().given(reviewRepository).delete(testReview);
+
+    // When : 서비스 호출 시 예외가 나지 않아야 하고
+    assertDoesNotThrow(() -> reviewService.hardDeleteReviewById(testReviewId));
+
+    // Then: repository.findById + repository.delete 가 호출됐는지 검증, 불필요한 추가 호출이 없는지도 검증
+    verify(reviewRepository).findById(testReviewId);
+    verify(reviewRepository).delete(testReview);
+  }
+
+  @Test
+  @DisplayName("ID로 리뷰 소프트 삭제 테스트")
+  void softDeleteReviewById_shouldReturnSuccess() {
     // Given
-    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+    Review mockReview = Mockito.mock(Review.class);
+    doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
     
     // When
-    assertDoesNotThrow(() -> reviewService.deleteReviewById(testReviewId));
+    reviewService.softDeleteReviewById(testReviewId);
     
     // Then
-    verify(reviewRepository).delete(testReview);
+    verify(mockReview).softDelete();
   }
 
   @Test

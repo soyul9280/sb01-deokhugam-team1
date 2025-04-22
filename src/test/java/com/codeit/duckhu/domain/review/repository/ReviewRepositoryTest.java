@@ -40,7 +40,6 @@ public class ReviewRepositoryTest {
         .email("test@example.com")
         .nickname("테스터")
         .password("password")
-        .isDeleted(false)
         .build();
     User savedUser = userRepository.save(user);
 
@@ -50,7 +49,6 @@ public class ReviewRepositoryTest {
         .publisher("테스트 출판사")
         .isbn("9788956609959")
         .publishedDate(LocalDate.now())
-        .isDeleted(false)
         .build();
     Book savedBook = bookRepository.save(book);
 

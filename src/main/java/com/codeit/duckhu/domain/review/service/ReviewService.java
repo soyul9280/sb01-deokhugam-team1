@@ -17,11 +17,14 @@ public interface ReviewService {
 
   ReviewDto getReviewById(UUID id);
 
-  void deleteReviewById(UUID id);
+  void hardDeleteReviewById(UUID id);
 
   ReviewDto updateReview(UUID id, ReviewUpdateRequest request);
 
   ReviewLikeDto likeReview(UUID reviewId, UUID userId);
 
   CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto);
+  
+  void softDeleteReviewById(UUID reviewId);
+  
 }

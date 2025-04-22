@@ -73,6 +73,15 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(user);
     }
 
+    public User findByIdEntityReturn(UUID id){
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));
+        if (user.isDeleted()) {
+            throw new NotFoundUserException(id);
+        }
+
+        return user;
+    }
+
     @Override
     public void softDelete(UUID id) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundUserException(id));

@@ -12,7 +12,7 @@ public abstract class CommentMapper {
   @Mapping(target = "userNickname" , expression = "java(userName(comment))")
   @Mapping(target = "userId", expression = "java(userId(comment))")
   @Mapping(target = "reviewId", expression = "java(reviewId(comment))")
-  abstract CommentDto toDto(Comment comment);
+  public abstract CommentDto toDto(Comment comment);
 
   UUID reviewId(Comment comment){
     return comment.getReview().getId();

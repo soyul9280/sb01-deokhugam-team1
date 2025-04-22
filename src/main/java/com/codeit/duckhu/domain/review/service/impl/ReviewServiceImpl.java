@@ -102,26 +102,6 @@ public class ReviewServiceImpl implements ReviewService {
     recalculateBookStats(review.getBook());
   }
 
-  @Transactional
-  @Override
-  public void softDeleteReviewById(UUID id) {
-    Review review = reviewRepository.findById(id)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-
-    review.softDelete();
-
-    // jw
-    recalculateBookStats(review.getBook());
-  }
-
-  @Transactional
-  @Override
-  public void softDeleteReviewById(UUID id) {
-    Review review = reviewRepository.findById(id)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-
-    review.softDelete();
-  }
 
   @Transactional
   @Override
@@ -161,40 +141,6 @@ public class ReviewServiceImpl implements ReviewService {
     recalculateBookStats(updatedReview.getBook());
 
     return reviewMapper.toDto(updatedReview);
-  }
-
-  @Transactional
-  @Override
-  public ReviewLikeDto likeReview(UUID reviewId, UUID userId) {
-    Review review = reviewRepository.findById(reviewId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-
-    if (review.isDeleted()) {
-      throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
-    }
-
-    // 사용자 찾기
-    userRepository.existsById(userId);
-
-    boolean likedBefore = review.liked(userId);
-
-    if (likedBefore) {
-      review.decreaseLikeCount(userId);
-    } else {
-      review.increaseLikeCount(userId);
-    }
-
-    boolean likedAfter = review.liked(userId);
-    return ReviewLikeDto.builder()
-        .reviewId(review.getId())
-        .userId(userId)
-        .liked(likedAfter)
-        .build();
-
-  }
-  public Review findByIdEntityReturn(UUID reviewId){
-    return reviewRepository.findById(reviewId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
   }
 
   @Transactional

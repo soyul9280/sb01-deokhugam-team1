@@ -16,10 +16,7 @@ import com.codeit.duckhu.domain.notification.entity.Notification;
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
     /**
-     * 특정 사용자가 수신한 모든 알림을 조회합니다.
-     *
-     * @param receiverId 알림 수신자 ID
-     * @return 해당 사용자의 알림 리스트
+     * 특정 사용자가 수신한 모든 알림을 조회한다.
      */
     List<Notification> findAllByReceiverId(UUID receiverId);
 

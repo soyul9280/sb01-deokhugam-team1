@@ -25,9 +25,6 @@ public class Notification extends BaseUpdatableEntity {
 	@Column(name = "user_id", columnDefinition = "UUID")
 	private UUID receiverId;
 
-	@Column(name = "trigger_user_id", columnDefinition = "UUID")
-	private UUID triggerUserId;
-
 	@Column(name = "review_title", length = 255)
 	private String reviewTitle;
 
@@ -37,23 +34,22 @@ public class Notification extends BaseUpdatableEntity {
 	@Column(name = "confirmed", nullable = false)
 	private boolean confirmed = false;
 
-	private Notification(UUID reviewId, UUID receiverId, UUID triggerUserId, String content, String reviewTitle) {
+	private Notification(UUID reviewId, UUID receiverId, String content, String reviewTitle) {
 		this.reviewId = reviewId;
 		this.receiverId = receiverId;
-		this.triggerUserId = triggerUserId;
 		this.content = content;
 		this.reviewTitle = reviewTitle;
 		this.confirmed = false;
 	}
 
-	public static Notification forLike(UUID reviewId, UUID receiverId, UUID triggerUserId, String nickname, String reviewTitle) {
+	public static Notification forLike(UUID reviewId, UUID receiverId, String nickname, String reviewTitle) {
 		String content = String.format("[%s]님이 나의 리뷰를 좋아합니다.", nickname);
-		return new Notification(reviewId, receiverId, triggerUserId, content, reviewTitle);
+		return new Notification(reviewId, receiverId, content, reviewTitle);
 	}
 
-	public static Notification forComment(UUID reviewId, UUID receiverId, UUID triggerUserId, String nickname, String comment, String reviewTitle) {
+	public static Notification forComment(UUID reviewId, UUID receiverId, String nickname, String comment, String reviewTitle) {
 		String content = String.format("[%s]님이 나의 리뷰에 댓글을 남겼습니다.\n%s", nickname, comment);
-		return new Notification(reviewId, receiverId, triggerUserId, content, reviewTitle);
+		return new Notification(reviewId, receiverId, content, reviewTitle);
 	}
 
 	public void markAsConfirmed() {

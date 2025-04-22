@@ -69,7 +69,6 @@ CREATE TABLE notifications
     id              UUID PRIMARY KEY NOT NULL,
     review_id       UUID, -- nullable, ON DELETE SET NULL 가능
     user_id         UUID, -- nullable, ON DELETE SET NULL 가능
-    trigger_user_id UUID,
     review_title    VARCHAR(255)     NOT NULL,
     content         VARCHAR(255)     NOT NULL,
     confirmed       BOOLEAN          NOT NULL,

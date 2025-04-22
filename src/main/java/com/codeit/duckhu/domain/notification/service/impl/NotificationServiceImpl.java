@@ -73,7 +73,6 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification = Notification.forLike(
             reviewId,
             receiverId,
-            triggerUserId,
             nickname,
             review.getContent()
         );
@@ -111,7 +110,6 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification = Notification.forComment(
             reviewId,
             receiverId,
-            triggerUserId,
             nickname,
             comment,
             review.getContent()

@@ -17,7 +17,9 @@ public interface ReviewService {
 
   ReviewDto getReviewById(UUID id);
 
-  void deleteReviewById(UUID id);
+  void hardDeleteReviewById(UUID id);
+
+  void softDeleteReviewById(UUID reviewId);
 
   ReviewDto updateReview(UUID id, ReviewUpdateRequest request);
 

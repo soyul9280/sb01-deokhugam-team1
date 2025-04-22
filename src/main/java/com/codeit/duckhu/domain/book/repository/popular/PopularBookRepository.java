@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PopularBookRepository extends JpaRepository<PopularBook, UUID>,
     PopularBookRepositoryCustom {
 
-  long countByPeriod(PeriodType period);
+  int countByPeriod(PeriodType period);
 }

@@ -185,7 +185,7 @@ public class BookServiceImpl implements BookService {
       nextAfter = last.getCreatedAt();
     }
 
-    long total = popularBookRepository.countByPeriod(period);
+    int total = popularBookRepository.countByPeriod(period);
 
     return new CursorPageResponsePopularBookDto(
         content,
@@ -195,8 +195,6 @@ public class BookServiceImpl implements BookService {
         total,
         hasNext
     );
-
-    return null;
   }
 
   /**

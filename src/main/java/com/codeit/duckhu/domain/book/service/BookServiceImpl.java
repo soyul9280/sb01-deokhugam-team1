@@ -38,8 +38,6 @@ public class BookServiceImpl implements BookService {
 
   private final BookRepository bookRepository;
 
-  private final ReviewRepository reviewRepository;
-
   private final BookMapper bookMapper;
 
   private final ThumbnailImageStorage thumbnailImageStorage;
@@ -109,8 +107,6 @@ public class BookServiceImpl implements BookService {
   public CursorPageResponseBookDto searchBooks(String keyword, String orderBy, String direction,
       String cursor, Instant after, int limit) {
 
-    boolean isAsc = "ASC".equalsIgnoreCase(direction);
-
     List<Book> books = bookRepository.searchBooks(keyword, orderBy, direction, cursor, after,
         limit + 1);
 
@@ -138,9 +134,6 @@ public class BookServiceImpl implements BookService {
     List<UUID> bookIds = books.stream()
         .map(Book::getId)
         .toList();
-
-    Map<UUID, Integer> reviewCounts = reviewRepository.countByBookIds(bookIds);
-    Map<UUID, Double> avgRatings = reviewRepository.averageRatingByBookIds(bookIds);
 
     List<BookDto> content = books.stream()
         .map(bookMapper::toDto)

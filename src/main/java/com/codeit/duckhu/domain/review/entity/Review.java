@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -69,6 +70,19 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private Set<UUID> likedUserIds = new HashSet<>();
 
+  @Column(name = "is_deleted", nullable = false)
+  private boolean deleted = false;
+  
+  @ElementCollection
+  @CollectionTable(name = "review_likes", joinColumns = @JoinColumn(name = "review_id"),
+      uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "user_id"}))
+  @Column(name = "user_id")
+  @Builder.Default
+  private Set<UUID> likedUserIds = new HashSet<>();
+
+  @Version
+  private Long version;
+
   public void updateContent(String content) {
     this.content = content;
   }
@@ -103,6 +117,12 @@ public class Review extends BaseUpdatableEntity {
     } else {
       increaseLikeCount(userId);
       return true;
+    }
+  }
+
+  public void softDelete() {
+    if(!this.isDeleted()) {
+      this.deleted = true;
     }
   }
 }

@@ -151,13 +151,13 @@ class ReviewServiceTest {
   @DisplayName("리뷰 생성 성공")
   void createReview_shouldCreateReview() {
     // Given
-    when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(testUser));
-    when(bookRepository.findById(any(UUID.class))).thenReturn(Optional.of(testBook));
+    doReturn(Optional.of(testUser)).when(userRepository).findById(testUserId);
+    doReturn(Optional.of(testBook)).when(bookRepository).findById(testBookId);
     // 리뷰가 존재하지 않는 경우
-    when(reviewRepository.findByUserIdAndBookId(any(UUID.class), any(UUID.class))).thenReturn(Optional.empty());
-    when(reviewMapper.toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class))).thenReturn(testReview);
-    when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
-    when(reviewMapper.toDto(any(Review.class))).thenReturn(testReviewDto);
+    doReturn(Optional.empty()).when(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
+    doReturn(testReview).when(reviewMapper).toEntity(testCreateRequest, testUser, testBook);
+    doReturn(testReview).when(reviewRepository).save(testReview);
+    doReturn(testReviewDto).when(reviewMapper).toDto(testReview);
 
     // When
     ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -170,12 +170,12 @@ class ReviewServiceTest {
     assertThat(result.getCommentCount()).isEqualTo(0);
     assertThat(result.getUserId()).isEqualTo(testUserId);
     assertThat(result.getBookId()).isEqualTo(testBookId);
-    verify(userRepository).findById(any(UUID.class));
-    verify(bookRepository).findById(any(UUID.class));
-    verify(reviewRepository).findByUserIdAndBookId(any(UUID.class), any(UUID.class));
-    verify(reviewMapper).toEntity(any(ReviewCreateRequest.class), any(User.class), any(Book.class));
-    verify(reviewRepository).save(any(Review.class));
-    verify(reviewMapper).toDto(any(Review.class));
+    verify(userRepository).findById(testUserId);
+    verify(bookRepository).findById(testBookId);
+    verify(reviewRepository).findByUserIdAndBookId(testUserId, testBookId);
+    verify(reviewMapper).toEntity(testCreateRequest, testUser, testBook);
+    verify(reviewRepository).save(testReview);
+    verify(reviewMapper).toDto(testReview);
   }
 
   @Test

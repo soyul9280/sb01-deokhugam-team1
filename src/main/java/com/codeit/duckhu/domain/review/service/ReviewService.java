@@ -8,7 +8,7 @@ import com.codeit.duckhu.domain.review.entity.Review;
 import java.util.UUID;
 
 /**
- * 리뷰 서비스 인터페이스.
+ * 리뷰 서비스 인터페이스
  */
 public interface ReviewService {
 

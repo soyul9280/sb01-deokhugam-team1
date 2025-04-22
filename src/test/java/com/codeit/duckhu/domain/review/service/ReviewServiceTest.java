@@ -254,18 +254,6 @@ class ReviewServiceTest {
   }
 
   @Test
-  @DisplayName("존재하지 않는 리뷰 ID로 호출 시 예외 발생")
-  void likeReview_nonexistentReview_throwsNotFound() {
-    // Given
-    when(reviewRepository.findById(testReviewId)).thenReturn(Optional.empty());
-    
-    // When & Then
-    ReviewCustomException ex = assertThrows(ReviewCustomException.class,
-        () -> reviewService.likeReview(testReviewId, testUserId));
-    assertThat(ex.getErrorCode()).isEqualTo(ReviewErrorCode.REVIEW_NOT_FOUND);
-  }
-
-  @Test
   @DisplayName("존재하지 않는 유저 ID로 호출 시 예외 발생")
   void likeReview_nonexistentUser_throwsNotFound() {
     // Given

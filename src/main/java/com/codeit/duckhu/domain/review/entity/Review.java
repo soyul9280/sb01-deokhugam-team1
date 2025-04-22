@@ -73,12 +73,12 @@ public class Review extends BaseUpdatableEntity {
   @Column(name = "is_deleted", nullable = false)
   private boolean deleted = false;
   
-  @ElementCollection
-  @CollectionTable(name = "review_likes", joinColumns = @JoinColumn(name = "review_id"),
-      uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "user_id"}))
-  @Column(name = "user_id")
-  @Builder.Default
-  private Set<UUID> likedUserIds = new HashSet<>();
+//  @ElementCollection
+//  @CollectionTable(name = "review_likes", joinColumns = @JoinColumn(name = "review_id"),
+//      uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "user_id"}))
+//  @Column(name = "user_id")
+//  @Builder.Default
+//  private Set<UUID> likedUserIds = new HashSet<>();
 
   @Version
   private Long version;

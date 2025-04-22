@@ -4,8 +4,10 @@ import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
+import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.time.Instant;
@@ -107,5 +109,17 @@ public class BookController {
     return ResponseEntity
         .status(HttpStatus.NO_CONTENT)
         .build();
+  }
+
+  @GetMapping(value = "/popular")
+  public ResponseEntity<CursorPageResponsePopularBookDto> getPopularBooks(
+      @RequestParam(defaultValue = "DAILY") PeriodType period,
+      @RequestParam(defaultValue = "DESC") String direction,
+      @RequestParam(required = false) String cursor,
+      @RequestParam(required = false) Instant after,
+      @RequestParam(defaultValue = "50") int limit
+  ) {
+    return ResponseEntity.ok(
+        bookService.searchPopularBooks(period, direction, cursor, after, limit));
   }
 }

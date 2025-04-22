@@ -23,13 +23,20 @@ public class GlobalExceptionHandler {
    * @param e
    * @return 500 INTERNAL SERVER ERROR 응답
    */
-  @ExceptionHandler(value = {NoHandlerFoundException.class,
-      HttpRequestMethodNotSupportedException.class})
-  public ResponseEntity<CustomApiResponse<?>> handleNoPageFoundException(Exception e) {
-    log.error("GlobalExceptionHandler catch NoHandlerFoundException : {}", e.getMessage());
+  @ExceptionHandler(NoHandlerFoundException.class)
+  public ResponseEntity<CustomApiResponse<?>> handleNoHandlerFound(NoHandlerFoundException ex) {
+    log.warn("요청한 페이지 없음: {}", ex.getRequestURL());
     return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
-            .body(CustomApiResponse.fail(new CustomException(ErrorCode.INTERNAL_SERVER_ERROR)));
+            .body(CustomApiResponse.fail(new CustomException(ErrorCode.NOT_FOUND)));
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<CustomApiResponse<?>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+    log.warn("지원하지 않는 HTTP Method: {}", ex.getMethod());
+    return ResponseEntity
+            .status(HttpStatus.METHOD_NOT_ALLOWED)
+            .body(CustomApiResponse.fail(new CustomException(ErrorCode.METHOD_NOT_ALLOWED)));
   }
 
   /**

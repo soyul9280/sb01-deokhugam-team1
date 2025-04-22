@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
   // COMMON
   INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러입니다.", "관리자에게 연락해 주세요."),
+  NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 자원을 찾을 수 없습니다.","잘못된 요청을 진행하였습니다."),
+  METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "지원하지 않는 HTTP 메서드입니다.","잘못된 요청을 진행하였습니다."),
   INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.", "잘못된 요청을 진행하였습니다."),
 
   // BOOK

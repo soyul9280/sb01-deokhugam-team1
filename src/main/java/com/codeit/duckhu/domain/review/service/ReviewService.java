@@ -19,11 +19,11 @@ public interface ReviewService {
 
   void hardDeleteReviewById(UUID id);
 
+  void softDeleteReviewById(UUID reviewId);
+
   ReviewDto updateReview(UUID id, ReviewUpdateRequest request);
 
   ReviewLikeDto likeReview(UUID reviewId, UUID userId);
-
-  void softDeleteReviewById(UUID reviewId);
 
   CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto);
 }

@@ -7,6 +7,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.doReturn;
@@ -51,11 +53,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
-
-  static {
-    // 불필요한 스텁 경고 비활성화
-    System.setProperty("mockito.mockito.after.creation.log", "false");
-  }
 
   @Mock
   private UserRepository userRepository;
@@ -163,7 +160,7 @@ class ReviewServiceTest {
     assertThat(result.getRating()).isEqualTo(testReviewDto.getRating());
   }
 
-
+  @Test
   @DisplayName("ID로 리뷰 하드 삭제 테스트")
   void hardDeleteReviewById_shouldReturnSuccess() {
     // Given: findById 리턴과 delete 설정
@@ -202,10 +199,10 @@ class ReviewServiceTest {
     when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
     when(testReview.getUser()).thenReturn(testUser);
     when(testUser.getId()).thenReturn(testUserId);
-
+    
     // When
     ReviewDto result = reviewService.updateReview(testReviewId, testreviewUpdateRequest);
-
+    
     // Then
     assertThat(result).isNotNull();
     assertThat(result).isEqualTo(testReviewDto);
@@ -232,10 +229,10 @@ class ReviewServiceTest {
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(testReview.liked(testUserId)).thenReturn(false);
     when(testReview.getId()).thenReturn(testReviewId);
-
+    
     // When
     ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
-
+    
     // Then
     verify(testReview).increaseLikeCount(testUserId);
   }
@@ -248,10 +245,10 @@ class ReviewServiceTest {
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(testReview.liked(testUserId)).thenReturn(true);
     when(testReview.getId()).thenReturn(testReviewId);
-
+    
     // When
     ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
-
+    
     // Then
     verify(testReview).decreaseLikeCount(testUserId);
   }
@@ -261,7 +258,7 @@ class ReviewServiceTest {
   void likeReview_nonexistentReview_throwsNotFound() {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.empty());
-
+    
     // When & Then
     ReviewCustomException ex = assertThrows(ReviewCustomException.class,
         () -> reviewService.likeReview(testReviewId, testUserId));
@@ -274,31 +271,29 @@ class ReviewServiceTest {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
-
+    
     // When & Then
     ReviewCustomException ex = assertThrows(ReviewCustomException.class,
         () -> reviewService.likeReview(testReviewId, testUserId));
     assertThat(ex.getErrorCode()).isEqualTo(ReviewErrorCode.USER_NOT_FOUND);
   }
-  
-
 
   @Test
   @DisplayName("리뷰 커서 페이지네이션 테스트")
   void findReviews_success() {
     // Given
     List<Review> reviewList = new ArrayList<>();
-
+    
     // 정확한 파라미터로 stubbing 설정
     when(reviewRepository.findReviewsWithCursor(
-            eq(null), eq("createdAt"), eq("DESC"),
-            eq(null), eq(null), eq(null),
+            eq(null), eq("createdAt"), eq("DESC"), 
+            eq(null), eq(null), eq(null), 
             eq(null), eq(11)
     )).thenReturn(reviewList);
-
+    
     // When
     CursorPageResponseReviewDto result = reviewService.findReviews(new ReviewSearchRequestDto());
-
+    
     // Then
     assertThat(result).isNotNull();
     assertThat(result.isHasNext()).isFalse();

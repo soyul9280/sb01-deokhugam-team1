@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.review.service.impl;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
@@ -13,7 +14,6 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
-import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +99,6 @@ public class ReviewServiceImpl implements ReviewService {
       throw new ReviewCustomException(ReviewErrorCode.USER_NOT_OWNER);
     }
 
-
     review.updateContent(request.getContent());
     review.updateRating(request.getRating());
 
@@ -107,5 +106,36 @@ public class ReviewServiceImpl implements ReviewService {
     log.info("리뷰 업데이트 성공, ID: {}", updatedReview.getId());
 
     return reviewMapper.toDto(updatedReview);
+  }
+
+  public Review findByIdEntityReturn(UUID reviewId){
+    return reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+  }
+
+  @Transactional
+  @Override
+  public ReviewLikeDto likeReview(UUID reviewId, UUID userId) {
+    Review review = reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+    userRepository.findById(userId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+
+    boolean likedBefore = review.liked(userId);
+
+    if (likedBefore) {
+      review.decreaseLikeCount(userId);
+    } else {
+      review.increaseLikeCount(userId);
+    }
+
+
+    boolean likedAfter = review.liked(userId);
+    return ReviewLikeDto.builder()
+        .reviewId(review.getId())
+        .userId(userId)
+        .liked(likedAfter)
+        .build();
   }
 }

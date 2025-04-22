@@ -57,7 +57,7 @@ public class Book extends BaseUpdatableEntity {
   @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted = false;
 
-
+  @Builder.Default
   @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Review> reviews = new ArrayList<>();
 

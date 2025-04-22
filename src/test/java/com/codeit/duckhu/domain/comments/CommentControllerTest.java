@@ -62,24 +62,27 @@ public class CommentControllerTest {
   @Test
   void deleteMapping() throws Exception {
     UUID commentId = UUID.randomUUID();
-    doNothing().when(commentService).delete(commentId);
+    UUID userId = UUID.randomUUID();
+
+    doNothing().when(commentService).delete(commentId,userId);
 
     mockMvc.perform(delete("/api/comments/" + commentId)
-            .header("Deokhugam-Request-User-ID",UUID.randomUUID()))
+            .header("Deokhugam-Request-User-ID",userId))
         .andExpect(status().isNoContent());
   }
 
   @Test
   void updateMapping() throws Exception {
     UUID commentId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
 
     CommentUpdateRequest request = new CommentUpdateRequest();
     request.setContent("update comment");
 
-   given(commentService.update(commentId,request)).willReturn(new CommentDto());
+   given(commentService.update(commentId,request,userId)).willReturn(new CommentDto());
 
     mockMvc.perform(patch("/api/comments/" + commentId)
-            .header("Deokhugam-Request-User-ID",UUID.randomUUID())
+            .header("Deokhugam-Request-User-ID",userId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk());

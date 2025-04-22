@@ -82,4 +82,9 @@ public class Book extends BaseUpdatableEntity {
   public void logicallyDelete() {
     this.isDeleted = true;
   }
+
+  public void updateReviewStatus(int reviewCount, double rating) {
+    this.reviewCount = reviewCount;
+    this.rating = rating;
+  }
 }

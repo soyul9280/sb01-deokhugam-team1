@@ -8,6 +8,7 @@ import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.exception.ForbiddenDeleteException;
 import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
 import com.codeit.duckhu.domain.user.service.UserService;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -56,7 +57,7 @@ public class UserController implements UserApi {
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> update(@RequestHeader("X-User-Id") UUID loginId, @PathVariable("userId") UUID targetId, @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
         if (!targetId.equals(loginId)) {
-            throw new ForbiddenUpdateException(loginId, targetId);
+            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
         }
         UserDto result = userService.update(targetId, userUpdateRequest);
         return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -66,7 +67,7 @@ public class UserController implements UserApi {
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> softDelete(@RequestHeader("X-User-Id") UUID loginId, @PathVariable("userId") UUID targetId) {
         if (!targetId.equals(loginId)) {
-            throw new ForbiddenDeleteException(loginId, targetId);
+            throw new ForbiddenDeleteException(ErrorCode.UNAUTHORIZED_DELETE);
         }
         userService.softDelete(targetId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -76,7 +77,7 @@ public class UserController implements UserApi {
     @DeleteMapping("/{userId}/hard")
     public ResponseEntity<Void> hardDelete(@RequestHeader("X-User-Id") UUID loginId, @PathVariable("userId") UUID targetId) {
         if (!targetId.equals(loginId)) {
-            throw new ForbiddenDeleteException(loginId, targetId);
+            throw new ForbiddenDeleteException(ErrorCode.UNAUTHORIZED_DELETE);
         }
         userService.hardDelete(targetId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

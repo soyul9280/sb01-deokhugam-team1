@@ -4,7 +4,6 @@ import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
-import com.codeit.duckhu.domain.user.exception.UserErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,11 +31,11 @@ public interface UserApi {
             @ApiResponse(responseCode = "200", description = "등록성공",
                     content = @Content(schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 중복된 이메일",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "409", description = "이메일 중복",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping(value = "/api/users/")
     ResponseEntity<UserDto> create(
@@ -47,11 +47,11 @@ public interface UserApi {
             @ApiResponse(responseCode = "200", description = "로그인 성공",
                     content = @Content(schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "로그인 실패(이메일 또는 비밀번호 불일치)",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/api/users/login")
     ResponseEntity<UserDto> login(@RequestBody UserLoginRequest userLoginRequest);
@@ -62,9 +62,9 @@ public interface UserApi {
             @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공",
                     content = @Content(schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "404", description = "사용자 정보 없음",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/api/users/{userId}")
     ResponseEntity<UserDto> findById(
@@ -77,13 +77,13 @@ public interface UserApi {
             @ApiResponse(responseCode = "200", description = "사용자 정보 수정 성공",
                     content = @Content(schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (입력값 검증 실패)",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "사용자 정보 수정 권한 없음",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "사용자 정보 없음",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/api/users/{userId}")
     ResponseEntity<UserDto> update(
@@ -97,11 +97,11 @@ public interface UserApi {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "사용자 삭제 성공"),
             @ApiResponse(responseCode = "403", description = "사용자 삭제 권한 없음",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "사용자 정보 없음",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/api/users/{userId}")
     ResponseEntity<Void> softDelete(
@@ -113,11 +113,11 @@ public interface UserApi {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "사용자 삭제 성공"),
             @ApiResponse(responseCode = "403", description = "사용자 삭제 권한 없음",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "사용자 정보 없음",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(schema = @Schema(implementation = UserErrorResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/api/users/{userId}/hard")
     ResponseEntity<Void> hardDelete(

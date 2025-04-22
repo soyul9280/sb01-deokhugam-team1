@@ -4,8 +4,8 @@ import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
-import com.codeit.duckhu.domain.user.exception.UserExceptionHandler;
 import com.codeit.duckhu.domain.user.service.UserService;
+import com.codeit.duckhu.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import(UserExceptionHandler.class)
+@Import(GlobalExceptionHandler.class)
 class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -172,7 +172,7 @@ class UserControllerTest {
                         .header("X-User-Id", loginId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("USER_403"))
+                .andExpect(jsonPath("$.details").value("USER_403"))
                 .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
     }
 

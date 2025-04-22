@@ -3,6 +3,7 @@ package com.codeit.duckhu.global.exception;
 import com.codeit.duckhu.global.response.CustomApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -26,6 +27,20 @@ public class GlobalExceptionHandler {
     log.error("GlobalExceptionHandler catch NoHandlerFoundException : {}", e.getMessage());
     return CustomApiResponse.fail(new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
   }
+
+  /**
+   * 요청값 검증 실패
+   *
+   * @param e
+   * @return 400 INVALID_INPUT_VALUE 응답
+   */
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public CustomApiResponse<?> handleValidationException(MethodArgumentNotValidException e) {
+    log.error("Validation failed: {}",e.getMessage());
+    return CustomApiResponse.fail(new CustomException(ErrorCode.INVALID_INPUT_VALUE));
+  }
+
+
 
   /**
    * 커스텀 예외에 대한 처리.
@@ -52,5 +67,7 @@ public class GlobalExceptionHandler {
         e.getMessage());
     return CustomApiResponse.fail(new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
   }
+
+
 
 }

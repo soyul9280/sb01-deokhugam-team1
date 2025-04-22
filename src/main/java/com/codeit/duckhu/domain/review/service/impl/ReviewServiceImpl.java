@@ -108,32 +108,6 @@ public class ReviewServiceImpl implements ReviewService {
     return reviewMapper.toDto(updatedReview);
   }
 
-  @Transactional
-  @Override
-  public ReviewLikeDto likeReview(UUID reviewId, UUID userId) {
-    Review review = reviewRepository.findById(reviewId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-
-    userRepository.findById(userId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
-
-    boolean likedBefore = review.liked(userId);
-
-    if (likedBefore) {
-      review.decreaseLikeCount(userId);
-    } else {
-      review.increaseLikeCount(userId);
-    }
-
-
-    boolean likedAfter = review.liked(userId);
-    return ReviewLikeDto.builder()
-        .reviewId(review.getId())
-        .userId(userId)
-        .liked(likedAfter)
-        .build();
-  }
-
   public Review findByIdEntityReturn(UUID reviewId){
     return reviewRepository.findById(reviewId)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));

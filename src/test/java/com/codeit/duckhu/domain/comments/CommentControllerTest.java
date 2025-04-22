@@ -1,6 +1,6 @@
 package com.codeit.duckhu.domain.comments;
 
-import static org.hamcrest.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -44,26 +44,28 @@ public class CommentControllerTest {
   }
 
 
-  /*@Test
+  @Test
   void postMapping() throws Exception {
     CommentCreateRequest request = new CommentCreateRequest();
     request.setContent("create comment");
 
-    doNothing().when(commentService).create((CommentCreateRequest) any(CommentCreateRequest.class));
+    given(commentService.create(request)).willReturn(new CommentDto());
 
 
     mockMvc.perform(post("/api/comments")
+            .header("Deokhugam-Request-User-ID",UUID.randomUUID())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
-  }*/
+  }
 
   @Test
   void deleteMapping() throws Exception {
     UUID commentId = UUID.randomUUID();
     doNothing().when(commentService).delete(commentId);
 
-    mockMvc.perform(delete("/api/comments/" + commentId))
+    mockMvc.perform(delete("/api/comments/" + commentId)
+            .header("Deokhugam-Request-User-ID",UUID.randomUUID()))
         .andExpect(status().isNoContent());
   }
 
@@ -74,10 +76,10 @@ public class CommentControllerTest {
     CommentUpdateRequest request = new CommentUpdateRequest();
     request.setContent("update comment");
 
-    doNothing().when(commentService).update(eq(commentId),
-        (CommentUpdateRequest) any(CommentUpdateRequest.class));
+   given(commentService.update(commentId,request)).willReturn(new CommentDto());
 
     mockMvc.perform(patch("/api/comments/" + commentId)
+            .header("Deokhugam-Request-User-ID",UUID.randomUUID())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk());

@@ -77,8 +77,8 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
 
-                .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
-                .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
+                .andExpect(jsonPath("$.error.message").value("잘못된 요청입니다."))
+                .andExpect(jsonPath("$.error.details").value("잘못된 요청을 진행하였습니다."));
     }
 
     @Test
@@ -115,8 +115,8 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
 
-                .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
-                .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
+                .andExpect(jsonPath("$.error.message").value("잘못된 요청입니다."))
+                .andExpect(jsonPath("$.error.details").value("잘못된 요청을 진행하였습니다."));
     }
 
     @Test
@@ -133,9 +133,8 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
 
-                .andExpect(jsonPath("$.code").value("InvalidMethodArgumentException"))
-                .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"))
-                .andExpect(jsonPath("$.details.nickname").value("닉네임은 2자 이상 20자 이하로 입력해주세요."));
+                .andExpect(jsonPath("$.error.message").value("잘못된 요청입니다."))
+                .andExpect(jsonPath("$.error.details").value("잘못된 요청을 진행하였습니다."));
     }
 
     @Test
@@ -154,9 +153,8 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
 
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("USER_403"))
-                .andExpect(jsonPath("$.message").value("사용자 정보 수정 권한 없음"))
-                .andExpect(jsonPath("$.exceptionType").value("ForbiddenUpdateException"));
+                .andExpect(jsonPath("$.error.details").value("USER_403"))
+                .andExpect(jsonPath("$.error.message").value("사용자 정보 수정 권한 없음"));
     }
 
     @Test
@@ -172,8 +170,8 @@ class UserControllerTest {
                         .header("X-User-Id", loginId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.details").value("USER_403"))
-                .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
+                .andExpect(jsonPath("$.error.details").value("USER_403"))
+                .andExpect(jsonPath("$.error.message").value("사용자 삭제 권한 없음"));
     }
 
     @Test
@@ -189,8 +187,8 @@ class UserControllerTest {
                         .header("X-User-Id", loginId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("USER_403"))
-                .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
+                .andExpect(jsonPath("$.error.details").value("USER_403"))
+                .andExpect(jsonPath("$.error.message").value("사용자 삭제 권한 없음"));
     }
 
 

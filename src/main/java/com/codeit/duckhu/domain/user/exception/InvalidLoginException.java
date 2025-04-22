@@ -1,11 +1,14 @@
 package com.codeit.duckhu.domain.user.exception;
 
 
+import com.codeit.duckhu.global.exception.ErrorCode;
+
 import java.time.Instant;
 import java.util.Map;
 
 public class InvalidLoginException extends UserException{
-    public InvalidLoginException(String email) {
-        super(Instant.now(),UserErrorCode.LOGIN_INPUT_INVALID, Map.of("email", email));
+
+    public InvalidLoginException(ErrorCode errorCode) {
+        super(errorCode);
     }
 }

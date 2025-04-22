@@ -5,31 +5,64 @@ import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.entity.User;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface ReviewMapper {
+@Component
+@RequiredArgsConstructor
+public class ReviewMapper {
 
-  @Mapping(target = "userId", source = "review.user.id")
-  @Mapping(target = "userNickname", source = "review.user.nickname")
-  @Mapping(target = "bookId", source = "review.book.id")
-  @Mapping(target = "bookTitle", source = "review.book.title")
-  @Mapping(target = "likedByMe", constant = "false")
-  ReviewDto toDto(Review review);
+  public ReviewDto toDto(Review review) {
+    ReviewDto.ReviewDtoBuilder builder = ReviewDto.builder()
+        .id(review.getId())
+        .content(review.getContent())
+        .rating(review.getRating())
+        .likeCount(review.getLikeCount())
+        .commentCount(review.getCommentCount())
+        .likedByMe(false);  // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
+        
+    // null 체크를 통한 안전한 접근
+    if (review.getUser() != null) {
+        builder.userId(review.getUser().getId())
+               .userNickname(review.getUser().getNickname());
+    }
+    
+    if (review.getBook() != null) {
+        builder.bookId(review.getBook().getId())
+               .bookTitle(review.getBook().getTitle())
+               .bookThumbnailUrl(review.getBook().getThumbnailUrl());
+    }
+    
+    // 날짜 처리
+    if (review.getCreatedAt() != null) {
+        builder.createdAt(mapInstantToLocalDateTime(review.getCreatedAt()));
+    }
+    
+    if (review.getUpdatedAt() != null) {
+        builder.updatedAt(mapInstantToLocalDateTime(review.getUpdatedAt()));
+    }
+    
+    return builder.build();
+  }
 
-  @Mapping(target = "id", ignore = true)
-  @Mapping(target = "user", source = "user")
-  @Mapping(target = "book", source = "book")
-  @Mapping(target = "content", source = "request.content")
-  @Mapping(target = "rating", source = "request.rating")
-  @Mapping(target = "likeCount", constant = "0")
-  @Mapping(target = "commentCount", constant = "0")
-  @Mapping(target = "isDeleted", constant = "false")
-  @Mapping(target = "createdAt", ignore = true)
-  @Mapping(target = "updatedAt", ignore = true)
-  Review toEntity(ReviewCreateRequest request, User user, Book book);
+  public Review toEntity(ReviewCreateRequest request, User user, Book book) {
+    return Review.builder()
+        .user(user)
+        .book(book)
+        .content(request.getContent())
+        .rating(request.getRating())
+        .likeCount(0)
+        .commentCount(0)
+        .isDeleted(false)
+        .build();
+  }
+  
+  private LocalDateTime mapInstantToLocalDateTime(Instant instant) {
+    return instant == null
+        ? null
+        : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+  }
 }

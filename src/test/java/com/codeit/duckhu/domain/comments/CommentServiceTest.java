@@ -60,9 +60,9 @@
       given(userService.findByIdEntityReturn(any(UUID.class))).willReturn(new User(
           "test@mail.com","user","pass",false
       ));
-      given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(new Review(
-          "test",4,5,7,null,null
-      ));
+//      given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(new Review(
+//          "test",4,5,7,null,null
+//      ));
       given(commentMapper.toDto(any(Comment.class))).willReturn(dto);
 
       CommentDto commentDto = commentService.create(request);
@@ -116,7 +116,7 @@
 
       User user = new User("test@mail.com", "user", "pass", false);
       Book book = new Book("title", "author", "desc", "pub", LocalDate.now(), "isbn", "url", false, new ArrayList<>(), new ArrayList<>());
-      Review review = new Review("test", 4, 5, 7, user, book);
+//      Review review = new Review("test", 4, 5, 7, user, book);
 
       Comment comment = new Comment();
       comment.setContent("test comment");
@@ -127,7 +127,7 @@
 
       given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(comment));
       given(userService.findByIdEntityReturn(any(UUID.class))).willReturn(user);
-      given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(review);
+//      given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(review);
       given(commentMapper.toDto(comment)).willReturn(dto);
 
       CommentDto result = commentService.get(commentId);

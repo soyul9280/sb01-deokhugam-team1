@@ -30,7 +30,7 @@ public class CommentTest {
 
     Comment comment = Comment.builder()
         .user(user)
-        .review(new Review("new review",3,3,5,user,null))
+//        .review(new Review("new review",3,3,5,user,null))
         .content("content test").build();
 
     assertEquals(user, comment.getUser());

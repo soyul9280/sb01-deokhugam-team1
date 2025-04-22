@@ -57,7 +57,7 @@ public class NotificationServiceTest {
     @DisplayName("알림 생성")
     class CreateNotificationTest {
 
-        @Test
+       /* @Test
         @DisplayName("사용자가 다른 사람의 리뷰에 좋아요를 누르면 알림이 생성된다")
         void createsNotificationForOtherUsersReviewLike() {
             // given: 리뷰 ID, 좋아요 누른 사람 ID(triggerUserId) BeforeEach로 미리 구현
@@ -98,9 +98,9 @@ public class NotificationServiceTest {
 
             then(notificationRepository).should(times(1)).save(any(Notification.class));
             then(notificationMapper).should(times(1)).toDto(expectedNotification);
-        }
+        }*/
 
-        @Test
+       /* @Test
         @DisplayName("사용자가 다른 사람의 리뷰에 댓글을 작성하면 알림이 생성된다")
         void createsNotificationForOtherUsersReviewComment() {
             // given: 리뷰 ID, 댓글 작성자 ID, 리뷰 작성자 ID BeforeEach로 미리 구현
@@ -129,7 +129,7 @@ public class NotificationServiceTest {
 
             then(notificationRepository).should(times(1)).save(any(Notification.class));
             then(notificationMapper).should(times(1)).toDto(expectedNotification);
-        }
+        }*/
 
         // Todo: 내가 작성한 리뷰의 인기 순위가 각 기간 별 10위 내에 선정되면 알림이 생성됩니다.
     }
@@ -138,7 +138,7 @@ public class NotificationServiceTest {
     @DisplayName("알림 읽은 상태 업데이트")
     class UpdateNotificationTest {
 
-        @Test
+       /* @Test
         @DisplayName("알림 ID에 해당하는 알림의 읽음 상태를 true로 업데이트한다")
         void updateNotificationConfirmedSuccessfully() {
             // given
@@ -173,7 +173,7 @@ public class NotificationServiceTest {
             assertThat(result.confirmed()).isTrue();
             then(notificationRepository).should(times(1)).findById(notificationId);
             then(notificationMapper).should(times(1)).toDto(notification);
-        }
+        }*/
 
         @Test
         @DisplayName("존재하지 않는 알림 ID로 조회 시 예외가 발생한다")

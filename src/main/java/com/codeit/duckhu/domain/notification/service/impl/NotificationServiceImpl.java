@@ -1,12 +1,25 @@
 package com.codeit.duckhu.domain.notification.service.impl;
 
+import com.codeit.duckhu.domain.comment.domain.Comment;
+import com.codeit.duckhu.domain.comment.exception.NoCommentException;
+import com.codeit.duckhu.domain.comment.repository.CommentRepository;
+import com.codeit.duckhu.domain.comment.service.CommentService;
+import com.codeit.duckhu.domain.comment.service.ErrorCode;
 import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.exception.NotificationAccessDeniedException;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
 import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
+import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.domain.review.repository.ReviewRepository;
+import com.codeit.duckhu.domain.review.service.ReviewService;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.domain.user.service.UserService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -26,32 +39,48 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
+    private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     /**
      * 내가 작성한 리뷰에 다른 사용자가 좋아요를 누르면 알림을 생성한다.
      *
      * @param reviewId      알림 대상 리뷰 ID
      * @param triggerUserId 좋아요를 누른 사용자 ID
-     * @param receiverId    알림을 받을 사용자 ID (리뷰 작성자)
      * @return 생성된 알림 객체
      */
     @Override
     @Transactional
-    public NotificationDto createNotifyByLike(UUID reviewId, UUID triggerUserId, UUID receiverId) {
-        // Todo 실제 triggerNickname,receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
-        String triggerNickname = "buzz"; // 임시
+    public NotificationDto createNotifyByLike(UUID reviewId, UUID triggerUserId) {
+        // 1. 리뷰 조회 → 수신자 ID 확보
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new NoSuchElementException());
+
+        // 2. 수신자 ID = 리뷰 작성자의 ID
+        UUID receiverId = review.getUser().getId();
+
+        // 3. 트리거 유저 정보 → 닉네임 조회
+        User triggerUser = userRepository.findById(triggerUserId)
+            .orElseThrow(() -> new NotFoundUserException(triggerUserId));
+        String nickname = triggerUser.getNickname();
 
         // Todo
         // 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
         // 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
 
-        // 알림 객체 생성(triggerNickname의 경우 연관관계 맺을때 추가할 예정
-        Notification notification = Notification.forLike(reviewId, receiverId, triggerUserId,
-            triggerNickname);
+        // 4. 알림 생성
+        Notification notification = Notification.forLike(
+            reviewId,
+            receiverId,
+            triggerUserId,
+            nickname,
+            review.getContent()
+        );
+        Notification saved = notificationRepository.save(notification);
 
-        // Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
-        // return notificationMapper.toDto(notificationRepository.save(notification));
-        return notificationMapper.toDto(notificationRepository.save(notification));
+        // DTO 생성
+        return notificationMapper.toDto(saved);
     }
 
     /**
@@ -59,33 +88,35 @@ public class NotificationServiceImpl implements NotificationService {
      *
      * @param reviewId      알림 대상 리뷰 ID
      * @param triggerUserId 댓글을 작성한 사용자 ID
-     * @param receiverId    알림을 받을 사용자 ID (리뷰 작성자)
+     * @param comment       댓글 내용
      * @return 생성된 알림 객체
      */
     @Override
     @Transactional
     public NotificationDto createNotifyByComment(UUID reviewId, UUID triggerUserId,
-        UUID receiverId) {
-        // 리팩터링 대상: 실제 닉네임, 댓글 내용 포함 가능
-        // Todo 실제 triggerNickname,comment, receiverid는 각각 review, User에서 조회할수 있어야 된다(리팩토링)
-        String triggerNickname = "buzz"; // 임시
-        String commentContent = "댓글 내용입니다"; // 임시
+        String comment) {
+        // 1. 리뷰 조회 → 알림 수신자 확인 + 리뷰 제목 확보
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-        // Todo
-        // 현재는 자기 자신에게 좋아요/댓글을 남겨도 알림이 생성되도록 설계되어 있음.
-        // 향후 비즈니스 정책 변경 시, triggerUserId == receiverId 조건으로 필터링 필요
+        // 2. 수신자 ID = 리뷰 작성자의 ID
+        UUID receiverId = review.getUser().getId();
+
+        // 3. 댓글 작성자 정보 -> 닉네임
+        User triggerUser = userRepository.findById(receiverId)
+            .orElseThrow(() -> new NotFoundUserException(receiverId));
+        String nickname = triggerUser.getNickname();
 
         // 알림 객체 생성
         Notification notification = Notification.forComment(
             reviewId,
             receiverId,
             triggerUserId,
-            triggerNickname,
-            commentContent
+            nickname,
+            comment,
+            review.getContent()
         );
 
-        // Todo 생성된 mapper로 return해줘야한다. (지금은 추상화 단계)
-        // return notificationMapper.toDto(notificationRepository.save(notification));
         return notificationMapper.toDto(notificationRepository.save(notification));
     }
 

@@ -10,6 +10,5 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface NotificationMapper {
 
-    @Mapping(target = "reviewTitle", source = "reviewTitle")
-    NotificationDto toDto(Notification notification, String reviewTitle);
+    NotificationDto toDto(Notification notification);
 }

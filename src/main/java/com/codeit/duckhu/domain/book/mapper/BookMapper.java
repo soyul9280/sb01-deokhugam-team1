@@ -9,4 +9,21 @@ import org.mapstruct.Mapping;
 public interface BookMapper {
 
   BookDto toDto(Book book);
+
+  default BookDto toDto(Book book, String thumbnailUrl) {
+    return new BookDto(
+        book.getId(),
+        book.getTitle(),
+        book.getAuthor(),
+        book.getDescription(),
+        book.getPublisher(),
+        book.getPublishedDate(),
+        book.getIsbn(),
+        thumbnailUrl,
+        book.getReviewCount(),
+        book.getRating(),
+        book.getCreatedAt(),
+        book.getUpdatedAt()
+    );
+  }
 }

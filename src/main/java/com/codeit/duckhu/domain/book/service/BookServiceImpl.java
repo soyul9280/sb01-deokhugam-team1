@@ -70,11 +70,11 @@ public class BookServiceImpl implements BookService {
     }
 
     // 썸네일 S3 업로드
-    String thumbnailUrl = thumbnailImage
+    String thumbnailKey = thumbnailImage
         .filter(file -> !file.isEmpty())
         .map(thumbnailImageStorage::upload)
         .orElse(null);
-    log.info("[이미지 업로드] S3에 업로드 완료: {}", thumbnailUrl);
+    log.info("[이미지 업로드] S3에 업로드 완료: {}", thumbnailKey);
 
     Book book = Book.builder()
         .title(bookData.title())
@@ -83,14 +83,15 @@ public class BookServiceImpl implements BookService {
         .publisher(bookData.publisher())
         .publishedDate(bookData.publishedDate())
         .isbn(bookData.isbn())
-        .thumbnailUrl(thumbnailUrl)
+        .thumbnailUrl(thumbnailKey)
         .isDeleted(false)
         .build();
 
     bookRepository.save(book);
     log.info("[도서 등록 완료] id: {}, isbn: {}", book.getId(), book.getIsbn());
 
-    return bookMapper.toDto(book);
+    String thumbnailUrl = thumbnailKey != null ? thumbnailImageStorage.get(thumbnailKey) : null;
+    return bookMapper.toDto(book, thumbnailUrl);
   }
 
   /**
@@ -136,7 +137,12 @@ public class BookServiceImpl implements BookService {
         .toList();
 
     List<BookDto> content = books.stream()
-        .map(bookMapper::toDto)
+        .map(book -> {
+          String thumbnailUrl = book.getThumbnailUrl() != null
+              ? thumbnailImageStorage.get(book.getThumbnailUrl())
+              : null;
+          return bookMapper.toDto(book, thumbnailUrl);
+        })
         .toList();
 
     return new CursorPageResponseBookDto(content, nextCursor, nextAfter, limit, content.size(),
@@ -159,7 +165,11 @@ public class BookServiceImpl implements BookService {
     Book findBook = bookRepository.findById(id)
         .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));
 
-    return bookMapper.toDto(findBook);
+    String thumbnailUrl =
+        findBook.getThumbnailUrl() != null ? thumbnailImageStorage.get(findBook.getThumbnailUrl())
+            : null;
+
+    return bookMapper.toDto(findBook, thumbnailUrl);
   }
 
   @Override
@@ -182,6 +192,10 @@ public class BookServiceImpl implements BookService {
           book.updateThumbnailUrl(uploadUrl);
         });
 
+    String thumbnailUrl = book.getThumbnailUrl() != null
+        ? thumbnailImageStorage.get(book.getThumbnailUrl())
+        : null;
+
     // 일반적인 정보 업데이트
     book.updateInfo(
         bookUpdateRequest.title(),
@@ -192,7 +206,7 @@ public class BookServiceImpl implements BookService {
     );
 
     log.info("[도서 수정 완료] ID : {}", id);
-    return bookMapper.toDto(book);
+    return bookMapper.toDto(book, thumbnailUrl);
   }
 
 

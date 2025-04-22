@@ -5,6 +5,7 @@ import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
@@ -25,25 +26,26 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Book extends BaseUpdatableEntity {
 
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false)
   private String title;
 
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false)
   private String author;
 
-  @Column(length = 255)
+  @Lob
+  @Column
   private String description;
 
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false)
   private String publisher;
 
   @Column(name = "published_date", nullable = false)
   private LocalDate publishedDate;
 
-  @Column(unique = true, length = 50)
+  @Column(unique = true)
   private String isbn;
 
-  @Column(name = "thumbnail_url", length = 255)
+  @Column(name = "thumbnail_url")
   private String thumbnailUrl;
 
   @Column(name = "review_count", nullable = false)

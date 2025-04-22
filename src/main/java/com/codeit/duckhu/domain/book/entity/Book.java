@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,11 +48,11 @@ public class Book extends BaseUpdatableEntity {
 
   @Column(name = "review_count", nullable = false)
   @Builder.Default
-  private int reviewCount = 0;
+  private Integer reviewCount = 0;
 
   @Column(name = "rating", nullable = false)
   @Builder.Default
-  private double rating = 0.0;
+  private Double rating = 0.0;
 
   @Builder.Default
   @Column(name = "is_deleted", nullable = false)

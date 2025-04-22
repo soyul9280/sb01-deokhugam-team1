@@ -40,7 +40,7 @@ public class CustomRepositoryTest {
           .publishedDate(LocalDate.of(2023, 12, i))
           .isbn("97801346859" + i)
           .reviewCount(0)
-          .rating(0)
+          .rating(0.0)
           .isDeleted(false)
           .build();
 

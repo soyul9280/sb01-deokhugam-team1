@@ -17,6 +17,7 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -116,6 +117,10 @@ public class BookServiceImpl implements BookService {
 
     boolean hasNext = books.size() > limit;
 
+    if (hasNext) {
+      books = books.subList(0, limit);
+    }
+
     String nextCursor = null;
     Instant nextAfter = null;
     if (!books.isEmpty()) {
@@ -131,9 +136,18 @@ public class BookServiceImpl implements BookService {
       };
     }
 
+    List<UUID> bookIds = books.stream()
+        .map(Book::getId)
+        .toList();
+
+    Map<UUID, Integer> reviewCounts = reviewRepository.countByBookIds(bookIds);
+    Map<UUID, Double> avgRatings = reviewRepository.averageRatingByBookIds(bookIds);
+
     List<BookDto> content = books.stream()
-        .map(book -> bookMapper.toDto(book, reviewRepository.countByBookId(book.getId()),
-            reviewRepository.calculateAverageRatingByBookId(book.getId())))
+        .map(book -> bookMapper.toDto(
+            book,
+            reviewCounts.getOrDefault(book.getId(), 0),
+            avgRatings.getOrDefault(book.getId(), 0.0)))
         .toList();
 
     return new CursorPageResponseBookDto(content, nextCursor, nextAfter, limit, content.size(),

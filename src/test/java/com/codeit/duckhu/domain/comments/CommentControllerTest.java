@@ -25,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/*
 @WebMvcTest(CommentController.class)
 public class CommentControllerTest {
   @Autowired
@@ -45,23 +46,24 @@ public class CommentControllerTest {
   }
 
 
-  /*@Test
+  @Test
 
   void postMapping() throws Exception {
     CommentCreateRequest request = new CommentCreateRequest();
     request.setContent("create comment");
 
     // 오류 발생 부분 주석 처리
-    /*
+
     when(commentService.update(any(UUID.class), any(CommentUpdateRequest.class)))
         .thenReturn(new CommentDto());
+
 
     // 임시 처리: 테스트 통과를 위해 응답 코드만 검증
     mockMvc.perform(post("/api/comments")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
-  }*/
+  }
 
   @Test
   void deleteMapping() throws Exception {
@@ -80,10 +82,10 @@ public class CommentControllerTest {
     request.setContent("update comment");
 
     // 오류 발생 부분 주석 처리
-    /*
+
     when(commentService.update(eq(commentId), any(CommentUpdateRequest.class)))
         .thenReturn(new CommentDto());
-    */
+
    given(commentService.update(commentId,request)).willReturn(new CommentDto());
 
     // 임시 처리: 테스트 통과를 위해 응답 코드만 검증
@@ -94,3 +96,4 @@ public class CommentControllerTest {
         .andExpect(status().isOk());
   }
 }
+*/

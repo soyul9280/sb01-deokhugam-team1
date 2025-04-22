@@ -3,9 +3,10 @@ package com.codeit.duckhu.config;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-@Component
+@Configuration
 public class QueryDslConfig {
   private final EntityManager entityManager;
 

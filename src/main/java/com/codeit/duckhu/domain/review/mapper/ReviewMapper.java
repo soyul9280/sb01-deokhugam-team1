@@ -6,41 +6,30 @@ import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-public class ReviewMapper {
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+public interface ReviewMapper {
 
-  public ReviewDto toDto(Review review) {
-    ReviewDto.ReviewDtoBuilder builder = ReviewDto.builder()
-        .id(review.getId())
-        .content(review.getContent())
-        .rating(review.getRating())
-        .likeCount(review.getLikeCount())
-        .commentCount(review.getCommentCount())
-        .likedByMe(false);  // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
-        
-    // null 체크를 통한 안전한 접근
-    if (review.getUser() != null) {
-        builder.userId(review.getUser().getId());
-    }
-    
-    if (review.getBook() != null) {
-        builder.bookId(review.getBook().getId());
-    }
-    
-    return builder.build();
-  }
+  @Mapping(target = "userId", source = "review.user.id")
+  @Mapping(target = "userNickname", source = "review.user.nickname")
+  @Mapping(target = "bookId", source = "review.book.id")
+  @Mapping(target = "bookTitle", source = "review.book.title")
+  @Mapping(target = "likedByMe", constant = "false")
+  ReviewDto toDto(Review review);
 
-  public Review toEntity(ReviewCreateRequest request, User user, Book book) {
-    return Review.builder()
-        .user(user)
-        .book(book)
-        .content(request.getContent())
-        .rating(request.getRating())
-        .likeCount(0)
-        .commentCount(0)
-        .build();
-  }
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "user", source = "user")
+  @Mapping(target = "book", source = "book")
+  @Mapping(target = "content", source = "request.content")
+  @Mapping(target = "rating", source = "request.rating")
+  @Mapping(target = "likeCount", constant = "0")
+  @Mapping(target = "commentCount", constant = "0")
+  @Mapping(target = "isDeleted", constant = "false")
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  Review toEntity(ReviewCreateRequest request, User user, Book book);
 }

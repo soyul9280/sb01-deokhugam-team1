@@ -34,8 +34,7 @@ public class UserServiceImpl implements UserService {
         User user = new User(
                 request.getEmail(),
                 request.getNickname(),
-                request.getPassword(),
-                false);
+                request.getPassword());
 
         User savedUser=userRepository.save(user);
 

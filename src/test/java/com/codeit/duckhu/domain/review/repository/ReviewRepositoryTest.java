@@ -81,7 +81,7 @@ public class ReviewRepositoryTest {
         .email("test@example.com")
         .nickname("테스터")
         .password("password")
-        .isDeleted(false)
+        //.isDeleted(false)
         .build();
     User savedUser = userRepository.save(user);
 
@@ -130,7 +130,7 @@ public class ReviewRepositoryTest {
         .email("test2@example.com")
         .nickname("테스터2")
         .password("password")
-        .isDeleted(false)
+       // .isDeleted(false)
         .build();
     User savedUser = userRepository.save(user);
 

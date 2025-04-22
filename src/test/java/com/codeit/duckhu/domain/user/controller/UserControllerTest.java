@@ -1,12 +1,16 @@
 package com.codeit.duckhu.domain.user.controller;
 
+import com.codeit.duckhu.domain.user.UserAuthenticationFilter;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.domain.user.service.UserService;
 import com.codeit.duckhu.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +19,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import javax.swing.text.html.Option;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +43,21 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        UserAuthenticationFilter filter = new UserAuthenticationFilter(userRepository);
+        UserController controller = new UserController(userService);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .addFilters(filter)
+                .build();
+    }
+
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -124,6 +146,7 @@ class UserControllerTest {
     void update_fail() throws Exception {
         //given
         UUID loginId = UUID.randomUUID();
+        given(userRepository.findById(loginId)).willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
         UserUpdateRequest request = new UserUpdateRequest("u");
         //when
         //then
@@ -143,6 +166,8 @@ class UserControllerTest {
         //given
         UUID targetId = UUID.randomUUID(); //타겟(다른 사람)
         UUID loginId = UUID.randomUUID();
+        given(userRepository.findById(loginId)).willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
+
         UserUpdateRequest request = new UserUpdateRequest("newName");
 
         //when
@@ -163,6 +188,8 @@ class UserControllerTest {
         //given
         UUID targetId = UUID.randomUUID(); //타겟(다른 사람)
         UUID loginId = UUID.randomUUID();
+        given(userRepository.findById(loginId)).willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
+
 
         //when
         //then
@@ -180,6 +207,8 @@ class UserControllerTest {
         //given
         UUID targetId = UUID.randomUUID(); //타겟(다른 사람)
         UUID loginId = UUID.randomUUID();
+        given(userRepository.findById(loginId)).willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
+
 
         //when
         //then

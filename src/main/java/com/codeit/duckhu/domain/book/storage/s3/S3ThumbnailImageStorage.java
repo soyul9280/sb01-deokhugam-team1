@@ -4,6 +4,7 @@ import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
@@ -67,6 +69,9 @@ public class S3ThumbnailImageStorage implements ThumbnailImageStorage {
         .build();
 
     PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+
+    log.info("[Presigned URL 생성] key: {}, url: {}", key, presignedRequest.url());
+
     return presignedRequest.url().toString();
   }
 

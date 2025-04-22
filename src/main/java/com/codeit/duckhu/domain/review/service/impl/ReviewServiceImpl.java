@@ -61,6 +61,10 @@ public class ReviewServiceImpl implements ReviewService {
     
     // 저장 및 DTO 반환
     Review savedReview = reviewRepository.save(review);
+
+    // jw
+    recalculateBookStats(book);
+
     return reviewMapper.toDto(savedReview);
   }
 
@@ -88,6 +92,21 @@ public class ReviewServiceImpl implements ReviewService {
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     reviewRepository.delete(review);
+
+    // jw
+    recalculateBookStats(review.getBook());
+  }
+
+  @Transactional
+  @Override
+  public void softDeleteReviewById(UUID id) {
+    Review review = reviewRepository.findById(id)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+    review.softDelete();
+
+    // jw
+    recalculateBookStats(review.getBook());
   }
 
   @Transactional
@@ -123,6 +142,9 @@ public class ReviewServiceImpl implements ReviewService {
     Review updatedReview = reviewRepository.save(review);
     log.info("리뷰 업데이트 성공, ID: {}", updatedReview.getId());
 
+    // jw
+    recalculateBookStats(updatedReview.getBook());
+
     return reviewMapper.toDto(updatedReview);
   }
 
@@ -155,34 +177,19 @@ public class ReviewServiceImpl implements ReviewService {
         .build();
 
   }
+  
   public Review findByIdEntityReturn(UUID reviewId){
     return reviewRepository.findById(reviewId)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
   }
-/*
-  @Transactional
-  @Override
-  public ReviewLikeDto likeReview(UUID reviewId, UUID userId) {
-    Review review = reviewRepository.findById(reviewId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-    userRepository.findById(userId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
-
-    boolean likedBefore = review.liked(userId);
-
-    if (likedBefore) {
-      review.decreaseLikeCount(userId);
-    } else {
-      review.increaseLikeCount(userId);
-    }
-
-
-    boolean likedAfter = review.liked(userId);
-    return ReviewLikeDto.builder()
-        .reviewId(review.getId())
-        .userId(userId)
-        .liked(likedAfter)
-        .build();
-  }*/
+  // 도서에 관련된 집계 필드 업데이트 - jw
+  private void recalculateBookStats(Book book) {
+    // 도서에 작성된 리뷰 개수 조회 - jw
+    int reviewCount = reviewRepository.countByBookId(book.getId());
+    // 도서에 대한 평균 평점을 계산 - jw
+    double rating = reviewRepository.calculateAverageRatingByBookId(book.getId());
+    // 조회된 리뷰 개수와 평균 평점을 Book 엔티티에 반영 - jw
+    book.updateReviewStatus(reviewCount, rating);
+  }
 }

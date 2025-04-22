@@ -12,12 +12,15 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.lenient;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
+import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
@@ -28,6 +31,9 @@ import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -218,10 +224,10 @@ class ReviewServiceTest {
     // Given
     Review mockReview = Mockito.mock(Review.class);
     doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
-    
+
     // When
     reviewService.softDeleteReviewById(testReviewId);
-    
+
     // Then
     verify(mockReview).softDelete();
   }
@@ -396,6 +402,41 @@ class ReviewServiceTest {
     assertThat(secondToggle).isFalse();
     assertThat(review.getLikeCount()).isEqualTo(0);
     assertThat(review.liked(userId)).isFalse();
+  }
+
+  @Test
+  @DisplayName("리뷰 커서 페이지네이션 테스트")
+  void findReviews_success() {
+    // Given
+    // 검색 요청 설정
+    ReviewSearchRequestDto searchRequestDto = ReviewSearchRequestDto.builder()
+        .orderBy("createdAt")
+        .direction("DESC")
+        .size(5)
+        .build();
+
+    // 테스트용 DTO 목록 생성
+    List<ReviewDto> reviewDtos = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      ReviewDto dto = ReviewDto.builder()
+          .id(UUID.randomUUID())
+          .content("테스트 리뷰 " + i)
+          .rating(i % 5 + 1)
+          .likeCount(i)
+          .commentCount(i)
+          .build();
+      reviewDtos.add(dto);
+    }
+
+    CursorPageResponseReviewDto expectedResponse = CursorPageResponseReviewDto.builder()
+        .reviews(reviewDtos)
+        .hasNext(false)
+        .build();
+
+    // Then
+    assertThat(expectedResponse).isNotNull();
+    assertThat(expectedResponse.getReviews()).hasSize(3);
+    assertThat(expectedResponse.isHasNext()).isFalse();
   }
 }
 

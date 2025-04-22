@@ -110,15 +110,7 @@ public class ReviewServiceImpl implements ReviewService {
     recalculateBookStats(review.getBook());
   }
 
-  @Transactional
-  @Override
-  public void softDeleteReviewById(UUID id) {
-    Review review = reviewRepository.findById(id)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-
-    review.softDelete();
   }
-
 
   @Transactional
   @Override
@@ -179,6 +171,7 @@ public class ReviewServiceImpl implements ReviewService {
         .build();
 
   }
+
   public Review findByIdEntityReturn(UUID reviewId){
     return reviewRepository.findById(reviewId)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
@@ -234,7 +227,7 @@ public class ReviewServiceImpl implements ReviewService {
         .hasNext(hasNext)
         .build();
   }
-
+  
   // 도서에 관련된 집계 필드 업데이트 - jw
   private void recalculateBookStats(Book book) {
     // 도서에 작성된 리뷰 개수 조회 - jw
@@ -244,3 +237,4 @@ public class ReviewServiceImpl implements ReviewService {
     // 조회된 리뷰 개수와 평균 평점을 Book 엔티티에 반영 - jw
     book.updateReviewStatus(reviewCount, rating);
   }
+}

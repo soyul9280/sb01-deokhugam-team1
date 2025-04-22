@@ -92,8 +92,7 @@ public class BookServiceImpl implements BookService {
     bookRepository.save(book);
     log.info("[도서 등록 완료] id: {}, isbn: {}", book.getId(), book.getIsbn());
 
-    // 도서 등록 시 초기 리뷰수와 평점은 0이다.
-    return bookMapper.toDto(book, 0, 0.0);
+    return bookMapper.toDto(book);
   }
 
   /**
@@ -144,10 +143,7 @@ public class BookServiceImpl implements BookService {
     Map<UUID, Double> avgRatings = reviewRepository.averageRatingByBookIds(bookIds);
 
     List<BookDto> content = books.stream()
-        .map(book -> bookMapper.toDto(
-            book,
-            reviewCounts.getOrDefault(book.getId(), 0),
-            avgRatings.getOrDefault(book.getId(), 0.0)))
+        .map(bookMapper::toDto)
         .toList();
 
     return new CursorPageResponseBookDto(content, nextCursor, nextAfter, limit, content.size(),
@@ -170,10 +166,7 @@ public class BookServiceImpl implements BookService {
     Book findBook = bookRepository.findById(id)
         .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));
 
-    int reviewCount = reviewRepository.countByBookId(id);
-    double rating = reviewRepository.calculateAverageRatingByBookId(id);
-
-    return bookMapper.toDto(findBook, reviewCount, rating);
+    return bookMapper.toDto(findBook);
   }
 
   @Override
@@ -205,11 +198,8 @@ public class BookServiceImpl implements BookService {
         bookUpdateRequest.publishedDate()
     );
 
-    int reviewCount = reviewRepository.countByBookId(book.getId());
-    double rating = reviewRepository.calculateAverageRatingByBookId(book.getId());
-
     log.info("[도서 수정 완료] ID : {}", id);
-    return bookMapper.toDto(book, reviewCount, rating);
+    return bookMapper.toDto(book);
   }
 
 

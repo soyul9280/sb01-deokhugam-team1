@@ -8,7 +8,5 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface BookMapper {
 
-  @Mapping(target = "reviewCount", source = "reviewCount")
-  @Mapping(target = "rating", source = "rating")
-  BookDto toDto(Book book, Integer reviewCount, Double rating);
+  BookDto toDto(Book book);
 }

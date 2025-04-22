@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.book.service;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
+import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.domain.book.mapper.BookMapper;
@@ -13,6 +14,7 @@ import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -175,6 +177,12 @@ public class BookServiceImplTest {
 
       verify(bookRepository, never()).save(any());
     }
+  }
+
+  @Nested
+  @DisplayName("도서 조회")
+  class GetBookTest {
+
   }
 
   @Nested

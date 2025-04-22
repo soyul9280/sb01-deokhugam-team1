@@ -15,19 +15,12 @@ import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.global.exception.ErrorCode;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -115,7 +108,36 @@ public class BookServiceImpl implements BookService {
   @Override
   public CursorPageResponseBookDto searchBooks(String keyword, String orderBy, String direction,
       String cursor, Instant after, int limit) {
-    return null;
+
+    boolean isAsc = "ASC".equalsIgnoreCase(direction);
+
+    List<Book> books = bookRepository.searchBooks(keyword, orderBy, direction, cursor, after,
+        limit + 1);
+
+    boolean hasNext = books.size() > limit;
+
+    String nextCursor = null;
+    Instant nextAfter = null;
+    if (!books.isEmpty()) {
+      Book last = books.get(books.size() - 1);
+      nextAfter = last.getCreatedAt();
+
+      nextCursor = switch (orderBy) {
+        case "title" -> last.getTitle();
+        case "publishedDate" -> last.getPublishedDate().toString();
+        case "rating" -> String.valueOf(last.getRating());
+        case "reviewCount" -> String.valueOf(last.getReviewCount());
+        default -> null;
+      };
+    }
+
+    List<BookDto> content = books.stream()
+        .map(book -> bookMapper.toDto(book, reviewRepository.countByBookId(book.getId()),
+            reviewRepository.calculateAverageRatingByBookId(book.getId())))
+        .toList();
+
+    return new CursorPageResponseBookDto(content, nextCursor, nextAfter, limit, content.size(),
+        hasNext);
   }
 
 //  @Override
@@ -131,7 +153,13 @@ public class BookServiceImpl implements BookService {
    */
   @Override
   public BookDto getBookById(UUID id) {
-    return null;
+    Book findBook = bookRepository.findById(id)
+        .orElseThrow(() -> new BookException(ErrorCode.BOOK_NOT_FOUND));
+
+    int reviewCount = reviewRepository.countByBookId(id);
+    double rating = reviewRepository.calculateAverageRatingByBookId(id);
+
+    return bookMapper.toDto(findBook, reviewCount, rating);
   }
 
   @Override

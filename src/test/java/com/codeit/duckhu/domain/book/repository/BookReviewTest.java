@@ -53,7 +53,7 @@ public class BookReviewTest {
         .user(user1)
         .rating(4)
         .content("좋아요")
-        .isDeleted(false)
+        //.isDeleted(false)
         .build();
 
     Review r2 = Review.builder()
@@ -61,7 +61,7 @@ public class BookReviewTest {
         .user(user2)
         .rating(2)
         .content("그저 그래요")
-        .isDeleted(false)
+        //.isDeleted(false)
         .build();
 
     reviewRepository.saveAll(List.of(r1, r2));

@@ -128,7 +128,7 @@ class UserControllerTest {
         //when
         //then
         mockMvc.perform(patch("/api/users/{userId}",loginId)
-                        .header("X-User-Id",loginId)
+                        .header("Deokhugam-Request-User-ID",loginId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -148,7 +148,7 @@ class UserControllerTest {
         //when
         //then
         mockMvc.perform(patch("/api/users/{userId}",targetId)
-                .header("X-User-Id",loginId)
+                .header("Deokhugam-Request-User-ID",loginId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
 
@@ -167,7 +167,7 @@ class UserControllerTest {
         //when
         //then
         mockMvc.perform(delete("/api/users/{userId}", targetId)
-                        .header("X-User-Id", loginId)
+                        .header("Deokhugam-Request-User-ID", loginId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.details").value("USER_403"))
@@ -184,7 +184,7 @@ class UserControllerTest {
         //when
         //then
         mockMvc.perform(delete("/api/users/{userId}/hard", targetId)
-                        .header("X-User-Id", loginId)
+                        .header("Deokhugam-Request-User-ID", loginId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.details").value("USER_403"))

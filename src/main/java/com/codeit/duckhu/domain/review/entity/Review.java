@@ -52,10 +52,10 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private int commentCount = 0;
 
-  @Builder.Default
+  /*@Builder.Default
   @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted = false;
-
+*/
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn
   private User user;
@@ -72,13 +72,6 @@ public class Review extends BaseUpdatableEntity {
 
   @Column(name = "is_deleted", nullable = false)
   private boolean deleted = false;
-  
-  @ElementCollection
-  @CollectionTable(name = "review_likes", joinColumns = @JoinColumn(name = "review_id"),
-      uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "user_id"}))
-  @Column(name = "user_id")
-  @Builder.Default
-  private Set<UUID> likedUserIds = new HashSet<>();
 
   @Version
   private Long version;

@@ -24,7 +24,7 @@ public interface ReviewService {
 
   void softDeleteReviewById(UUID reviewId);
   
-  ReviewDto updateReview(UUID id, ReviewUpdateRequest request);
+//  ReviewDto updateReview(UUID id, ReviewUpdateRequest request);
 
-  ReviewLikeDto likeReview(UUID reviewId, UUID userId);
+//  ReviewLikeDto likeReview(UUID reviewId, UUID userId);
 }

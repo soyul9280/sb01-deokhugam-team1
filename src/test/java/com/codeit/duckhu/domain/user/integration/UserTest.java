@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.user.integration;
 
 import com.codeit.duckhu.config.QueryDslConfig;
 import com.codeit.duckhu.domain.user.dto.UserDto;
+import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
@@ -66,7 +67,24 @@ public class UserTest {
         assertEquals("testA@example.com", response.getBody().getEmail());
     }
 
-    //로그인은 Security설정 때문에 나중에 고려하기
+    @Test
+    @DisplayName("로그인 - 요청헤더 인증 성공")
+    @Sql("/data.sql")
+    void login_success() throws Exception {
+        //given
+        UserLoginRequest request = new UserLoginRequest("test@example.com", "test1234!");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String json = objectMapper.writeValueAsString(request);
+        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+
+        //when
+        ResponseEntity<UserDto> response = restTemplate.postForEntity("/api/users/login", requestEntity, UserDto.class);
+        //then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("테스트유저", response.getBody().getNickname());
+        assertEquals("test@example.com", response.getBody().getEmail());
+    }
 
     @Test
     @DisplayName("사용자 상세 조회- 성공")
@@ -74,8 +92,15 @@ public class UserTest {
     void find_success(){
         //given
         UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Deokhugam-Request-User-ID",id.toString());
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
         //when
-        ResponseEntity<UserDto> response = restTemplate.getForEntity("/api/users/" + id, UserDto.class);
+        ResponseEntity<UserDto> response = restTemplate.exchange(
+                "/api/users/" + id,
+                HttpMethod.GET,
+                requestEntity,
+                UserDto.class);
 
         //then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -92,7 +117,7 @@ public class UserTest {
         UserUpdateRequest request = new UserUpdateRequest("newName");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-User-Id", targetId.toString());
+        headers.set("Deokhugam-Request-User-ID", targetId.toString());
         HttpEntity<String> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
 
         //when
@@ -112,7 +137,7 @@ public class UserTest {
         UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-User-Id", targetId.toString());
+        headers.set("Deokhugam-Request-User-ID", targetId.toString());
         HttpEntity<String> httpEntity = new HttpEntity<>(headers);
 
         //when
@@ -132,7 +157,7 @@ public class UserTest {
         UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-User-Id", targetId.toString());
+        headers.set("Deokhugam-Request-User-ID", targetId.toString());
         HttpEntity<String> httpEntity = new HttpEntity<>(headers);
 
         //when

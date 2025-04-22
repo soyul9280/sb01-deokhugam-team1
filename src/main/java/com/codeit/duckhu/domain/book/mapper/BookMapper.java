@@ -8,7 +8,22 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface BookMapper {
 
-  @Mapping(target = "reviewCount", source = "reviewCount")
-  @Mapping(target = "rating", source = "rating")
-  BookDto toDto(Book book, Integer reviewCount, Double rating);
+  BookDto toDto(Book book);
+
+  default BookDto toDto(Book book, String thumbnailUrl) {
+    return new BookDto(
+        book.getId(),
+        book.getTitle(),
+        book.getAuthor(),
+        book.getDescription(),
+        book.getPublisher(),
+        book.getPublishedDate(),
+        book.getIsbn(),
+        thumbnailUrl,
+        book.getReviewCount(),
+        book.getRating(),
+        book.getCreatedAt(),
+        book.getUpdatedAt()
+    );
+  }
 }

@@ -6,11 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.atLeast;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -177,10 +180,10 @@ class ReviewServiceTest {
     // Given
     Review mockReview = Mockito.mock(Review.class);
     doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
-
+    
     // When
     reviewService.softDeleteReviewById(testReviewId);
-
+    
     // Then
     verify(mockReview).softDelete();
   }

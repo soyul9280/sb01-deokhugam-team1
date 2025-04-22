@@ -218,6 +218,12 @@ public class ReviewServiceImpl implements ReviewService {
         .build();
   }
   
+  @Override
+  public Review findByIdEntityReturn(UUID reviewId) {
+    return reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+  }
+  
   // 도서에 관련된 집계 필드 업데이트 - jw
   private void recalculateBookStats(Book book) {
     // 도서에 작성된 리뷰 개수 조회 - jw

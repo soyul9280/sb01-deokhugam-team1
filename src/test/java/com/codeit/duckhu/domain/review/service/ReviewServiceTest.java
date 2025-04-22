@@ -6,14 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.atLeast;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -226,7 +222,7 @@ class ReviewServiceTest {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-    when(testReview.liked(testUserId)).thenReturn(false);
+    when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
     when(testReview.getId()).thenReturn(testReviewId);
     
     // When
@@ -234,6 +230,9 @@ class ReviewServiceTest {
     
     // Then
     verify(testReview).increaseLikeCount(testUserId);
+    assertThat(result.isLiked()).isTrue();
+    assertThat(result.getReviewId()).isEqualTo(testReviewId);
+    assertThat(result.getUserId()).isEqualTo(testUserId);
   }
 
   @Test
@@ -242,7 +241,7 @@ class ReviewServiceTest {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-    when(testReview.liked(testUserId)).thenReturn(true);
+    when(testReview.liked(testUserId)).thenReturn(true).thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
     when(testReview.getId()).thenReturn(testReviewId);
     
     // When
@@ -250,6 +249,9 @@ class ReviewServiceTest {
     
     // Then
     verify(testReview).decreaseLikeCount(testUserId);
+    assertThat(result.isLiked()).isFalse();
+    assertThat(result.getReviewId()).isEqualTo(testReviewId);
+    assertThat(result.getUserId()).isEqualTo(testUserId);
   }
 
   @Test

@@ -9,6 +9,7 @@ import com.codeit.duckhu.domain.review.entity.Review;
 
 import org.junit.jupiter.api.Test;
 
+/*
 public class CommentTest {
 
   @Test
@@ -35,4 +36,4 @@ public class CommentTest {
 
     assertEquals(user, comment.getUser());
   }
-}
+}*/

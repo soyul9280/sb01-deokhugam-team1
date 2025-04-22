@@ -46,6 +46,7 @@ public class CommentControllerTest {
 
 
   /*@Test
+
   void postMapping() throws Exception {
     CommentCreateRequest request = new CommentCreateRequest();
     request.setContent("create comment");

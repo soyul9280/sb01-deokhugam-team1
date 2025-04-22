@@ -1,10 +1,11 @@
 package com.codeit.duckhu.domain.review.service;
 
+import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
+import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
-import com.codeit.duckhu.domain.review.entity.Review;
 import java.util.UUID;
 
 /**
@@ -21,4 +22,6 @@ public interface ReviewService {
   ReviewDto updateReview(UUID id, ReviewUpdateRequest request);
 
   ReviewLikeDto likeReview(UUID reviewId, UUID userId);
+
+  CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto);
 }

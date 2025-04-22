@@ -2,7 +2,9 @@ package com.codeit.duckhu.domain.review.service.impl;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
+import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
@@ -14,7 +16,10 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -136,6 +141,55 @@ public class ReviewServiceImpl implements ReviewService {
         .reviewId(review.getId())
         .userId(userId)
         .liked(likedAfter)
+        .build();
+  }
+
+  @Override
+  public CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto) {
+    // 요청 DTO에서 필요한 값 추출
+    String keyword = requestDto.getKeyword();
+    String orderBy = requestDto.getOrderBy() != null ? requestDto.getOrderBy() : "createdAt";
+    String direction = requestDto.getDirection() != null ? requestDto.getDirection() : "DESC";
+    UUID userId = requestDto.getUserId();
+    UUID bookId = requestDto.getBookId();
+    String cursor = requestDto.getCursor();
+    Instant after = requestDto.getAfter();
+    int size = requestDto.getSize() > 0 ? requestDto.getSize() : 10;
+
+    // 리포지토리 메서드 호출하여 데이터 조회
+    List<Review> reviews = reviewRepository.findReviewsWithCursor(
+        keyword, orderBy, direction, userId, bookId, cursor, after, size + 1
+    );
+
+    // 다음 페이지 존재 여부 확인 (N+1 조회 방식)
+    boolean hasNext = reviews.size() > size;
+
+    // 실제 응답에 포함될 리뷰 목록 (마지막 요소는 next cursor 확인용이므로 제외)
+    List<Review> responseReviews = hasNext ? reviews.subList(0, size) : reviews;
+
+    // 다음 페이지 커서 정보 설정
+    String nextCursor = null;
+    Instant nextAfter = null;
+
+    if (hasNext && !responseReviews.isEmpty()) {
+      Review lastReview = responseReviews.get(responseReviews.size() - 1);
+      nextCursor = orderBy.equals("rating")
+          ? String.valueOf(lastReview.getRating())
+          : lastReview.getId().toString();
+      nextAfter = lastReview.getCreatedAt();
+    }
+
+    // DTO로 변환
+    List<ReviewDto> reviewDtos = responseReviews.stream()
+        .map(reviewMapper::toDto)
+        .collect(Collectors.toList());
+
+    // 응답 DTO 구성
+    return CursorPageResponseReviewDto.builder()
+        .reviews(reviewDtos)
+        .nextCursor(nextCursor)
+        .nextAfter(nextAfter)
+        .hasNext(hasNext)
         .build();
   }
 }

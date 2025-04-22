@@ -61,7 +61,7 @@
           "test@mail.com","user","pass",false
       ));
       given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(new Review(
-          "test",4,5,7,null,null
+          "test",4,5,7,false,null,null
       ));
       given(commentMapper.toDto(any(Comment.class))).willReturn(dto);
 
@@ -116,7 +116,7 @@
 
       User user = new User("test@mail.com", "user", "pass", false);
       Book book = new Book("title", "author", "desc", "pub", LocalDate.now(), "isbn", "url", false, new ArrayList<>(), new ArrayList<>());
-      Review review = new Review("test", 4, 5, 7, user, book);
+      Review review = new Review("test", 4, 5, 7, false ,user, book);
 
       Comment comment = new Comment();
       comment.setContent("test comment");

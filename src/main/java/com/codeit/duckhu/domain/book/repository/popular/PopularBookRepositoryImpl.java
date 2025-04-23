@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.book.repository.popular;
 
 import com.codeit.duckhu.domain.book.entity.PopularBook;
 import com.codeit.duckhu.domain.book.entity.QPopularBook;
+import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
@@ -16,7 +17,7 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<PopularBook> searchByPeriodWithCursorPaging(PeriodType period, String direction,
+  public List<PopularBook> searchByPeriodWithCursorPaging(PeriodType period, Direction direction,
       String cursor, Instant after, int limit) {
 
     QPopularBook popularBook = QPopularBook.popularBook;
@@ -28,7 +29,7 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
     Instant from = period.toStartInstant(now);
     condition.and(popularBook.createdAt.goe(from));
 
-    boolean isAsc = "ASC".equalsIgnoreCase(direction);
+    boolean isAsc = "ASC".equalsIgnoreCase(String.valueOf(direction));
 
     if (cursor != null && after != null) {
       int rank = Integer.parseInt(cursor);

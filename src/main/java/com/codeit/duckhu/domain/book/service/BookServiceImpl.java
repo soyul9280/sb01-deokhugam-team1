@@ -159,15 +159,11 @@ public class BookServiceImpl implements BookService {
   }
 
   @Override
-  public CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, String direction, String cursor,
+  public CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, Direction direction, String cursor,
       Instant after, int limit) {
 
-    boolean isAsc = "ASC".equalsIgnoreCase(direction);
-
-    int pageLimit = limit + 1;
-
     List<PopularBook> books = popularBookRepository.searchByPeriodWithCursorPaging(period,
-        direction, cursor, after, pageLimit);
+        direction, cursor, after, limit + 1);
 
     boolean hasNext = books.size() > limit;
     if (hasNext) {

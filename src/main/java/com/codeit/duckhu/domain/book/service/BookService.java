@@ -21,7 +21,7 @@ public interface BookService {
   CursorPageResponseBookDto searchBooks(String keyword, String orderBy, Direction direction,
       String cursor, Instant after, int limit);
 
-  CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, String direction, String cursor,
+  CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, Direction direction, String cursor,
       Instant after, int limit);
 
   BookDto getBookById(UUID id);

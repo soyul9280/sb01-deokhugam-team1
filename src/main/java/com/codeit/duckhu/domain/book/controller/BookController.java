@@ -65,7 +65,7 @@ public class BookController implements BookApi {
 
   @PostMapping(value = "/isbn/ocr", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<String> extractIsbnOcr(
-      @RequestPart(value = "image", required = false) MultipartFile image
+      @RequestPart(value = "image") MultipartFile image
   ) {
     String isbn = bookService.extractIsbnFromImage(image);
 
@@ -115,8 +115,8 @@ public class BookController implements BookApi {
 
   @GetMapping(value = "/popular")
   public ResponseEntity<CursorPageResponsePopularBookDto> getPopularBooks(
-      @RequestParam(value = "periodType", defaultValue = "DAILY") PeriodType period,
-      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "period", defaultValue = "DAILY") PeriodType period,
+      @RequestParam(value = "direction", defaultValue = "DESC") Direction direction,
       @RequestParam(value = "cursor", required = false) String cursor,
       @RequestParam(value = "after", required = false) Instant after,
       @RequestParam(value = "limit", defaultValue = "50") int limit

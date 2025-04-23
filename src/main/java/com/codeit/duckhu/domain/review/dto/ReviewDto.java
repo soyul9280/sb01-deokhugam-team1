@@ -17,9 +17,20 @@ public class ReviewDto {
   @NotNull
   private UUID id;
 
+  @NotNull
   private UUID userId;
 
+  @NotNull
   private UUID bookId;
+
+  @NotNull
+  private String bookTitle;
+
+  @NotNull
+  private String bookThumbnailUrl;
+
+  @NotNull
+  private String userNickname;
 
   @NotBlank
   private String content;

@@ -16,6 +16,7 @@ import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.service.CommentMapper;
 import com.codeit.duckhu.domain.comment.service.CommentService;
 import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
@@ -24,11 +25,13 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @ActiveProfiles(profiles = "test")
+@Import({TestJpaConfig.class})
 class CommentServiceTest {
 
   @Autowired

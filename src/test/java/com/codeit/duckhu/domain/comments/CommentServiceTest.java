@@ -111,26 +111,13 @@ class CommentServiceTest {
 
   @Test
   void update_fail_no_comment(){
-    UUID userId = UUID.randomUUID();
+    UUID userId    = UUID.randomUUID();
     UUID commentId = UUID.randomUUID();
-
     CommentUpdateRequest updateRequest = new CommentUpdateRequest();
     updateRequest.setContent("updated content");
 
-    Comment mockComment = mock(Comment.class);
-
-    when(mockComment.getUser()).thenReturn(mockUser);
-    when(mockUser.getId()).thenReturn(userId);
-
-    CommentDto updatedDto = new CommentDto();
-    updatedDto.setId(UUID.randomUUID());
-    updatedDto.setContent("updated content");
-
-    given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(mockComment));
-    given(commentMapper.toDto(mockComment)).willReturn(updatedDto);
-
-    // when
-    CommentDto result = commentService.update(commentId, updateRequest,userId);
+    given(commentRepository.findById(any(UUID.class)))
+        .willReturn(Optional.empty());
 
     // then
     assertThrows(NoCommentException.class, () -> {
@@ -151,15 +138,9 @@ class CommentServiceTest {
     when(mockComment.getUser()).thenReturn(mockUser);
     when(mockUser.getId()).thenReturn(UUID.randomUUID());
 
-    CommentDto updatedDto = new CommentDto();
-    updatedDto.setId(commentId);
-    updatedDto.setContent("updated content");
 
     given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(mockComment));
-    given(commentMapper.toDto(mockComment)).willReturn(updatedDto);
 
-    // when
-    CommentDto result = commentService.update(commentId, updateRequest,userId);
 
     // then
     assertThrows(NoAuthorityException.class, () -> {
@@ -182,6 +163,41 @@ class CommentServiceTest {
 
     verify(commentRepository).deleteById(any(UUID.class));
   }
+
+  @Test
+  void delete_fail_no_comment(){
+    UUID userId    = UUID.randomUUID();
+    UUID commentId = UUID.randomUUID();
+
+    given(commentRepository.findById(any(UUID.class)))
+        .willReturn(Optional.empty());
+
+    // then
+    assertThrows(NoCommentException.class, () -> {
+      commentService.delete(commentId, userId);
+    });
+  }
+
+  @Test
+  void delete_fail_no_authorities(){
+    UUID userId = UUID.randomUUID();
+    UUID commentId = UUID.randomUUID();
+
+    Comment mockComment = mock(Comment.class);
+
+    when(mockComment.getUser()).thenReturn(mockUser);
+    when(mockUser.getId()).thenReturn(UUID.randomUUID());
+
+
+    given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(mockComment));
+
+
+    // then
+    assertThrows(NoAuthorityException.class, () -> {
+      commentService.delete(commentId, userId);
+    });
+  }
+
 
   @Test
   void get(){

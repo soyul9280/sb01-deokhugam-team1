@@ -19,7 +19,7 @@ public class ReviewSearchRequestDto {
 
   @Builder.Default
   private String direction = "DESC";
-
+ 
   private UUID userId;
   private UUID bookId;
   private String cursor;

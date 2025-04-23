@@ -27,17 +27,17 @@ import java.util.UUID;
 )
 public class LikedUserId extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id")
-    private Review review;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "review_id")
+  private Review review;
 
-    @Column(name = "user_id", nullable = false)
-    private UUID userId;
+  @Column(name = "user_id", nullable = false)
+  private UUID userId;
 
-    public static LikedUserId of(Review review, UUID userId) {
-        return LikedUserId.builder()
-            .review(review)
-            .userId(userId)
-            .build();
-    }
-} 
+  public static LikedUserId of(Review review, UUID userId) {
+    return LikedUserId.builder()
+        .review(review)
+        .userId(userId)
+        .build();
+  }
+}

@@ -28,70 +28,70 @@ public class CommentService {
   private final UserServiceImpl userService;
   private final ReviewServiceImpl reviewService;
 
-   public CommentDto get(UUID id){
-     Comment comment = repository.findById(id)
-         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
+  public CommentDto get(UUID id){
+    Comment comment = repository.findById(id)
+        .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
 
-     return commentMapper.toDto(comment);
-   }
+    return commentMapper.toDto(comment);
+  }
 
-   public List<CommentDto> getList(UUID reviewId,String direction,
-       UUID cursorId, Instant createdAt, int limit){
-     Slice<Comment> list = repository.searchAll(reviewId,direction,createdAt,cursorId,limit);
+  public List<CommentDto> getList(UUID reviewId,String direction,
+      UUID cursorId, Instant createdAt, int limit){
+    Slice<Comment> list = repository.searchAll(reviewId,direction,createdAt,cursorId,limit);
 
-     return list.getContent().stream()
-         .map(commentMapper::toDto).toList();
-   }
+    return list.getContent().stream()
+        .map(commentMapper::toDto).toList();
+  }
 
 
-   public CommentDto create(CommentCreateRequest request){
-     Comment comment = Comment.builder()
-         .user(userService.findByIdEntityReturn(request.getUserId()))
-         .review(reviewService.findByIdEntityReturn(request.getReviewId()))
-         .content(request.getContent())
-         .build();
+  public CommentDto create(CommentCreateRequest request){
+    Comment comment = Comment.builder()
+        .user(userService.findByIdEntityReturn(request.getUserId()))
+        .review(reviewService.findByIdEntityReturn(request.getReviewId()))
+        .content(request.getContent())
+        .build();
 
-     repository.save(comment);
+    repository.save(comment);
 
-     return commentMapper.toDto(comment);
-   }
+    return commentMapper.toDto(comment);
+  }
 
-   public void delete(UUID id, UUID userId){
-     Comment comment = repository.findById(id)
-         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
+  public void delete(UUID id, UUID userId){
+    Comment comment = repository.findById(id)
+        .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-     if(comment.getUser().getId().equals(userId)) {
-       repository.deleteById(id);
-     }
-     else{
-       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
-     }
-   }
+    if(comment.getUser().getId().equals(userId)) {
+      repository.deleteById(id);
+    }
+    else{
+      throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
+    }
+  }
 
-   public void deleteSoft(UUID id, UUID userId){
-     Comment comment = repository.findById(id)
-         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
+  public void deleteSoft(UUID id, UUID userId){
+    Comment comment = repository.findById(id)
+        .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-     if(comment.getUser().getId().equals(userId)){
-       comment.markAsDeleted(true);
-     }
-     else{
-       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
-     }
-   }
+    if(comment.getUser().getId().equals(userId)){
+      comment.markAsDeleted(true);
+    }
+    else{
+      throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
+    }
+  }
 
-   public CommentDto update(UUID id, CommentUpdateRequest request, UUID userId){
-     Comment comment = repository.findById(id)
-         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
+  public CommentDto update(UUID id, CommentUpdateRequest request, UUID userId){
+    Comment comment = repository.findById(id)
+        .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-     if(comment.getUser().getId().equals(userId)){
-       comment.setContent(request.getContent());
-     }
-     else{
-       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
-     }
+    if(comment.getUser().getId().equals(userId)){
+      comment.setContent(request.getContent());
+    }
+    else{
+      throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
+    }
 
-     return  commentMapper.toDto(comment);
-   }
+    return  commentMapper.toDto(comment);
+  }
 }

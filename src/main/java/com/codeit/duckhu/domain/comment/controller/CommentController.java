@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
 public class CommentController {
-    private final CommentService commentService;
+  private final CommentService commentService;
 
   @PostMapping
   public ResponseEntity<CommentDto> createComment(@RequestBody CommentCreateRequest commentCreateRequest){
@@ -36,16 +36,16 @@ public class CommentController {
 
   @PatchMapping("/{commentId}")
   public ResponseEntity<CommentDto> updateComment(@RequestBody CommentUpdateRequest commentUpdateRequest,
-        @PathVariable UUID commentId,
+      @PathVariable UUID commentId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-      return ResponseEntity.status(HttpStatus.OK).body(commentService.update(commentId,commentUpdateRequest,userId));
+    return ResponseEntity.status(HttpStatus.OK).body(commentService.update(commentId,commentUpdateRequest,userId));
   }
 
   @DeleteMapping("/{commentId}/hard")
   public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-      commentService.delete(commentId,userId);
-      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    commentService.delete(commentId,userId);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @DeleteMapping("/{commentId}")

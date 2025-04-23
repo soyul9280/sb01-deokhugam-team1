@@ -7,6 +7,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,7 @@ TODO : vision-key 공유, RuntimeException 수정하기
  */
 @Slf4j
 @Component("visionOcrExtractor")
+@Primary
 public class VisionOcrExtractor implements OcrExtractor {
 
   private static final String DEFAULT_RESULT = "0";

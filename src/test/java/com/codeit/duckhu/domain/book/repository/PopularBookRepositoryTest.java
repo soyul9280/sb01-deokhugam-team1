@@ -5,6 +5,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.entity.PopularBook;
+import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepository;
+import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(JpaConfig.class)
+@Import(TestJpaConfig.class)
 class PopularBookRepositoryTest {
 
   @Autowired private BookRepository bookRepository;

@@ -16,19 +16,19 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Getter
-@Builder
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+
+@Entity @Getter @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "reviews")
@@ -68,12 +68,12 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private List<LikedUserId> likedUserIds = new ArrayList<>();
 
-  @Version private Long version;
+  @Version
+  private Long version;
 
   public void updateContent(String content) {
     this.content = content;
   }
-
   public void updateRating(int rating) {
     this.rating = rating;
   }
@@ -86,10 +86,9 @@ public class Review extends BaseUpdatableEntity {
   }
 
   public void decreaseLikeCount(UUID userId) {
-    List<LikedUserId> toRemove =
-        this.likedUserIds.stream()
-            .filter(like -> like.getUserId().equals(userId))
-            .collect(Collectors.toList());
+    List<LikedUserId> toRemove = this.likedUserIds.stream()
+        .filter(like -> like.getUserId().equals(userId))
+        .collect(Collectors.toList());
 
     if (!toRemove.isEmpty()) {
       this.likedUserIds.removeAll(toRemove);
@@ -100,7 +99,8 @@ public class Review extends BaseUpdatableEntity {
   }
 
   public boolean liked(UUID userId) {
-    return this.likedUserIds.stream().anyMatch(like -> like.getUserId().equals(userId));
+    return this.likedUserIds.stream()
+        .anyMatch(like -> like.getUserId().equals(userId));
   }
 
   public boolean toggleLike(UUID userId) {
@@ -114,7 +114,7 @@ public class Review extends BaseUpdatableEntity {
   }
 
   public void softDelete() {
-    if (!this.isDeleted) {
+    if(!this.isDeleted) {
       this.isDeleted = true;
     }
   }

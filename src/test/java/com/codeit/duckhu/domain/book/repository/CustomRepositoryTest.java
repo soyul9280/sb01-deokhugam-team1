@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.config.QueryDslConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -19,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({JpaConfig.class, QueryDslConfig.class})
+@Import({TestJpaConfig.class})
 public class CustomRepositoryTest {
 
   @Autowired private BookRepository bookRepository;

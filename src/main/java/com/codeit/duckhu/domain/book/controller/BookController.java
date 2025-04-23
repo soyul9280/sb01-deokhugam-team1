@@ -4,8 +4,10 @@ import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
+import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.Optional;
@@ -34,12 +36,13 @@ public class BookController {
 
   @GetMapping
   public ResponseEntity<CursorPageResponseBookDto> getBooks(
-      @RequestParam(required = false) String keyword,
-      @RequestParam(defaultValue = "title") String orderBy,
-      @RequestParam(defaultValue = "DESC") String direction,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) Instant after,
-      @RequestParam(defaultValue = "50") int limit) {
+      @RequestParam(value = "keyword", required = false) String keyword,
+      @RequestParam(value = "orderBy", defaultValue = "title") String orderBy,
+      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "after", required = false) Instant after,
+      @RequestParam(value = "limit", defaultValue = "50") int limit
+  ) {
     return ResponseEntity.ok(
         bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
   }
@@ -47,52 +50,76 @@ public class BookController {
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<BookDto> createBook(
       @Valid @RequestPart("bookData") BookCreateRequest bookData,
-      @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage) {
+      @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+  ) {
     //     Integer reviewCount, Double rating 관련 로직 필요 -> TODO
     BookDto createBook = bookService.registerBook(bookData, Optional.ofNullable(thumbnailImage));
 
-    return ResponseEntity.status(HttpStatus.CREATED).body(createBook);
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createBook);
   }
 
-  @PostMapping(
-      value = "/isbn/ocr",
-      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PostMapping(value = "/isbn/ocr", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<String> extractIsbnOcr(
-      @RequestPart(value = "image", required = false) MultipartFile image) {
+      @RequestPart(value = "image", required = false) MultipartFile image
+  ) {
     String isbn = bookService.extractIsbnFromImage(image);
 
     return ResponseEntity.ok(isbn);
   }
 
   @GetMapping("/info")
-  public ResponseEntity<NaverBookDto> getBookByIsbn(@RequestParam("isbn") String isbn) {
+  public ResponseEntity<NaverBookDto> getBookByIsbn(
+      @RequestParam("isbn") String isbn
+  ) {
     return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
   }
 
-  @PatchMapping(
-      value = "/{bookId}",
-      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PatchMapping(value = "/{bookId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<BookDto> updateBook(
       @PathVariable("bookId") UUID bookId,
       @RequestPart("bookData") BookUpdateRequest bookData,
-      @RequestParam(value = "thumbnailImage", required = false) MultipartFile thumbnailImage) {
-    BookDto updateBook =
-        bookService.updateBook(bookId, bookData, Optional.ofNullable(thumbnailImage));
+      @RequestParam(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+  ) {
+    BookDto updateBook = bookService.updateBook(bookId, bookData,
+        Optional.ofNullable(thumbnailImage));
 
     return ResponseEntity.ok(updateBook);
   }
 
   @DeleteMapping(value = "/{bookId}")
-  public ResponseEntity<Void> deleteBookLogically(@PathVariable("bookId") UUID bookId) {
+  public ResponseEntity<Void> deleteBookLogically(
+      @PathVariable("bookId") UUID bookId
+  ) {
     bookService.deleteBookLogically(bookId);
 
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
   }
 
   @DeleteMapping(value = "/{bookId}/hard")
-  public ResponseEntity<Void> deleteBookPhysically(@PathVariable("bookId") UUID bookId) {
+  public ResponseEntity<Void> deleteBookPhysically(
+      @PathVariable("bookId") UUID bookId
+  ) {
     bookService.deleteBookPhysically(bookId);
 
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
+  }
+
+  @GetMapping(value = "/popular")
+  public ResponseEntity<CursorPageResponsePopularBookDto> getPopularBooks(
+      @RequestParam(value = "periodType", defaultValue = "DAILY") PeriodType period,
+      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "after", required = false) Instant after,
+      @RequestParam(value = "limit", defaultValue = "50") int limit
+  ) {
+
+    return ResponseEntity.ok(
+        bookService.searchPopularBooks(period, direction, cursor, after, limit));
   }
 }

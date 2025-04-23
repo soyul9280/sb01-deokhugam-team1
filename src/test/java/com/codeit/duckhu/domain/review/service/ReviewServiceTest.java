@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
@@ -15,6 +17,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -199,10 +202,10 @@ class ReviewServiceTest {
     when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
     when(testReview.getUser()).thenReturn(testUser);
     when(testUser.getId()).thenReturn(testUserId);
-    
+
     // When
     ReviewDto result = reviewService.updateReview(testReviewId, testreviewUpdateRequest);
-    
+
     // Then
     assertThat(result).isNotNull();
     assertThat(result).isEqualTo(testReviewDto);
@@ -229,10 +232,10 @@ class ReviewServiceTest {
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
     when(testReview.getId()).thenReturn(testReviewId);
-    
+
     // When
     ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
-    
+
     // Then
     verify(testReview).increaseLikeCount(testUserId);
     assertThat(result.isLiked()).isTrue();
@@ -248,10 +251,10 @@ class ReviewServiceTest {
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(testReview.liked(testUserId)).thenReturn(true).thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
     when(testReview.getId()).thenReturn(testReviewId);
-    
+
     // When
     ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
-    
+
     // Then
     verify(testReview).decreaseLikeCount(testUserId);
     assertThat(result.isLiked()).isFalse();
@@ -265,7 +268,7 @@ class ReviewServiceTest {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
-    
+
     // When & Then
     ReviewCustomException ex = assertThrows(ReviewCustomException.class,
         () -> reviewService.likeReview(testReviewId, testUserId));
@@ -280,8 +283,8 @@ class ReviewServiceTest {
     
     // 정확한 파라미터로 stubbing 설정
     when(reviewRepository.findReviewsWithCursor(
-            eq(null), eq("createdAt"), eq("DESC"), 
-            eq(null), eq(null), eq(null), 
+            eq(null), eq("createdAt"), eq("DESC"),
+            eq(null), eq(null), eq(null),
             eq(null), eq(11)
     )).thenReturn(reviewList);
     

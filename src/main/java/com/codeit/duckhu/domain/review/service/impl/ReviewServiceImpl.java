@@ -100,6 +100,7 @@ public class ReviewServiceImpl implements ReviewService {
     recalculateBookStats(review.getBook());
   }
 
+
   @Transactional
   @Override
   public void softDeleteReviewById(UUID id) {
@@ -163,13 +164,13 @@ public class ReviewServiceImpl implements ReviewService {
       review.increaseLikeCount(userId);
     }
 
+
     boolean likedAfter = review.liked(userId);
     return ReviewLikeDto.builder()
         .reviewId(review.getId())
         .userId(userId)
         .liked(likedAfter)
         .build();
-
   }
 
   @Override
@@ -220,13 +221,13 @@ public class ReviewServiceImpl implements ReviewService {
         .hasNext(hasNext)
         .build();
   }
-  
+
   @Override
   public Review findByIdEntityReturn(UUID reviewId) {
     return reviewRepository.findById(reviewId)
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
   }
-  
+
   // 도서에 관련된 집계 필드 업데이트 - jw
   private void recalculateBookStats(Book book) {
     // 도서에 작성된 리뷰 개수 조회 - jw

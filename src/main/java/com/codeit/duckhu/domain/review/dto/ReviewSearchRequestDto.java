@@ -7,8 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
-@Builder
+
+@Getter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewSearchRequestDto {
@@ -20,4 +20,5 @@ public class ReviewSearchRequestDto {
   private String cursor;
   private Instant after;
   private int size = 10;
+
 }

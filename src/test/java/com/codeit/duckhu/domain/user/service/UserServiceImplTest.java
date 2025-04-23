@@ -7,10 +7,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
+import com.codeit.duckhu.domain.user.dto.PowerUserDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
+import com.codeit.duckhu.domain.user.entity.PowerUser;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
 import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
@@ -22,6 +24,7 @@ import com.codeit.duckhu.domain.user.repository.poweruser.PowerUserRepository;
 import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -254,7 +257,7 @@ class UserServiceImplTest {
     @DisplayName("파워유저 조회 테스트")
     class PowerUserTest {
       @Test
-      @DisplayName("기간 내 활동 점수 계산 및 저장")
+      @DisplayName("파워 유저 조회 성공")
       void powerUser_success() {
         // given
         PeriodType period = PeriodType.DAILY;
@@ -263,13 +266,44 @@ class UserServiceImplTest {
         Instant after = null;
         int limit = 10;
 
+        User mockUser = User.builder()
+                .email("testA@example.com")
+                .nickname("testA")
+                .password("testA1!")
+                .build();
+        PowerUser entity = PowerUser.builder()
+                .user(mockUser)
+                .period(period)
+                .reviewScoreSum(10.0)
+                .likeCount(5)
+                .commentCount(3)
+                .score(8.1)
+                .rank(1)
+                .build();
+
+        PowerUserDto dto = PowerUserDto.builder()
+                .userId(mockUser.getId())
+                .nickname(mockUser.getNickname())
+                .reviewScoreSum(10.0)
+                .likeCount(5)
+                .commentCount(3)
+                .score(8.1)
+                .rank(1)
+                .period(period.name())
+                .build();
+        given(powerUserRepository.searchByPeriodWithCursorPaging(period,direction,cursor,after,limit+1))
+                .willReturn(List.of(entity));
+        given(powerUserMapper.toDto(entity)).willReturn(dto);
+
+
         // when
         CursorPageResponsePowerUserDto result =
             sut.findPowerUsers(period, direction, cursor, after, limit);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isNotEmpty();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0)).isEqualTo(dto);
       }
     }
 }

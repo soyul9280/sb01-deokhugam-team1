@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.comment.service;
 
 
+import com.codeit.duckhu.domain.comment.exception.NoAuthorityException;
 import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.domain.Comment;
 import com.codeit.duckhu.domain.comment.dto.CommentDto;
@@ -43,7 +44,7 @@ public class CommentService {
          .map(commentMapper::toDto).toList();
    }
 
-   //TODO : User & Review service 이용하여 객체 불러오기 필요 : 현재 메서드 미구현 상태
+
    public CommentDto create(CommentCreateRequest request){
      Comment comment = Comment.builder()
          .user(userService.findByIdEntityReturn(request.getUserId()))
@@ -56,26 +57,40 @@ public class CommentService {
      return commentMapper.toDto(comment);
    }
 
-   public void delete(UUID id){
-     if(repository.findById(id).isEmpty()){
-       throw new NoCommentException(ErrorCode.NOT_FOUND_COMMENT);
+   public void delete(UUID id, UUID userId){
+     Comment comment = repository.findById(id)
+         .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
+
+     if(comment.getUser().getId().equals(userId)) {
+       repository.deleteById(id);
      }
-
-     repository.deleteById(id);
+     else{
+       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
+     }
    }
 
-   public void deleteSoft(UUID id){
+   public void deleteSoft(UUID id, UUID userId){
      Comment comment = repository.findById(id)
          .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-     comment.markAsDeleted(true);
+     if(comment.getUser().getId().equals(userId)){
+       comment.markAsDeleted(true);
+     }
+     else{
+       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
+     }
    }
 
-   public CommentDto update(UUID id, CommentUpdateRequest request){
+   public CommentDto update(UUID id, CommentUpdateRequest request, UUID userId){
      Comment comment = repository.findById(id)
          .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
-     comment.setContent(request.getContent());
+     if(comment.getUser().getId().equals(userId)){
+       comment.setContent(request.getContent());
+     }
+     else{
+       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
+     }
 
      return  commentMapper.toDto(comment);
    }

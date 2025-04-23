@@ -1,11 +1,13 @@
 package com.codeit.duckhu.domain.user.exception;
 
+import com.codeit.duckhu.global.exception.ErrorCode;
+
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
 public class NotFoundUserException extends UserException {
-    public NotFoundUserException(UUID id) {
-        super(Instant.now(),UserErrorCode.NOT_FOUND_USER, Map.of("id", id));
+    public NotFoundUserException(ErrorCode errorCode) {
+        super(errorCode);
     }
 }

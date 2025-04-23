@@ -4,6 +4,7 @@ import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.config.QueryDslConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
+import com.codeit.duckhu.global.type.Direction;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -56,7 +57,7 @@ public class CustomRepositoryTest {
   void searchBooksByKeyword() {
     // given
     // when
-    List<Book> books = bookRepository.searchBooks(keyword, "title", "ASC", null, null, 10);
+    List<Book> books = bookRepository.searchBooks(keyword, "title", Direction.ASC, null, null, 10);
 
     // then
     assertThat(books).hasSize(5);
@@ -66,7 +67,7 @@ public class CustomRepositoryTest {
   @Test
   @DisplayName("출판일 기준 내림차순 정렬")
   void sortBooksByPublishedDateDesc() {
-    List<Book> books = bookRepository.searchBooks(null, "publishedDate", "DESC", null, null, 10);
+    List<Book> books = bookRepository.searchBooks(null, "publishedDate", Direction.DESC, null, null, 10);
     assertThat(books.get(0).getPublishedDate()).isAfter(books.get(1).getPublishedDate());
   }
 
@@ -74,11 +75,11 @@ public class CustomRepositoryTest {
   @DisplayName("제목 기준 ASC 정렬 + 커서 기반 페이지네이션")
   void paginateByTitleAsc() {
       // given
-    List<Book> page1 = bookRepository.searchBooks(null, "title", "ASC", null, null, 2);
+    List<Book> page1 = bookRepository.searchBooks(null, "title", Direction.ASC, null, null, 2);
       // when
     String nextCursor = page1.get(1).getTitle();
     Instant nextAfter = page1.get(1).getCreatedAt();
-    List<Book> page2 = bookRepository.searchBooks(null, "title", "ASC", nextCursor, nextAfter, 2);
+    List<Book> page2 = bookRepository.searchBooks(null, "title", Direction.ASC, nextCursor, nextAfter, 2);
 
       // then
     assertThat(page2).hasSize(2);

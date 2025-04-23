@@ -38,20 +38,20 @@ public class CommentController {
   public ResponseEntity<CommentDto> updateComment(@RequestBody CommentUpdateRequest commentUpdateRequest,
         @PathVariable UUID commentId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-      return ResponseEntity.status(HttpStatus.OK).body(commentService.update(commentId,commentUpdateRequest,userId));
+      return ResponseEntity.status(HttpStatus.OK).body(commentService.update(commentId,commentUpdateRequest));
   }
 
   @DeleteMapping("/{commentId}/hard")
   public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-      commentService.delete(commentId,userId);
+      commentService.delete(commentId);
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @DeleteMapping("/{commentId}")
   public ResponseEntity<Void> deleteCommentSoft(@PathVariable UUID commentId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-    commentService.deleteSoft(commentId,userId);
+    commentService.deleteSoft(commentId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 

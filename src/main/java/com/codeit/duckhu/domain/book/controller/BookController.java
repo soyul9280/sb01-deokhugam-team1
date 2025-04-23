@@ -37,6 +37,16 @@ public class BookController implements BookApi {
 
   private final BookService bookService;
 
+  /**
+   * 검색 조건에 맞는 도서 목록을 조회합니다.
+   * @param keyword  키워드를 통해 검색이 가능합니다. -> 도서 제목, 저자, ISBN
+   * @param orderBy 정렬 기준 -> title, publishedDate, rating, reviewCount
+   * @param direction 정렬 방향 -> DESC, ASC
+   * @param cursor -> 커서 페이지네이션 커서
+   * @param after -> 보조 커서(createdAt)
+   * @param limit -> 페이지 크기
+   * @return
+   */
   @GetMapping
   public ResponseEntity<CursorPageResponseBookDto> getBooks(
       @RequestParam(value = "keyword", required = false) String keyword,
@@ -50,69 +60,30 @@ public class BookController implements BookApi {
         bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
   }
 
-  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public ResponseEntity<BookDto> createBook(
-      @Valid @RequestPart("bookData") BookCreateRequest bookData,
-      @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+  /**
+   * 도서 ID로 상세 정보를 조회합니다
+   * @param bookId 도서 ID
+   * @return
+   */
+  @GetMapping(value = "/{bookId}")
+  public ResponseEntity<BookDto> getBookById(
+      @PathVariable(name = "bookId", required = true) UUID bookId
   ) {
-    //     Integer reviewCount, Double rating 관련 로직 필요 -> TODO
-    BookDto createBook = bookService.registerBook(bookData, Optional.ofNullable(thumbnailImage));
 
-    return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(createBook);
+    BookDto findBook = bookService.getBookById(bookId);
+
+    return ResponseEntity.ok(findBook);
   }
 
-  @PostMapping(value = "/isbn/ocr", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public ResponseEntity<String> extractIsbnOcr(
-      @RequestPart(value = "image") MultipartFile image
-  ) {
-    String isbn = bookService.extractIsbnFromImage(image);
-
-    return ResponseEntity.ok(isbn);
-  }
-
-  @GetMapping("/info")
-  public ResponseEntity<NaverBookDto> getBookByIsbn(
-      @RequestParam("isbn") String isbn
-  ) {
-    return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
-  }
-
-  @PatchMapping(value = "/{bookId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public ResponseEntity<BookDto> updateBook(
-      @PathVariable("bookId") UUID bookId,
-      @RequestPart("bookData") BookUpdateRequest bookData,
-      @RequestParam(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
-  ) {
-    BookDto updateBook = bookService.updateBook(bookId, bookData,
-        Optional.ofNullable(thumbnailImage));
-
-    return ResponseEntity.ok(updateBook);
-  }
-
-  @DeleteMapping(value = "/{bookId}")
-  public ResponseEntity<Void> deleteBookLogically(
-      @PathVariable("bookId") UUID bookId
-  ) {
-    bookService.deleteBookLogically(bookId);
-
-    return ResponseEntity
-        .status(HttpStatus.NO_CONTENT)
-        .build();
-  }
-
-  @DeleteMapping(value = "/{bookId}/hard")
-  public ResponseEntity<Void> deleteBookPhysically(
-      @PathVariable("bookId") UUID bookId
-  ) {
-    bookService.deleteBookPhysically(bookId);
-
-    return ResponseEntity
-        .status(HttpStatus.NO_CONTENT)
-        .build();
-  }
-
+  /**
+   * 기간별 인기 도서 목록을 조회합니다.
+   * @param period 랭킹 기간 -> DAILY, WEEKLY, MONTHLY, ALL_TIME
+   * @param direction 정렬 방향 -> DESC, ASC
+   * @param cursor 커서 페이지네이션 커서
+   * @param after 보조 커서 (createdAt)
+   * @param limit 페이지 크기
+   * @return
+   */
   @GetMapping(value = "/popular")
   public ResponseEntity<CursorPageResponsePopularBookDto> getPopularBooks(
       @RequestParam(value = "period", defaultValue = "DAILY") PeriodType period,
@@ -126,13 +97,99 @@ public class BookController implements BookApi {
         bookService.searchPopularBooks(period, direction, cursor, after, limit));
   }
 
-  @GetMapping(value = "/{bookId}")
-  public ResponseEntity<BookDto> getBookById(
-      @PathVariable(name = "bookId", required = true) UUID bookId
+  /**
+   * Naver API를 통해 ISBN으로 도서 정보를 조회합니다
+   * @param isbn
+   * @return
+   */
+  @GetMapping("/info")
+  public ResponseEntity<NaverBookDto> getBookByIsbn(
+      @RequestParam("isbn") String isbn
   ) {
+    return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
+  }
 
-    BookDto findBook = bookService.getBookById(bookId);
+  /**
+   * 도서 정보를 수정합니다.
+   * @param bookId 도서 ID
+   * @param bookData 수정할 도서 정보
+   * @param thumbnailImage 수정할 도서 썸네일 이미지
+   * @return
+   */
+  @PatchMapping(value = "/{bookId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<BookDto> updateBook(
+      @PathVariable("bookId") UUID bookId,
+      @RequestPart("bookData") BookUpdateRequest bookData,
+      @RequestParam(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+  ) {
+    BookDto updateBook = bookService.updateBook(bookId, bookData,
+        Optional.ofNullable(thumbnailImage));
 
-    return ResponseEntity.ok(findBook);
+    return ResponseEntity.ok(updateBook);
+  }
+
+  /**
+   * 새로운 도서를 등록합니다.
+   * @param bookData 도서 정보
+   * @param thumbnailImage 도서 썸네일 이미지
+   * @return
+   */
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<BookDto> createBook(
+      @Valid @RequestPart("bookData") BookCreateRequest bookData,
+      @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
+  ) {
+    //     Integer reviewCount, Double rating 관련 로직 필요 -> TODO
+    BookDto createBook = bookService.registerBook(bookData, Optional.ofNullable(thumbnailImage));
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createBook);
+  }
+
+  /**
+   * 도서 이미지를 통해 ISBN을 인식합니다.
+   * @param image
+   * @return
+   */
+  @PostMapping(value = "/isbn/ocr", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<String> extractIsbnOcr(
+      @RequestPart(value = "image") MultipartFile image
+  ) {
+    String isbn = bookService.extractIsbnFromImage(image);
+
+    return ResponseEntity.ok(isbn);
+  }
+
+  /**
+   * 도서를 논리적으로 삭제합니다. (관련된 댓글과 리뷰는 삭제하지 않음)
+   * @param bookId
+   * @return
+   */
+  @DeleteMapping(value = "/{bookId}")
+  public ResponseEntity<Void> deleteBookLogically(
+      @PathVariable("bookId") UUID bookId
+  ) {
+    bookService.deleteBookLogically(bookId);
+
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
+  }
+
+  /**
+   * 도서를 물리적으로 삭제합니다. (관련된 리뷰와 댓글 모두 삭제)
+   * @param bookId
+   * @return
+   */
+  @DeleteMapping(value = "/{bookId}/hard")
+  public ResponseEntity<Void> deleteBookPhysically(
+      @PathVariable("bookId") UUID bookId
+  ) {
+    bookService.deleteBookPhysically(bookId);
+
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
   }
 }

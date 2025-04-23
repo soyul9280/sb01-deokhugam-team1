@@ -206,6 +206,7 @@ public interface BookApi {
       @ApiResponse(responseCode = "500", description = "서버 내부 오류",
           content = @Content(schema = @Schema(implementation = BookDto.class)))
   })
+
   @GetMapping(value = "/{bookId}")
   ResponseEntity<BookDto> getBookById(
       @Parameter(name = "bookId", description = "도서 ID", example = "123e4567-e89b-12d3-a456-426614174000")

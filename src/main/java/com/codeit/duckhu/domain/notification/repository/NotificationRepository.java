@@ -17,7 +17,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   List<Notification> findAllByReceiverId(UUID receiverId);
 
   /** 1주일 이상 지난 확인된 알림을 삭제한다. */
-  @Modifying
+  @Modifying(clearAutomatically = true)
   @Query("DELETE FROM Notification n WHERE n.confirmed = true AND n.updatedAt < :cutoff")
   void deleteOldConfirmedNotifications(@Param("cutoff") Instant cutoff);
 }

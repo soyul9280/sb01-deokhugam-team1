@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.book.controller;
 
+import com.codeit.duckhu.domain.book.controller.api.BookApi;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
@@ -7,6 +8,7 @@ import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
+import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.validation.Valid;
 import java.io.IOException;
@@ -31,7 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/books")
-public class BookController {
+public class BookController implements BookApi {
 
   private final BookService bookService;
 
@@ -39,7 +41,7 @@ public class BookController {
   public ResponseEntity<CursorPageResponseBookDto> getBooks(
       @RequestParam(value = "keyword", required = false) String keyword,
       @RequestParam(value = "orderBy", defaultValue = "title") String orderBy,
-      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "direction", defaultValue = "DESC") Direction direction,
       @RequestParam(value = "cursor", required = false) String cursor,
       @RequestParam(value = "after", required = false) Instant after,
       @RequestParam(value = "limit", defaultValue = "50") int limit

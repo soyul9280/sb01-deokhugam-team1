@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.book.repository;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.entity.QBook;
+import com.codeit.duckhu.global.type.Direction;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,7 +19,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
   private final QBook book = QBook.book;
 
   @Override
-  public List<Book> searchBooks(String keyword, String orderBy, String direction, String cursor, Instant after, int limit) {
+  public List<Book> searchBooks(String keyword, String orderBy, Direction direction, String cursor, Instant after, int limit) {
     BooleanBuilder condition = new BooleanBuilder();
 
     // 키워드 검색 -> 제목, 저자, isbn으로 검색
@@ -49,8 +50,8 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
         .fetch();
   }
 
-  private boolean isAsc(String direction) {
-    return "ASC".equalsIgnoreCase(direction);
+  private boolean isAsc(Direction direction) {
+    return "ASC".equalsIgnoreCase(String.valueOf(direction));
   }
 
   private BooleanBuilder getCursorCondition(String sortBy, String cursor, Instant after, boolean isAsc) {

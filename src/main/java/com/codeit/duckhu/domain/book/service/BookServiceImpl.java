@@ -19,6 +19,7 @@ import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.global.exception.ErrorCode;
+import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.List;
@@ -113,7 +114,7 @@ public class BookServiceImpl implements BookService {
    * @return 도서 페이지 응답 DTO
    */
   @Override
-  public CursorPageResponseBookDto searchBooks(String keyword, String orderBy, String direction,
+  public CursorPageResponseBookDto searchBooks(String keyword, String orderBy, Direction direction,
       String cursor, Instant after, int limit) {
 
     List<Book> books = bookRepository.searchBooks(keyword, orderBy, direction, cursor, after,

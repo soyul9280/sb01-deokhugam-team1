@@ -6,6 +6,7 @@ import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.exception.BookException;
+import com.codeit.duckhu.global.type.Direction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "Book", description = "도서 관련 API")
+@Tag(name = "도서 관리", description = "도서 관련 API")
 @RequestMapping("/api/books")
 public interface BookApi {
 
@@ -44,7 +45,7 @@ public interface BookApi {
   ResponseEntity<CursorPageResponseBookDto> getBooks(
       @Parameter(description = "검색 키워드") @RequestParam(required = false) String keyword,
       @Parameter(description = "정렬 기준 (title, createdAt 등)") @RequestParam(defaultValue = "title") String orderBy,
-      @Parameter(description = "정렬 방향 (ASC, DESC)") @RequestParam(defaultValue = "DESC") String direction,
+      @Parameter(description = "정렬 방향 (ASC, DESC)") @RequestParam(defaultValue = "DESC") Direction direction,
       @Parameter(description = "커서 값") @RequestParam(required = false) String cursor,
       @Parameter(description = "기준 시간") @RequestParam(required = false) Instant after,
       @Parameter(description = "한 페이지에 가져올 데이터 개수") @RequestParam(defaultValue = "50") int limit

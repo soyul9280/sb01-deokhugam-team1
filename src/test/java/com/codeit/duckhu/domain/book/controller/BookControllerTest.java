@@ -6,6 +6,7 @@ import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
+import com.codeit.duckhu.global.type.Direction;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.List;
@@ -111,7 +112,7 @@ class BookControllerTest {
           0, false);
 
       given(bookService.searchBooks(
-          null, "title", "DESC", null, null, 50
+          null, "title", Direction.DESC, null, null, 50
       )).willReturn(fakeResponse);
 
       // when & then

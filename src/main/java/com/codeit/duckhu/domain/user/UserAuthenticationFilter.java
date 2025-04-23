@@ -26,6 +26,12 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String headerId = request.getHeader("Deokhugam-Request-User-ID");
+        String path = request.getRequestURI();
+        if (isPublicPath(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if(headerId != null) {
             try{
                 UUID userId = UUID.fromString(headerId); //헤더에서 UUID파싱
@@ -36,12 +42,25 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
         }else {
-            String path=request.getRequestURI();
-            if (!path.equals("/") && !path.startsWith("/api/users/login")&& !path.startsWith("/api/users")) {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 return;//로그인 없이 접근한 경우 차단
-            }
+            
         }
         filterChain.doFilter(request, response);
     }
+
+    private boolean isPublicPath(String path) {
+        return path.equals("/") ||
+                path.startsWith("/api/users/login") ||
+                path.startsWith("/api/users") ||
+                path.startsWith("/static") ||
+                path.startsWith("/favicon.ico") ||
+                path.startsWith("/index.html") ||
+                path.endsWith(".js") || path.endsWith(".css") ||
+                path.endsWith(".png") || path.endsWith(".jpg") ||
+                path.endsWith(".jpeg") || path.endsWith(".svg") ||
+                path.endsWith(".ico") || path.endsWith(".map") ||
+                path.endsWith(".html");
+    }
 }
+

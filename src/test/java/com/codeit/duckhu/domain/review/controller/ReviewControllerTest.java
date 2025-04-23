@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -49,7 +50,7 @@ public class ReviewControllerTest {
   class createReview {
 
     @Test
-    @DisplayName("POST /api/reviews-성공")
+    @DisplayName("POST /api/reviews - 성공")
     void createReview_Success() throws Exception {
       // Given
       ReviewCreateRequest request = ReviewCreateRequest.builder()
@@ -85,7 +86,7 @@ public class ReviewControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/reviews-파라미터 누락")
+    @DisplayName("POST /api/reviews - 파라미터 누락")
     void createReview_Fail() throws Exception {
       // Given
       ReviewCreateRequest request = ReviewCreateRequest.builder()
@@ -107,7 +108,7 @@ public class ReviewControllerTest {
   @DisplayName("리뷰 수정 테스트")
   class updateReview {
     @Test
-    @DisplayName("PATCH /api/reviews-성공")
+    @DisplayName("PATCH /api/reviews - 성공")
     void updateReview_Success() throws Exception{
       UUID reviewId = UUID.randomUUID();
 
@@ -159,5 +160,35 @@ public class ReviewControllerTest {
       mockMvc.perform(delete("/api/reviews/{reviewId}/hard", reviewId))
           .andExpect(status().isNoContent());
     }
+  }
+
+  @Nested
+  @DisplayName("리뷰 조회 테스트")
+  class findReview {
+
+    @Test
+    @DisplayName("GET /api/reviews/{reviewId} - 성공")
+    void findReview_Success() throws Exception {
+      UUID reviewId = UUID.randomUUID();
+
+      ReviewDto review = ReviewDto.builder()
+          .id(reviewId)
+          .userId(UUID.randomUUID())
+          .bookId(UUID.randomUUID())
+          .rating(5)
+          .content("재밌어요 !")
+          .build();
+
+      given(reviewService.getReviewById(reviewId)).willReturn(review);
+
+      mockMvc.perform(get("/api/reviews/{reviewId}", reviewId))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(review.getId().toString()))
+          .andExpect(jsonPath("$.userId").value(review.getUserId().toString()))
+          .andExpect(jsonPath("$.bookId").value(review.getBookId().toString()))
+          .andExpect(jsonPath("$.rating").value(review.getRating()))
+          .andExpect(jsonPath("$.content").value(review.getContent()));
+    }
+
   }
 }

@@ -141,8 +141,8 @@ public class UserServiceImpl implements UserService {
               return PowerUser.builder()
                       .user(user)
                       .reviewScoreSum(dto.reviewScoreSum())
-                      .likeCount((Integer) dto.likedCount())
-                      .commentCount(dto.commentCount())
+                      .likeCount(dto.likedCount().intValue())
+                      .commentCount(dto.commentCount().intValue())
                       .score(score)
                       .period(period)
                       .build();
@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
             .sorted(Comparator.comparingDouble(PowerUser::getScore).reversed())
             .toList();
 
-    //순위 부여
+    //순위 부여-동시성제어
     AtomicInteger rankCount = new AtomicInteger(1);
     //순위 설정
     powerUsers.forEach(powerUser -> powerUser.setRank(rankCount.getAndIncrement()));

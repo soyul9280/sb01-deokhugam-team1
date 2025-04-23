@@ -8,7 +8,7 @@ import java.util.UUID;
 public record PowerUserStatsDto(
         UUID userId,
         Double reviewScoreSum,
-        Integer likedCount,
-        Integer commentCount
+        Long likedCount,
+        Long commentCount
 ) {
 }

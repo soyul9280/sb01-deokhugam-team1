@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PowerUserRepository
     extends JpaRepository<PowerUser, UUID>, PowerUserRepositoryCustom {
 
-  int countByPeriod(PeriodType period);
+  void deleteByPeriod(PeriodType period);
 }

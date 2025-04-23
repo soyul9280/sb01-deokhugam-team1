@@ -80,8 +80,8 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
               UUID userId = tuple.get(review.user.id);
               Double reviewScoreSum = tuple.get(1, Double.class);
 
-              Integer likeCount = likedCounts.getOrDefault(userId, 0);
-              Integer commCount = commentCounts.getOrDefault(userId, 0);
+              Long likeCount = likedCounts.getOrDefault(userId, 0L);
+              Long commCount = commentCounts.getOrDefault(userId, 0L);
 
               return PowerUserStatsDto.builder()
                       .userId(userId)

@@ -20,7 +20,7 @@ public interface ReviewRepository extends JpaRepository<Review,UUID>, ReviewRepo
      * - 도서 상세 조회 시 reviewCount에 사용됩니다.
      */
    // @Query("SELECT COUNT(r) FROM Review r WHERE r.book.id = :bookId AND r.isDeleted = false")
-    @Query("SELECT COUNT(r) FROM Review r WHERE r.book.id = :bookId AND r.deleted = false")
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.book.id = :bookId AND r.isDeleted = false")
     int countByBookId(@Param("bookId") UUID bookId);
 
     /**
@@ -29,6 +29,6 @@ public interface ReviewRepository extends JpaRepository<Review,UUID>, ReviewRepo
      * - 도서 상세 조회 시 rating에 사용됩니다.
      */
 //    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.isDeleted = false")
-    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.deleted = false")
+    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.isDeleted = false")
     double calculateAverageRatingByBookId(@Param("bookId") UUID bookId);
 }

@@ -5,8 +5,8 @@ import com.codeit.duckhu.global.type.PeriodType;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PopularBookRepository extends JpaRepository<PopularBook, UUID>,
-    PopularBookRepositoryCustom {
+public interface PopularBookRepository
+    extends JpaRepository<PopularBook, UUID>, PopularBookRepositoryCustom {
 
   int countByPeriod(PeriodType period);
 }

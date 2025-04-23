@@ -50,5 +50,3 @@ src/main/resources/vision-key.json
 
 ### dev/prod/tset.yml ###
 /src/main/resources/application-*.yml
-
-/src/main/resources/vision-key.json

@@ -19,7 +19,13 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
   private final QBook book = QBook.book;
 
   @Override
-  public List<Book> searchBooks(String keyword, String orderBy, Direction direction, String cursor, Instant after, int limit) {
+  public List<Book> searchBooks(
+      String keyword,
+      String orderBy,
+      Direction direction,
+      String cursor,
+      Instant after,
+      int limit) {
     BooleanBuilder condition = new BooleanBuilder();
 
     // 키워드 검색 -> 제목, 저자, isbn으로 검색
@@ -27,8 +33,7 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
       condition.andAnyOf(
           book.title.containsIgnoreCase(keyword),
           book.author.containsIgnoreCase(keyword),
-          book.isbn.containsIgnoreCase(keyword)
-      );
+          book.isbn.containsIgnoreCase(keyword));
     }
 
     // 논리 삭제 제외
@@ -54,36 +59,51 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     return "ASC".equalsIgnoreCase(String.valueOf(direction));
   }
 
-  private BooleanBuilder getCursorCondition(String sortBy, String cursor, Instant after, boolean isAsc) {
+  private BooleanBuilder getCursorCondition(
+      String sortBy, String cursor, Instant after, boolean isAsc) {
     BooleanBuilder builder = new BooleanBuilder();
 
     // 정렬 필드 -> 제목, 평점, 출판일, 리뷰수
     switch (sortBy) {
       case "title" -> {
-        builder.and(isAsc
-            ? book.title.gt(cursor).or(book.title.eq(cursor).and(book.createdAt.gt(after)))
-            : book.title.lt(cursor).or(book.title.eq(cursor).and(book.createdAt.lt(after)))
-        );
+        builder.and(
+            isAsc
+                ? book.title.gt(cursor).or(book.title.eq(cursor).and(book.createdAt.gt(after)))
+                : book.title.lt(cursor).or(book.title.eq(cursor).and(book.createdAt.lt(after))));
       }
       case "rating" -> {
         Double rating = Double.parseDouble(cursor);
-        builder.and(isAsc
-            ? book.rating.gt(rating).or(book.rating.eq(rating).and(book.createdAt.gt(after)))
-            : book.rating.lt(rating).or(book.rating.eq(rating).and(book.createdAt.lt(after)))
-        );
+        builder.and(
+            isAsc
+                ? book.rating.gt(rating).or(book.rating.eq(rating).and(book.createdAt.gt(after)))
+                : book.rating.lt(rating).or(book.rating.eq(rating).and(book.createdAt.lt(after))));
       }
       case "reviewCount" -> {
         Integer reviewCount = Integer.parseInt(cursor);
-        builder.and(isAsc
-            ? book.reviewCount.gt(reviewCount).or(book.reviewCount.eq(reviewCount).and(book.createdAt.gt(after)))
-            : book.reviewCount.lt(reviewCount).or(book.reviewCount.eq(reviewCount).and(book.createdAt.lt(after)))
-        );
+        builder.and(
+            isAsc
+                ? book.reviewCount
+                    .gt(reviewCount)
+                    .or(book.reviewCount.eq(reviewCount).and(book.createdAt.gt(after)))
+                : book.reviewCount
+                    .lt(reviewCount)
+                    .or(book.reviewCount.eq(reviewCount).and(book.createdAt.lt(after))));
       }
       case "publishedDate" -> {
-        builder.and(isAsc
-            ? book.publishedDate.after(java.time.LocalDate.parse(cursor)).or(book.publishedDate.eq(java.time.LocalDate.parse(cursor)).and(book.createdAt.gt(after)))
-            : book.publishedDate.before(java.time.LocalDate.parse(cursor)).or(book.publishedDate.eq(java.time.LocalDate.parse(cursor)).and(book.createdAt.lt(after)))
-        );
+        builder.and(
+            isAsc
+                ? book.publishedDate
+                    .after(java.time.LocalDate.parse(cursor))
+                    .or(
+                        book.publishedDate
+                            .eq(java.time.LocalDate.parse(cursor))
+                            .and(book.createdAt.gt(after)))
+                : book.publishedDate
+                    .before(java.time.LocalDate.parse(cursor))
+                    .or(
+                        book.publishedDate
+                            .eq(java.time.LocalDate.parse(cursor))
+                            .and(book.createdAt.lt(after))));
       }
       default -> builder.and(isAsc ? book.createdAt.gt(after) : book.createdAt.lt(after));
     }
@@ -97,9 +117,11 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
 
     switch (sortBy) {
       case "title" -> orderSpecifiers.add(isAsc ? book.title.asc() : book.title.desc());
-      case "publishedDate" -> orderSpecifiers.add(isAsc ? book.publishedDate.asc() : book.publishedDate.desc());
+      case "publishedDate" ->
+          orderSpecifiers.add(isAsc ? book.publishedDate.asc() : book.publishedDate.desc());
       case "rating" -> orderSpecifiers.add(isAsc ? book.rating.asc() : book.rating.desc());
-      case "reviewCount" -> orderSpecifiers.add(isAsc ? book.reviewCount.asc() : book.reviewCount.desc());
+      case "reviewCount" ->
+          orderSpecifiers.add(isAsc ? book.reviewCount.asc() : book.reviewCount.desc());
       default -> orderSpecifiers.add(isAsc ? book.createdAt.asc() : book.createdAt.desc());
     }
 

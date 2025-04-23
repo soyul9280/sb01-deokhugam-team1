@@ -10,9 +10,9 @@ import static org.mockito.Mockito.when;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.comment.domain.Comment;
 import com.codeit.duckhu.domain.comment.dto.CommentDto;
-import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
+import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.comment.service.CommentMapper;
 import com.codeit.duckhu.domain.comment.service.CommentService;
 import com.codeit.duckhu.domain.review.entity.Review;
@@ -34,24 +34,18 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @Import({TestJpaConfig.class})
 class CommentServiceTest {
 
-  @Autowired
-  private CommentService commentService;
+  @Autowired private CommentService commentService;
 
-  @MockitoBean
-  private CommentRepository commentRepository;
+  @MockitoBean private CommentRepository commentRepository;
 
-  @MockitoBean
-  private UserServiceImpl userService;
+  @MockitoBean private UserServiceImpl userService;
 
-  @MockitoBean
-  private ReviewServiceImpl reviewService;
+  @MockitoBean private ReviewServiceImpl reviewService;
 
-  @MockitoBean
-  private CommentMapper commentMapper;
-
+  @MockitoBean private CommentMapper commentMapper;
 
   @Test
-  void create(){
+  void create() {
     CommentCreateRequest request = new CommentCreateRequest();
     request.setUserId(UUID.randomUUID());
     request.setReviewId(UUID.randomUUID());
@@ -73,7 +67,7 @@ class CommentServiceTest {
   }
 
   @Test
-  void update(){
+  void update() {
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -96,7 +90,7 @@ class CommentServiceTest {
     given(commentMapper.toDto(mockComment)).willReturn(updatedDto);
 
     // when
-    CommentDto result = commentService.update(commentId, updateRequest,userId);
+    CommentDto result = commentService.update(commentId, updateRequest, userId);
 
     // then
     assertEquals("updated content", result.getContent());
@@ -104,7 +98,7 @@ class CommentServiceTest {
   }
 
   @Test
-  void delete(){
+  void delete() {
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
     Comment mockComment = mock(Comment.class);
@@ -114,13 +108,13 @@ class CommentServiceTest {
     when(mockUser.getId()).thenReturn(userId);
 
     given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(mockComment));
-    commentService.delete(commentId,userId);
+    commentService.delete(commentId, userId);
 
     verify(commentRepository).deleteById(any(UUID.class));
   }
 
   @Test
-  void get(){
+  void get() {
     UUID commentId = UUID.randomUUID();
 
     User user = mock(User.class);
@@ -133,7 +127,6 @@ class CommentServiceTest {
     CommentDto dto = new CommentDto();
     dto.setContent("test comment");
 
-
     given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(comment));
     given(userService.findByIdEntityReturn(any(UUID.class))).willReturn(user);
     given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(review);
@@ -144,5 +137,4 @@ class CommentServiceTest {
     assertEquals("test comment", result.getContent());
     assertNotNull(result);
   }
-
 }

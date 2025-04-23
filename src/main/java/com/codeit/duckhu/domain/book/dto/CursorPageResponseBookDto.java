@@ -9,7 +9,4 @@ public record CursorPageResponseBookDto(
     Instant nextAfter,
     int size,
     int totalElements,
-    Boolean hasNext
-) {
-
-}
+    Boolean hasNext) {}

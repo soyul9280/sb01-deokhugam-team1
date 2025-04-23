@@ -26,7 +26,10 @@ import lombok.NoArgsConstructor;
 public class PopularBook extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "book_id", nullable = false, foreignKey = @ForeignKey(name = "fk_popularbook_book"))
+  @JoinColumn(
+      name = "book_id",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_popularbook_book"))
   private Book book;
 
   @Enumerated(EnumType.STRING) // enum을 문자열로 처리
@@ -36,12 +39,9 @@ public class PopularBook extends BaseEntity {
   @Column(name = "review_count")
   private Integer reviewCount;
 
-  @Column
-  private Double rating;
+  @Column private Double rating;
 
-  @Column
-  private Double score;
+  @Column private Double score;
 
-  @Column
-  private Integer rank;
+  @Column private Integer rank;
 }

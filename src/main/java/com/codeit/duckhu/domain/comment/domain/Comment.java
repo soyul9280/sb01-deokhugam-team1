@@ -1,6 +1,5 @@
 package com.codeit.duckhu.domain.comment.domain;
 
-
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
@@ -19,10 +18,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Comment extends BaseUpdatableEntity {
 
-  @ManyToOne @JoinColumn(name = "user_id")
+  @ManyToOne
+  @JoinColumn(name = "user_id")
   private User user;
 
-  @ManyToOne @JoinColumn(name = "review_id")
+  @ManyToOne
+  @JoinColumn(name = "review_id")
   private Review review;
 
   @Column(name = "content")

@@ -78,6 +78,24 @@ public class ReviewControllerTest {
           .andExpect(jsonPath("$.rating").value(review.getRating()))
           .andExpect(jsonPath("$.content").value(review.getContent()));
     }
+
+    @Test
+    @DisplayName("POST /api/reviews-파라미터 누락")
+    void createReview_Fail() throws Exception {
+      // Given
+      ReviewCreateRequest request = ReviewCreateRequest.builder()
+          .userId(null)
+          .bookId(null)
+          .rating(null)
+          .content("재밌어요 !")
+          .build();
+
+      // When & Then
+      mockMvc.perform(post("/api/reviews")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request)))
+          .andExpect(status().isBadRequest());
+    }
   }
 
   @Nested

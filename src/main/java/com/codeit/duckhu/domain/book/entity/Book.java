@@ -5,8 +5,10 @@ import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,32 +26,41 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Book extends BaseUpdatableEntity {
 
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false)
   private String title;
 
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false)
   private String author;
 
-  @Column(length = 255)
+  @Lob
+  @Column
   private String description;
 
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false)
   private String publisher;
 
   @Column(name = "published_date", nullable = false)
   private LocalDate publishedDate;
 
-  @Column(unique = true, length = 50)
+  @Column(unique = true)
   private String isbn;
 
-  @Column(name = "thumbnail_url", length = 255)
+  @Column(name = "thumbnail_url")
   private String thumbnailUrl;
+
+  @Column(name = "review_count", nullable = false)
+  @Builder.Default
+  private Integer reviewCount = 0;
+
+  @Column(name = "rating", nullable = false)
+  @Builder.Default
+  private Double rating = 0.0;
 
   @Builder.Default
   @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted = false;
 
-
+  @Builder.Default
   @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Review> reviews = new ArrayList<>();
 
@@ -72,5 +83,10 @@ public class Book extends BaseUpdatableEntity {
 
   public void logicallyDelete() {
     this.isDeleted = true;
+  }
+
+  public void updateReviewStatus(int reviewCount, double rating) {
+    this.reviewCount = reviewCount;
+    this.rating = rating;
   }
 }

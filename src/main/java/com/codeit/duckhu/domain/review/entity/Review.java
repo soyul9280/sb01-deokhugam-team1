@@ -77,7 +77,7 @@ public class Review extends BaseUpdatableEntity {
   public void updateRating(int rating) {
     this.rating = rating;
   }
-  
+
   public void increaseLikeCount(UUID userId) {
     if (!liked(userId)) {
       this.likedUserIds.add(LikedUserId.of(this, userId));
@@ -89,7 +89,7 @@ public class Review extends BaseUpdatableEntity {
     List<LikedUserId> toRemove = this.likedUserIds.stream()
         .filter(like -> like.getUserId().equals(userId))
         .collect(Collectors.toList());
-    
+
     if (!toRemove.isEmpty()) {
       this.likedUserIds.removeAll(toRemove);
       if (this.likeCount > 0) {
@@ -97,12 +97,12 @@ public class Review extends BaseUpdatableEntity {
       }
     }
   }
-  
+
   public boolean liked(UUID userId) {
     return this.likedUserIds.stream()
         .anyMatch(like -> like.getUserId().equals(userId));
   }
-  
+
   public boolean toggleLike(UUID userId) {
     if (liked(userId)) {
       decreaseLikeCount(userId);

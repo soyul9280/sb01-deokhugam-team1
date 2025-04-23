@@ -5,6 +5,9 @@ import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.entity.User;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,11 +26,23 @@ public class ReviewMapper {
         
     // null 체크를 통한 안전한 접근
     if (review.getUser() != null) {
-        builder.userId(review.getUser().getId());
+        builder.userId(review.getUser().getId())
+               .userNickname(review.getUser().getNickname());
     }
     
     if (review.getBook() != null) {
-        builder.bookId(review.getBook().getId());
+        builder.bookId(review.getBook().getId())
+               .bookTitle(review.getBook().getTitle())
+               .bookThumbnailUrl(review.getBook().getThumbnailUrl());
+    }
+    
+    // 날짜 처리
+    if (review.getCreatedAt() != null) {
+        builder.createdAt(mapInstantToLocalDateTime(review.getCreatedAt()));
+    }
+    
+    if (review.getUpdatedAt() != null) {
+        builder.updatedAt(mapInstantToLocalDateTime(review.getUpdatedAt()));
     }
     
     return builder.build();
@@ -41,6 +56,13 @@ public class ReviewMapper {
         .rating(request.getRating())
         .likeCount(0)
         .commentCount(0)
+        .isDeleted(false)
         .build();
+  }
+  
+  private LocalDateTime mapInstantToLocalDateTime(Instant instant) {
+    return instant == null
+        ? null
+        : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
   }
 }

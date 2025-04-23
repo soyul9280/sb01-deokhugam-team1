@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.review.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -131,6 +132,21 @@ public class ReviewControllerTest {
           .andExpect(jsonPath("$.rating").value(request.getRating()))
           .andExpect(jsonPath("$.content").value(request.getContent()));
     }
+  }
+
+  @Nested
+  @DisplayName("리뷰 삭제 테스트")
+  class deleteReview {
+
+    @Test
+    @DisplayName("DELETE /api/reviews/{reviewId} - 논리 삭제 성공")
+    void softDeleteReview_Success() throws Exception {
+      UUID reviewId = UUID.randomUUID();
+
+      mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId))
+          .andExpect(status().isNoContent());
+    }
+
   }
 
 }

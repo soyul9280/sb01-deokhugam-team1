@@ -18,6 +18,8 @@ import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.codeit.duckhu.global.type.PeriodType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -241,4 +243,26 @@ class UserServiceImplTest {
       assertThatThrownBy(() -> sut.hardDelete(id)).isInstanceOf(NotFoundUserException.class);
     }
   }
+  @Nested
+  @DisplayName("파워유저 조회 테스트")
+  class PowerUserTest {
+    @Test
+    @DisplayName("기간 내 활동 점수 계산 및 저장")
+    void powerUser_success() {
+      //given
+      PeriodType period=PeriodType.DAILY;
+      String direction = "ASC";
+      String cursor=null;
+      String after=null;
+      int limit=10;
+
+      //when
+      CursorPageResponsePowerUserDto result=sut.getPowerUsers(period,direction,cursor,after,limit);
+
+      //then
+      assertThat(result).isNotNull();
+      assertThat(result.getContent()).isNotEmpty();
+    }
+  }
+
 }

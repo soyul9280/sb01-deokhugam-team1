@@ -1,6 +1,5 @@
 package com.codeit.duckhu.domain.review.repository.custom;
 
-
 import com.codeit.duckhu.domain.review.entity.Review;
 import java.time.Instant;
 import java.util.List;
@@ -16,7 +15,5 @@ public interface ReviewRepositoryCustom {
       UUID bookId,
       String cursor,
       Instant after,
-      int size
-  );
-
+      int size);
 }

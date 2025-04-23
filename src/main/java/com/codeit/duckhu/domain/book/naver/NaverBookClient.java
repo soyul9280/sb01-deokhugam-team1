@@ -55,12 +55,8 @@ public class NaverBookClient {
     HttpEntity<Void> request = new HttpEntity<>(headers);
 
     // GET 요청 실행 및 응답 수신
-    ResponseEntity<NaverApiResponse> response = restTemplate.exchange(
-        url,
-        HttpMethod.GET,
-        request,
-        NaverApiResponse.class
-    );
+    ResponseEntity<NaverApiResponse> response =
+        restTemplate.exchange(url, HttpMethod.GET, request, NaverApiResponse.class);
 
     // 응답에서 검색 결과 항목 추출
     List<Item> items = response.getBody().items();
@@ -79,10 +75,10 @@ public class NaverBookClient {
         item.author(),
         item.description(),
         item.publisher(),
-        LocalDate.parse(item.pubdate(), DateTimeFormatter.ofPattern("yyyyMMdd")), // yyyyMMdd → LocalDate로 변환
+        LocalDate.parse(
+            item.pubdate(), DateTimeFormatter.ofPattern("yyyyMMdd")), // yyyyMMdd → LocalDate로 변환
         isbn,
-        base64Thumbnail
-    );
+        base64Thumbnail);
   }
 
   // Base 64 인코딩된 이미지 데이터로 변경함

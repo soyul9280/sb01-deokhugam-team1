@@ -16,35 +16,36 @@ import org.springframework.stereotype.Component;
 public class ReviewMapper {
 
   public ReviewDto toDto(Review review) {
-    ReviewDto.ReviewDtoBuilder builder = ReviewDto.builder()
-        .id(review.getId())
-        .content(review.getContent())
-        .rating(review.getRating())
-        .likeCount(review.getLikeCount())
-        .commentCount(review.getCommentCount())
-        .likedByMe(false);  // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
-        
+    ReviewDto.ReviewDtoBuilder builder =
+        ReviewDto.builder()
+            .id(review.getId())
+            .content(review.getContent())
+            .rating(review.getRating())
+            .likeCount(review.getLikeCount())
+            .commentCount(review.getCommentCount())
+            .likedByMe(false); // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
+
     // null 체크를 통한 안전한 접근
     if (review.getUser() != null) {
-        builder.userId(review.getUser().getId())
-               .userNickname(review.getUser().getNickname());
+      builder.userId(review.getUser().getId()).userNickname(review.getUser().getNickname());
     }
-    
+
     if (review.getBook() != null) {
-        builder.bookId(review.getBook().getId())
-               .bookTitle(review.getBook().getTitle())
-               .bookThumbnailUrl(review.getBook().getThumbnailUrl());
+      builder
+          .bookId(review.getBook().getId())
+          .bookTitle(review.getBook().getTitle())
+          .bookThumbnailUrl(review.getBook().getThumbnailUrl());
     }
-    
+
     // 날짜 처리
     if (review.getCreatedAt() != null) {
-        builder.createdAt(mapInstantToLocalDateTime(review.getCreatedAt()));
+      builder.createdAt(mapInstantToLocalDateTime(review.getCreatedAt()));
     }
-    
+
     if (review.getUpdatedAt() != null) {
-        builder.updatedAt(mapInstantToLocalDateTime(review.getUpdatedAt()));
+      builder.updatedAt(mapInstantToLocalDateTime(review.getUpdatedAt()));
     }
-    
+
     return builder.build();
   }
 
@@ -59,10 +60,8 @@ public class ReviewMapper {
         .isDeleted(false)
         .build();
   }
-  
+
   private LocalDateTime mapInstantToLocalDateTime(Instant instant) {
-    return instant == null
-        ? null
-        : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
   }
 }

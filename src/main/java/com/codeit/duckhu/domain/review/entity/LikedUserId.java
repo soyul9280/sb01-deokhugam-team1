@@ -29,6 +29,7 @@ public class LikedUserId extends BaseEntity {
   @JoinColumn(name = "review_id")
   private Review review;
 
+
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 

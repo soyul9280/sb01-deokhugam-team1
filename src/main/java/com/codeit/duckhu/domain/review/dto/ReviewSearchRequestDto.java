@@ -19,5 +19,7 @@ public class ReviewSearchRequestDto {
   private UUID bookId;
   private String cursor;
   private Instant after;
+
+  @Builder.Default
   private int size = 10;
 }

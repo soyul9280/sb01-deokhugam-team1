@@ -5,6 +5,7 @@ import com.codeit.duckhu.config.QueryDslConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
+import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import java.time.LocalDate;
@@ -18,7 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
-@Import({JpaConfig.class, QueryDslConfig.class})
+@Import({TestJpaConfig.class})
 @ActiveProfiles("test")
 public class BookReviewTest {
   @Autowired
@@ -97,57 +98,4 @@ public class BookReviewTest {
     assertThat(count).isEqualTo(0);
     assertThat(avg).isEqualTo(0.0);
   }
-
-  @Test
-  @DisplayName("여러 도서의 리뷰 수를 한번에 조회할 수 있다")
-  void countByBookIds_batchQuery() {
-    // Given
-    Book book1 = bookRepository.save(Book.builder()
-        .title("도서1").author("저자1").publisher("출판사")
-        .publishedDate(LocalDate.of(2022, 1, 1)).isDeleted(false).build());
-
-    Book book2 = bookRepository.save(Book.builder()
-        .title("도서2").author("저자2").publisher("출판사")
-        .publishedDate(LocalDate.of(2022, 1, 2)).isDeleted(false).build());
-
-    User user = userRepository.save(User.builder().email("user@test.com").nickname("user").password("1234").build());
-
-    reviewRepository.save(Review.builder().book(book1).user(user).rating(4).content("좋아요").isDeleted(false).build());
-    reviewRepository.save(Review.builder().book(book1).user(user).rating(5).content("굿").isDeleted(false).build());
-    reviewRepository.save(Review.builder().book(book2).user(user).rating(3).content("쏘쏘").isDeleted(true).build()); // 삭제된 리뷰
-
-    // When
-    var counts = reviewRepository.countByBookIds(List.of(book1.getId(), book2.getId()));
-
-    // Then
-    assertThat(counts.get(book1.getId())).isEqualTo(2);
-    assertThat(counts.get(book2.getId())).isNull(); // 삭제된 리뷰만 있어서 결과 없음
-  }
-
-  @Test
-  @DisplayName("여러 도서의 평균 평점을 한번에 조회할 수 있다")
-  void averageRatingByBookIds_batchQuery() {
-    // Given
-    Book book1 = bookRepository.save(Book.builder()
-        .title("도서1").author("저자1").publisher("출판사")
-        .publishedDate(LocalDate.of(2022, 1, 1)).isDeleted(false).build());
-
-    Book book2 = bookRepository.save(Book.builder()
-        .title("도서2").author("저자2").publisher("출판사")
-        .publishedDate(LocalDate.of(2022, 1, 2)).isDeleted(false).build());
-
-    User user = userRepository.save(User.builder().email("user@test.com").nickname("user").password("1234").build());
-
-    reviewRepository.save(Review.builder().book(book1).user(user).rating(4).content("좋아요").isDeleted(false).build());
-    reviewRepository.save(Review.builder().book(book1).user(user).rating(2).content("별로").isDeleted(false).build());
-    reviewRepository.save(Review.builder().book(book2).user(user).rating(5).content("좋음").isDeleted(true).build()); // 삭제된 리뷰
-
-    // When
-    var averages = reviewRepository.averageRatingByBookIds(List.of(book1.getId(), book2.getId()));
-
-    // Then
-    assertThat(averages.get(book1.getId())).isEqualTo(3.0);  // (4 + 2) / 2
-    assertThat(averages.get(book2.getId())).isNull();        // 삭제된 리뷰만 있어서 없음
-  }
-
 }

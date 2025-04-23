@@ -37,12 +37,12 @@ public class BookController {
 
   @GetMapping
   public ResponseEntity<CursorPageResponseBookDto> getBooks(
-      @RequestParam(required = false) String keyword,
-      @RequestParam(defaultValue = "title") String orderBy,
-      @RequestParam(defaultValue = "DESC") String direction,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) Instant after,
-      @RequestParam(defaultValue = "50") int limit
+      @RequestParam(value = "keyword", required = false) String keyword,
+      @RequestParam(value = "orderBy", defaultValue = "title") String orderBy,
+      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "after", required = false) Instant after,
+      @RequestParam(value = "limit", defaultValue = "50") int limit
   ) {
     return ResponseEntity.ok(
         bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
@@ -113,12 +113,13 @@ public class BookController {
 
   @GetMapping(value = "/popular")
   public ResponseEntity<CursorPageResponsePopularBookDto> getPopularBooks(
-      @RequestParam(defaultValue = "DAILY") PeriodType period,
-      @RequestParam(defaultValue = "DESC") String direction,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) Instant after,
-      @RequestParam(defaultValue = "50") int limit
+      @RequestParam(value = "periodType", defaultValue = "DAILY") PeriodType period,
+      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "after", required = false) Instant after,
+      @RequestParam(value = "limit", defaultValue = "50") int limit
   ) {
+
     return ResponseEntity.ok(
         bookService.searchPopularBooks(period, direction, cursor, after, limit));
   }

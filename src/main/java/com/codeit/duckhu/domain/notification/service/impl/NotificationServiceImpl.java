@@ -99,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
     // 3. 댓글 작성자 정보 -> 닉네임
     User triggerUser =
         userRepository
-            .findById(receiverId)
+            .findById(triggerUserId)
             .orElseThrow(
                 () ->
                     new NotFoundUserException(

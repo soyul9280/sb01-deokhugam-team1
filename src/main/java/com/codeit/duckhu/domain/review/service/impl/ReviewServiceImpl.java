@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.review.service.impl;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
@@ -38,6 +39,8 @@ public class ReviewServiceImpl implements ReviewService {
   private final ReviewMapper reviewMapper;
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
+  //알림 생성을 위해 DI추가
+  private final NotificationService notificationService;
 
   @Override
   @Transactional
@@ -177,6 +180,9 @@ public class ReviewServiceImpl implements ReviewService {
       review.decreaseLikeCount(userId);
     } else {
       review.increaseLikeCount(userId);
+
+      // 2) 새 좋아요가 생긴 경우에만 알림 생성
+      notificationService.createNotifyByLike(reviewId, userId);
     }
 
     boolean likedAfter = review.liked(userId);

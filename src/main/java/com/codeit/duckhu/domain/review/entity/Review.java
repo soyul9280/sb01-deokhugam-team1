@@ -3,15 +3,14 @@ package com.codeit.duckhu.domain.review.entity;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
-import jakarta.persistence.CollectionTable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -23,9 +22,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Entity @Getter @Builder
@@ -52,9 +52,9 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private int commentCount = 0;
 
-  @Builder.Default
   @Column(name = "is_deleted", nullable = false)
-  private Boolean isDeleted = false;
+  @Builder.Default
+  private boolean isDeleted = false;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn
@@ -63,22 +63,10 @@ public class Review extends BaseUpdatableEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn
   private Book book;
-  
-  @ElementCollection
-  @CollectionTable(name = "review_likes", joinColumns = @JoinColumn(name = "review_id"), uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "user_id"}))
-  @Column(name = "user_id")
-  @Builder.Default
-  private Set<UUID> likedUserIds = new HashSet<>();
 
-  @Column(name = "is_deleted", nullable = false)
-  private boolean deleted = false;
-  
-//  @ElementCollection
-//  @CollectionTable(name = "review_likes", joinColumns = @JoinColumn(name = "review_id"),
-//      uniqueConstraints = @UniqueConstraint(columnNames = {"review_id", "user_id"}))
-//  @Column(name = "user_id")
-//  @Builder.Default
-//  private Set<UUID> likedUserIds = new HashSet<>();
+  @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
+  private List<LikedUserId> likedUserIds = new ArrayList<>();
 
   @Version
   private Long version;
@@ -89,27 +77,32 @@ public class Review extends BaseUpdatableEntity {
   public void updateRating(int rating) {
     this.rating = rating;
   }
-  
+
   public void increaseLikeCount(UUID userId) {
-    if (!this.likedUserIds.contains(userId)) {
-      this.likedUserIds.add(userId);
+    if (!liked(userId)) {
+      this.likedUserIds.add(LikedUserId.of(this, userId));
       this.likeCount++;
     }
   }
 
   public void decreaseLikeCount(UUID userId) {
-    if (this.likedUserIds.contains(userId)) {
-      this.likedUserIds.remove(userId);
+    List<LikedUserId> toRemove = this.likedUserIds.stream()
+        .filter(like -> like.getUserId().equals(userId))
+        .collect(Collectors.toList());
+
+    if (!toRemove.isEmpty()) {
+      this.likedUserIds.removeAll(toRemove);
       if (this.likeCount > 0) {
         this.likeCount--;
       }
     }
   }
-  
+
   public boolean liked(UUID userId) {
-    return this.likedUserIds.contains(userId);
+    return this.likedUserIds.stream()
+        .anyMatch(like -> like.getUserId().equals(userId));
   }
-  
+
   public boolean toggleLike(UUID userId) {
     if (liked(userId)) {
       decreaseLikeCount(userId);
@@ -121,8 +114,8 @@ public class Review extends BaseUpdatableEntity {
   }
 
   public void softDelete() {
-    if(!this.isDeleted()) {
-      this.deleted = true;
+    if(!this.isDeleted) {
+      this.isDeleted = true;
     }
   }
 }

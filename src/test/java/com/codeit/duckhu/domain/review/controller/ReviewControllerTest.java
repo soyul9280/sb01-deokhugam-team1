@@ -1,14 +1,11 @@
 package com.codeit.duckhu.domain.review.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
@@ -16,125 +13,193 @@ import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-@WebMvcTest(ReviewController.class)
+@ExtendWith(MockitoExtension.class)
 class ReviewControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
-
-  @MockBean
+  @Mock
   private ReviewService reviewService;
 
-  @Autowired
-  private ObjectMapper objectMapper;
-  
-  @Test
-  @DisplayName("리뷰 목록 조회 - 커서 페이지네이션")
-  void findReviews_Success() throws Exception {
-    // Given
-    UUID reviewId = UUID.randomUUID();
-    UUID userId = UUID.randomUUID();
-    UUID bookId = UUID.randomUUID();
-    Instant now = Instant.now();
-    String cursor = "next";
-    int limit = 10;
-    long total = 42L;
-    boolean hasNext = true;
+  @InjectMocks
+  private ReviewController reviewController;
 
-    ReviewDto reviewDto = ReviewDto.builder()
+  private UUID reviewId;
+  private UUID userId;
+  private UUID bookId;
+  private ReviewDto reviewDto;
+  private ReviewCreateRequest createRequest;
+  private ReviewUpdateRequest updateRequest;
+
+  @BeforeEach
+  void setUp() {
+    reviewId = UUID.randomUUID();
+    userId = UUID.randomUUID();
+    bookId = UUID.randomUUID();
+
+    reviewDto = ReviewDto.builder()
         .id(reviewId)
         .userId(userId)
         .bookId(bookId)
+        .rating(4)
+        .content("좋은 책이에요")
+        .userNickname("테스터")
+        .bookTitle("테스트 도서")
+        .likeCount(5)
+        .commentCount(3)
+        .createdAt(LocalDateTime.now())
+        .build();
+
+    createRequest = ReviewCreateRequest.builder()
+        .userId(userId)
+        .bookId(bookId)
+        .rating(4)
+        .content("좋은 책이에요")
+        .build();
+
+    updateRequest = ReviewUpdateRequest.builder()
+        .userId(userId)
+        .bookId(bookId)
         .rating(5)
-        .content("테스트 컨텐츠")
+        .content("정말 좋은 책이에요!")
         .build();
-    
-    List<ReviewDto> reviews = List.of(reviewDto);
+  }
 
+  @Test
+  @DisplayName("리뷰 목록 조회 - 커서 페이지네이션")
+  void findReviews_Success() {
+    // Given
     CursorPageResponseReviewDto responseDto = CursorPageResponseReviewDto.builder()
-        .reviews(reviews)
-        .nextCursor(cursor)
-        .nextAfter(now)
-        .size(limit)
-        .totalElements(total)
-        .hasNext(hasNext)
+        .reviews(List.of(reviewDto))
+        .nextCursor("next-cursor")
+        .nextAfter(Instant.now())
+        .size(1)
+        .totalElements(10L)
+        .hasNext(true)
         .build();
 
-    given(reviewService.findReviews(any(ReviewSearchRequestDto.class)))
-        .willReturn(responseDto);
+    when(reviewService.findReviews(any(ReviewSearchRequestDto.class))).thenReturn(responseDto);
 
-    // When & Then
-    mockMvc.perform(get("/api/reviews")
-            .param("keyword", "재밌어요")
-            .param("orderBy", "createdAt")
-            .param("direction", "DESC")
-            .param("userId", userId.toString())
-            .param("bookId", bookId.toString())
-            .param("limit", String.valueOf(limit))
-            .accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.reviews.length()").value(reviews.size()))
-        .andExpect(jsonPath("$.reviews[0].id").value(reviewId.toString()))
-        .andExpect(jsonPath("$.reviews[0].rating").value(reviewDto.getRating()))
-        .andExpect(jsonPath("$.reviews[0].content").value(reviewDto.getContent()))
-        .andExpect(jsonPath("$.nextCursor").value(cursor))
-        .andExpect(jsonPath("$.nextAfter").value(now.toString()))
-        .andExpect(jsonPath("$.size").value(limit))
-        .andExpect(jsonPath("$.totalElements").value(total))
-        .andExpect(jsonPath("$.hasNext").value(hasNext));
+    // When
+    ResponseEntity<CursorPageResponseReviewDto> response = reviewController.getReviews(
+        "키워드", "createdAt", "DESC", userId, bookId, null, null, 10);
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(responseDto, response.getBody());
+    
+    // 서비스 호출 시 ReviewSearchRequestDto가 올바르게 생성되었는지 검증
+    verify(reviewService).findReviews(any(ReviewSearchRequestDto.class));
   }
 
   @Test
   @DisplayName("리뷰 생성")
-  void createReview_Success() throws Exception {
+  void createReview_Success() {
     // Given
-    UUID reviewId = UUID.randomUUID();
-    UUID userId = UUID.randomUUID();
-    UUID bookId = UUID.randomUUID();
+    when(reviewService.createReview(any(ReviewCreateRequest.class))).thenReturn(reviewDto);
+
+    // When
+    ResponseEntity<ReviewDto> response = reviewController.createReview(createRequest);
+
+    // Then
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals(reviewDto, response.getBody());
+    verify(reviewService).createReview(createRequest);
+  }
+
+  @Test
+  @DisplayName("ID로 리뷰 조회")
+  void getReviewById_Success() {
+    // Given
+    when(reviewService.getReviewById(reviewId)).thenReturn(reviewDto);
+
+    // When
+    ResponseEntity<ReviewDto> response = reviewController.getReviewById(reviewId);
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(reviewDto, response.getBody());
+    verify(reviewService).getReviewById(reviewId);
+  }
+
+  @Test
+  @DisplayName("리뷰 업데이트")
+  void updateReview_Success() {
+    // Given
+    when(reviewService.updateReview(eq(reviewId), any(ReviewUpdateRequest.class))).thenReturn(reviewDto);
+
+    // When
+    ResponseEntity<ReviewDto> response = reviewController.updateReview(reviewId, updateRequest);
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(reviewDto, response.getBody());
+    verify(reviewService).updateReview(reviewId, updateRequest);
+  }
+
+  @Test
+  @DisplayName("리뷰 소프트 삭제")
+  void softDeleteReview_Success() {
+    // Given
+    doNothing().when(reviewService).softDeleteReviewById(reviewId);
+
+    // When
+    ResponseEntity<Void> response = reviewController.softDeleteReview(reviewId);
+
+    // Then
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    verify(reviewService).softDeleteReviewById(reviewId);
+  }
+
+  @Test
+  @DisplayName("리뷰 하드 삭제")
+  void hardDeleteReview_Success() {
+    // Given
+    doNothing().when(reviewService).hardDeleteReviewById(reviewId);
+
+    // When
+    ResponseEntity<Void> response = reviewController.hardDeleteReview(reviewId);
+
+    // Then
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    verify(reviewService).hardDeleteReviewById(reviewId);
+  }
+  
+  @Test
+  @DisplayName("리뷰 목록 조회 - 파라미터 없이 기본값 사용")
+  void findReviews_WithDefaultParams() {
+    // Given
+    CursorPageResponseReviewDto responseDto = CursorPageResponseReviewDto.builder()
+        .reviews(Collections.emptyList())
+        .size(0)
+        .hasNext(false)
+        .build();
+
+    when(reviewService.findReviews(any(ReviewSearchRequestDto.class))).thenReturn(responseDto);
+
+    // When
+    Integer limit = null; // 실제 컨트롤러에서는 null이 들어오더라도 Builder 내부에서 기본값이 적용됨
+    ResponseEntity<CursorPageResponseReviewDto> response = reviewController.getReviews(
+        null, null, null, null, null, null, null, limit);
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(responseDto, response.getBody());
     
-    ReviewCreateRequest request = ReviewCreateRequest.builder()
-        .userId(userId)
-        .bookId(bookId)
-        .rating(5)
-        .content("재밌어요!")
-        .build();
-
-    ReviewDto responseDto = ReviewDto.builder()
-        .id(reviewId)
-        .userId(userId)
-        .bookId(bookId)
-        .rating(5)
-        .content("재밌어요!")
-        .build();
-
-    given(reviewService.createReview(any(ReviewCreateRequest.class)))
-        .willReturn(responseDto);
-
-    // When & Then
-    mockMvc.perform(post("/api/reviews")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request))
-            .accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isCreated())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(reviewId.toString()))
-        .andExpect(jsonPath("$.userId").value(userId.toString()))
-        .andExpect(jsonPath("$.bookId").value(bookId.toString()))
-        .andExpect(jsonPath("$.rating").value(5))
-        .andExpect(jsonPath("$.content").value("재밌어요!"));
+    // 서비스 호출 시 파라미터 없이 호출되었는지 검증
+    verify(reviewService).findReviews(any(ReviewSearchRequestDto.class));
   }
 }

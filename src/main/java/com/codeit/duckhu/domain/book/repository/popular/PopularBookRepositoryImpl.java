@@ -18,10 +18,15 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
   @Override
   public List<PopularBook> searchByPeriodWithCursorPaging(PeriodType period, String direction,
       String cursor, Instant after, int limit) {
+
     QPopularBook popularBook = QPopularBook.popularBook;
 
     BooleanBuilder condition = new BooleanBuilder();
     condition.and(popularBook.period.eq(period));
+
+    Instant now = Instant.now();
+    Instant from = period.toStartInstant(now);
+    condition.and(popularBook.createdAt.goe(from));
 
     boolean isAsc = "ASC".equalsIgnoreCase(direction);
 

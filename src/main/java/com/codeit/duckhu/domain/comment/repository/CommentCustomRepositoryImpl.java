@@ -28,6 +28,7 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository{
 
     List<Comment> result = jpaQueryFactory
         .selectFrom(comment)
+        .join(comment.user).fetchJoin()
         .where(condition)
         .orderBy(getOrderSpecifiers(direction, comment))
         .limit(limit + 1)

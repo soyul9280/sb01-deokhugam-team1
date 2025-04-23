@@ -4,8 +4,10 @@ import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.service.BookService;
+import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.time.Instant;
@@ -35,12 +37,12 @@ public class BookController {
 
   @GetMapping
   public ResponseEntity<CursorPageResponseBookDto> getBooks(
-      @RequestParam(required = false) String keyword,
-      @RequestParam(defaultValue = "title") String orderBy,
-      @RequestParam(defaultValue = "DESC") String direction,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) Instant after,
-      @RequestParam(defaultValue = "50") int limit
+      @RequestParam(value = "keyword", required = false) String keyword,
+      @RequestParam(value = "orderBy", defaultValue = "title") String orderBy,
+      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "after", required = false) Instant after,
+      @RequestParam(value = "limit", defaultValue = "50") int limit
   ) {
     return ResponseEntity.ok(
         bookService.searchBooks(keyword, orderBy, direction, cursor, after, limit));
@@ -107,5 +109,18 @@ public class BookController {
     return ResponseEntity
         .status(HttpStatus.NO_CONTENT)
         .build();
+  }
+
+  @GetMapping(value = "/popular")
+  public ResponseEntity<CursorPageResponsePopularBookDto> getPopularBooks(
+      @RequestParam(value = "periodType", defaultValue = "DAILY") PeriodType period,
+      @RequestParam(value = "direction", defaultValue = "DESC") String direction,
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @RequestParam(value = "after", required = false) Instant after,
+      @RequestParam(value = "limit", defaultValue = "50") int limit
+  ) {
+
+    return ResponseEntity.ok(
+        bookService.searchPopularBooks(period, direction, cursor, after, limit));
   }
 }

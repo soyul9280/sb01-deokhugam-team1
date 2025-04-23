@@ -34,259 +34,233 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceTest {
 
-  @Mock private NotificationRepository notificationRepository;
+    @Mock
+    private NotificationRepository notificationRepository;
 
-  @Mock private NotificationMapper notificationMapper;
+    @Mock
+    private NotificationMapper notificationMapper;
 
-  @Mock private ReviewRepository reviewRepository;
+    @Mock
+    private ReviewRepository reviewRepository;
 
-  @Mock private UserRepository userRepository;
+    @Mock
+    private UserRepository userRepository;
 
-  @InjectMocks private NotificationServiceImpl notificationService;
+    @InjectMocks
+    private NotificationServiceImpl notificationService;
 
-  private UUID reviewId;
-  private UUID triggerUserId;
-  private UUID receiverId;
+    private UUID reviewId;
+    private UUID triggerUserId;
+    private UUID receiverId;
 
-  @BeforeEach
-  void setUp() {
-    reviewId = UUID.randomUUID(); // 댓글이 달린 리뷰 ID
-    triggerUserId = UUID.randomUUID(); // 댓글 or 좋아요를 누른 사용자
-    receiverId = UUID.randomUUID(); // 리뷰 작성자 (알림 수신자)
-  }
-
-  @Nested
-  @DisplayName("알림 생성")
-  class CreateNotificationTest {
-
-    @Test
-    @DisplayName("리뷰 좋아요 알림 생성 성공")
-    void createsNotificationForLike() {
-      // given: 리뷰 내용과 좋아요 누른 사용자의 닉네임을 준비
-      String nickname = "buzz";
-      String reviewContent = "리뷰 내용";
-
-      // 리뷰, 리뷰 작성자(수신자), 좋아요 누른 사용자(트리거 유저)를 mock으로 설정
-      Review review = mock(Review.class);
-      User receiver = mock(User.class);
-      User triggerUser = mock(User.class);
-
-      // 리뷰 객체가 리턴할 사용자(수신자)의 ID와 리뷰 내용을 정의
-      given(review.getUser()).willReturn(receiver);
-      given(receiver.getId()).willReturn(receiverId);
-      given(review.getContent()).willReturn(reviewContent);
-
-      // 좋아요를 누른 유저의 닉네임 설정
-      given(triggerUser.getNickname()).willReturn(nickname);
-
-      // 서비스 내부에서 생성할 알림 객체
-      Notification notification =
-          Notification.forLike(reviewId, receiverId, nickname, reviewContent);
-
-      // 알림 저장 후 매퍼를 통해 변환된 DTO 예상 결과
-      NotificationDto expectedDto =
-          new NotificationDto(
-              UUID.randomUUID(),
-              receiverId,
-              reviewId,
-              reviewContent,
-              notification.getContent(),
-              false,
-              Instant.now(),
-              Instant.now());
-
-      // Mock repository 동작 설정
-      given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
-      given(userRepository.findById(triggerUserId)).willReturn(Optional.of(triggerUser));
-      given(notificationRepository.save(any(Notification.class))).willReturn(notification);
-      given(notificationMapper.toDto(notification)).willReturn(expectedDto);
-
-      // when: 좋아요 알림 생성 서비스 호출
-      NotificationDto result = notificationService.createNotifyByLike(reviewId, triggerUserId);
-
-      // then: 반환값 검증 및 repository, mapper 호출 여부 검증
-      assertThat(result.reviewId()).isEqualTo(reviewId);
-      assertThat(result.userId()).isEqualTo(receiverId);
-      assertThat(result.content()).isEqualTo(notification.getContent());
-
-      then(reviewRepository).should().findById(reviewId);
-      then(userRepository).should().findById(triggerUserId);
-      then(notificationRepository).should().save(any(Notification.class));
-      then(notificationMapper).should().toDto(notification);
+    @BeforeEach
+    void setUp() {
+        reviewId = UUID.randomUUID(); // 댓글이 달린 리뷰 ID
+        triggerUserId = UUID.randomUUID(); // 댓글 or 좋아요를 누른 사용자
+        receiverId = UUID.randomUUID(); // 리뷰 작성자 (알림 수신자)
     }
 
-    @Test
-    @DisplayName("리뷰 댓글 알림 생성 성공")
-    void createsNotificationForComment() {
-      // given: 댓글 작성자의 닉네임, 댓글 내용, 리뷰 내용을 정의
-      String nickname = "buzz";
-      String comment = "이 리뷰 좋네요!";
-      String reviewContent = "맛있었어요.";
+    @Nested
+    @DisplayName("알림 생성")
+    class CreateNotificationTest {
 
-      // 리뷰, 수신자(리뷰 작성자), 댓글 작성자(mock)를 설정
-      Review review = mock(Review.class);
-      User receiver = mock(User.class);
-      User triggerUser = mock(User.class);
+        @Test
+        @DisplayName("리뷰 좋아요 알림 생성 성공")
+        void createsNotificationForLike() {
+            // given: 리뷰 내용과 좋아요 누른 사용자의 닉네임을 준비
+            String nickname = "buzz";
+            String reviewContent = "리뷰 내용";
 
-      // 리뷰가 참조하는 작성자와 그 ID, 리뷰 내용을 정의
-      given(review.getUser()).willReturn(receiver);
-      given(receiver.getId()).willReturn(receiverId);
-      given(review.getContent()).willReturn(reviewContent);
+            // 리뷰, 리뷰 작성자(수신자), 좋아요 누른 사용자(트리거 유저)를 mock으로 설정
+            Review review = mock(Review.class);
+            User receiver = mock(User.class);
+            User triggerUser = mock(User.class);
 
-      // 댓글 작성자(트리거 유저)의 닉네임 정의
-      given(triggerUser.getNickname()).willReturn(nickname);
+            // 리뷰 객체가 리턴할 사용자(수신자)의 ID와 리뷰 내용을 정의
+            given(reviewRepository.findById(reviewId))
+                .willReturn(Optional.of(review));
 
-      // 알림 객체 생성 (댓글용)
-      Notification notification =
-          Notification.forComment(reviewId, receiverId, nickname, comment, reviewContent);
+            given(review.getUser()).willReturn(receiver);
+            given(receiver.getId()).willReturn(receiverId);
+            given(review.getContent()).willReturn(reviewContent);
 
-      // 매핑 후 기대되는 DTO 정의
-      NotificationDto expectedDto =
-          new NotificationDto(
-              UUID.randomUUID(),
-              receiverId,
-              reviewId,
-              reviewContent,
-              notification.getContent(),
-              false,
-              Instant.now(),
-              Instant.now());
+            // 좋아요를 누른 유저의 닉네임 설정
+            given(triggerUser.getNickname()).willReturn(nickname);
 
-      // Mock repository 설정
-      given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
-      given(notificationRepository.save(any(Notification.class))).willReturn(notification);
-      given(notificationMapper.toDto(notification)).willReturn(expectedDto);
+            given(userRepository.findById(triggerUserId))
+                .willReturn(Optional.of(triggerUser));
 
-      // when: 댓글 알림 생성 서비스 호출
-      NotificationDto result =
-          notificationService.createNotifyByComment(reviewId, receiverId, comment);
+            // 서비스 내부에서 생성할 알림 객체
+            Notification notification =
+                Notification.forLike(reviewId, receiverId, nickname, reviewContent);
 
-      // then: 결과 및 각 mock 객체의 호출 여부 검증
-      assertThat(result.reviewId()).isEqualTo(reviewId);
-      assertThat(result.userId()).isEqualTo(receiverId);
-      assertThat(result.content()).isEqualTo(notification.getContent());
+            // 알림 저장 후 매퍼를 통해 변환된 DTO 예상 결과
+            NotificationDto expectedDto = new NotificationDto(UUID.randomUUID(), receiverId,
+                reviewId, reviewContent, notification.getContent(), false, Instant.now(),
+                Instant.now());
 
-      then(reviewRepository).should().findById(reviewId);
-      then(userRepository).should().findById(receiverId); // ❗ triggerUserId로 변경 필요 가능성 있음
-      then(notificationRepository).should().save(any(Notification.class));
-      then(notificationMapper).should().toDto(notification);
+            // Mock repository 동작 설정
+            given(notificationRepository.save(any(Notification.class)))
+                .willReturn(notification);
+            given(notificationMapper.toDto(notification))
+                .willReturn(expectedDto);
+
+            // when: 좋아요 알림 생성 서비스 호출
+            NotificationDto result = notificationService.createNotifyByLike(reviewId,
+                triggerUserId);
+
+            // then: 반환값 검증 및 repository, mapper 호출 여부 검증
+            assertThat(result.reviewId()).isEqualTo(reviewId);
+            assertThat(result.userId()).isEqualTo(receiverId);
+            assertThat(result.content()).isEqualTo(notification.getContent());
+
+            then(reviewRepository).should().findById(reviewId);
+            then(userRepository).should().findById(triggerUserId);
+            then(notificationRepository).should().save(any(Notification.class));
+            then(notificationMapper).should().toDto(notification);
+        }
+
+        @Test
+        @DisplayName("리뷰 댓글 알림 생성 성공")
+        void createsNotificationForComment() {
+            // given: 댓글 작성자의 닉네임, 댓글 내용, 리뷰 내용을 정의
+            String nickname = "buzz";
+            String comment = "이 리뷰 좋네요!";
+            String reviewContent = "맛있었어요.";
+
+            // 리뷰, 수신자(리뷰 작성자), 댓글 작성자(mock)를 설정
+            Review review = mock(Review.class);
+            User receiver = mock(User.class);
+            User triggerUser = mock(User.class);
+
+            // 리뷰가 참조하는 작성자와 그 ID, 리뷰 내용을 정의
+            given(reviewRepository.findById(reviewId))
+                .willReturn(Optional.of(review));
+
+            given(review.getUser()).willReturn(receiver);
+            given(receiver.getId()).willReturn(receiverId);
+            given(review.getContent()).willReturn(reviewContent);
+
+            // 댓글 작성자(트리거 유저)의 닉네임 정의
+            given(userRepository.findById(triggerUserId))
+                .willReturn(Optional.of(triggerUser));
+            given(triggerUser.getNickname()).willReturn(nickname);
+
+            // 알림 객체 생성 (댓글용)
+            Notification notification =
+                Notification.forComment(reviewId, receiverId, nickname, comment, reviewContent);
+
+            // 매핑 후 기대되는 DTO 정의
+            NotificationDto expectedDto = new NotificationDto(UUID.randomUUID(), receiverId,
+                reviewId, reviewContent, notification.getContent(), false, Instant.now(),
+                Instant.now());
+
+            // Mock repository 설정
+            given(notificationRepository.save(any(Notification.class))).willReturn(notification);
+            given(notificationMapper.toDto(notification)).willReturn(expectedDto);
+
+            // when: 댓글 알림 생성 서비스 호출
+            NotificationDto result =
+                notificationService.createNotifyByComment(reviewId, triggerUserId, comment);
+
+            // then: 결과 및 각 mock 객체의 호출 여부 검증
+            assertThat(result.reviewId()).isEqualTo(reviewId);
+            assertThat(result.userId()).isEqualTo(receiverId);
+            assertThat(result.content()).isEqualTo(notification.getContent());
+
+            then(reviewRepository).should().findById(reviewId);
+            then(userRepository).should().findById(triggerUserId);
+            then(notificationRepository).should().save(any(Notification.class));
+            then(notificationMapper).should().toDto(notification);
+        }
+
+        // Todo: 내가 작성한 리뷰의 인기 순위가 각 기간 별 10위 내에 선정되면 알림이 생성됩니다.
     }
 
-    // Todo: 내가 작성한 리뷰의 인기 순위가 각 기간 별 10위 내에 선정되면 알림이 생성됩니다.
-  }
+    @Nested
+    @DisplayName("알림 읽은 상태 업데이트")
+    class UpdateNotificationTest {
 
-  @Nested
-  @DisplayName("알림 읽은 상태 업데이트")
-  class UpdateNotificationTest {
+        @Test
+        @DisplayName("알림 ID에 해당하는 알림의 읽음 상태를 true로 업데이트한다")
+        void updateNotificationConfirmedSuccessfully() {
+            // given
+            UUID notificationId = UUID.randomUUID();
+            Notification notification =
+                Notification.forLike(UUID.randomUUID(), receiverId, "buzz", "타이틀");
 
-    @Test
-    @DisplayName("알림 ID에 해당하는 알림의 읽음 상태를 true로 업데이트한다")
-    void updateNotificationConfirmedSuccessfully() {
-      // given
-      UUID notificationId = UUID.randomUUID();
-      UUID receiverId = UUID.randomUUID();
-      String reviewTitle = "그정돈가?";
+            NotificationDto expectedDto = new NotificationDto(
+                notificationId,
+                receiverId,
+                notification.getReviewId(),
+                "타이틀",
+                notification.getContent(),
+                true,
+                Instant.now(),
+                Instant.now());
 
-      Notification notification =
-          Notification.forLike(UUID.randomUUID(), receiverId, "buzz", reviewTitle);
+            given(notificationRepository.findById(notificationId)).willReturn(
+                Optional.of(notification));
+            given(notificationMapper.toDto(notification)).willReturn(expectedDto);
 
-      NotificationDto expectedDto =
-          new NotificationDto(
-              notificationId,
-              receiverId,
-              notification.getReviewId(),
-              reviewTitle,
-              notification.getContent(),
-              true,
-              Instant.now(),
-              Instant.now());
+            // when
+            NotificationDto result =
+                notificationService.updateConfirmedStatus(notificationId, receiverId, true);
 
-      given(notificationRepository.findById(notificationId)).willReturn(Optional.of(notification));
-      given(notificationMapper.toDto(notification)).willReturn(expectedDto);
+            // then
+            assertThat(notification.isConfirmed()).isTrue();
+            assertThat(result.confirmed()).isTrue();
+            then(notificationRepository).should(times(1)).findById(notificationId);
+            then(notificationMapper).should(times(1)).toDto(notification);
+        }
 
-      // when
-      NotificationDto result =
-          notificationService.updateConfirmedStatus(notificationId, receiverId, true);
+        @Test
+        @DisplayName("존재하지 않는 알림 ID로 조회 시 예외가 발생한다")
+        void throwsNotificationNotFoundExceptionIfNotFound() {
+            UUID notificationId = UUID.randomUUID();
+            given(notificationRepository.findById(notificationId))
+                .willReturn(Optional.empty());
 
-      // then
-      assertThat(notification.isConfirmed()).isTrue();
-      assertThat(result.confirmed()).isTrue();
-      then(notificationRepository).should(times(1)).findById(notificationId);
-      then(notificationMapper).should(times(1)).toDto(notification);
+            assertThatThrownBy(() ->
+                notificationService.updateConfirmedStatus(notificationId, receiverId, true))
+                .isInstanceOf(NotificationNotFoundException.class);
+
+            then(notificationRepository).should(times(1)).findById(notificationId);
+        }
+
+        @Test
+        @DisplayName("사용자의 모든 알림을 읽음 처리한다")
+        void updateAllNotificationsConfirmedSuccessfully() {
+            Notification n1 = Notification.forLike(reviewId, receiverId, "a", "t1");
+            Notification n2 = Notification.forComment(reviewId, receiverId, "b", "c", "t2");
+            Notification n3 = Notification.forLike(reviewId, receiverId, "c", "t3");
+            List<Notification> list = List.of(n1, n2, n3);
+
+            given(notificationRepository.findAllByReceiverId(receiverId))
+                .willReturn(list);
+
+            notificationService.updateAllConfirmedStatus(receiverId);
+
+            assertThat(list).allMatch(Notification::isConfirmed);
+            then(notificationRepository).should(times(1)).findAllByReceiverId(receiverId);
+        }
     }
 
-    @Test
-    @DisplayName("존재하지 않는 알림 ID로 조회 시 예외가 발생한다")
-    void throwsNotificationNotFoundExceptionIfNotFound() {
-      // given
-      UUID notificationId = UUID.randomUUID();
-      UUID receiverId = UUID.randomUUID();
+    @Nested
+    @DisplayName("알림 삭제")
+    class DeleteNotificationTest {
 
-      given(notificationRepository.findById(notificationId)).willReturn(Optional.empty());
+        @Test
+        @DisplayName("1주일 지난 확인된 알림 삭제")
+        void deleteConfirmedNotificationsOlderThanAWeek() {
+            Instant before = Instant.now().minus(7, ChronoUnit.DAYS);
+            notificationService.deleteConfirmedNotificationsOlderThanAWeek();
 
-      // when & then
-      assertThatThrownBy(
-              () -> notificationService.updateConfirmedStatus(notificationId, receiverId, true))
-          .isInstanceOf(NotificationNotFoundException.class)
-          .hasMessageContaining("해당 알림을 찾을 수 없습니다.");
-
-      then(notificationRepository).should(times(1)).findById(notificationId);
+            then(notificationRepository).should(times(1))
+                .deleteOldConfirmedNotifications(argThat(cutoff ->
+                    !cutoff.isAfter(Instant.now()) &&
+                        !cutoff.isBefore(before.minus(1, ChronoUnit.SECONDS))
+                ));
+        }
     }
-
-    @Test
-    @DisplayName("사용자의 모든 알림을 읽음 처리한다")
-    void updateAllNotificationsConfirmedSuccessfully() {
-      // given
-      UUID receiverId = UUID.randomUUID();
-      String reviewTitle = "그정돈가?";
-
-      Notification n1 = Notification.forLike(reviewId, receiverId, "buzz", reviewTitle);
-      Notification n2 = Notification.forComment(reviewId, receiverId, "buzz", "댓글", reviewTitle);
-      Notification n3 = Notification.forLike(reviewId, receiverId, "buzz", reviewTitle);
-
-      List<Notification> notifications = List.of(n1, n2, n3);
-
-      given(notificationRepository.findAllByReceiverId(receiverId)).willReturn(notifications);
-
-      // when
-      notificationService.updateAllConfirmedStatus(receiverId); // 컴파일 에러 or 미구현 상태
-
-      // then
-      assertThat(notifications).allMatch(Notification::isConfirmed);
-      then(notificationRepository).should(times(1)).findAllByReceiverId(receiverId);
-    }
-  }
-
-  @Nested
-  @DisplayName("알림 삭제")
-  class DeleteNotificationTest {
-
-    @Test
-    @DisplayName("1주일이 지난 확인된 알림을 삭제한다")
-    void deleteConfirmedNotificationsOlderThanAWeek() {
-      // given
-      Instant expectedCutoff = Instant.now().minus(7, ChronoUnit.DAYS);
-
-      // when
-      notificationService.deleteConfirmedNotificationsOlderThanAWeek();
-
-      // then
-      // repository의 삭제 메서드가 단 1번 호출되었는지 검증
-      // 그리고 인자로 넘겨진 cutoff 값이 예상한 시점과 비슷한지 검증
-      then(notificationRepository)
-          .should(times(1))
-          .deleteOldConfirmedNotifications(
-              argThat(
-                  actualCutoff -> {
-                    // 현재 시각 기준으로 삭제 커트오프가 미래가 아니어야 하고
-                    boolean isBeforeNow = actualCutoff.isBefore(Instant.now());
-
-                    // expectedCutoff와 비교했을 때 너무 차이 나지 않도록 허용 오차 1초
-                    boolean isCloseToExpected =
-                        !actualCutoff.isAfter(expectedCutoff.plus(1, ChronoUnit.SECONDS));
-
-                    return isBeforeNow && isCloseToExpected;
-                  }));
-    }
-  }
 }

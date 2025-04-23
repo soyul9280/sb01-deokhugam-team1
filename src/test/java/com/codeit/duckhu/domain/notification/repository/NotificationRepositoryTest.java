@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.notification.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.duckhu.domain.notification.entity.Notification;
+import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -11,13 +12,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
 @DataJpaTest
-@EnableJpaAuditing
 @ActiveProfiles("test")
+@Import(TestJpaConfig.class)
 public class NotificationRepositoryTest {
 
   @Autowired private NotificationRepository notificationRepository;

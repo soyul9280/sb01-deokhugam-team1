@@ -16,7 +16,10 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,20 +49,20 @@ public class ReviewServiceImpl implements ReviewService {
     // 사용자 찾기
     User user = userRepository.findById(request.getUserId())
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
-    
+
     // 도서 찾기
     Book book = bookRepository.findById(request.getBookId())
         .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.BOOK_NOT_FOUND));
-    
+
     // 동일한 도서에 대한 리뷰가 이미 존재하는지 확인
     reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId())
         .ifPresent(existingReview -> {
             throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
         });
-    
+
     // 매퍼를 사용하여 엔티티 생성
     Review review = reviewMapper.toEntity(request, user, book);
-    
+
     // 저장 및 DTO 반환
     Review savedReview = reviewRepository.save(review);
 
@@ -68,7 +71,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     return reviewMapper.toDto(savedReview);
   }
-
 
   @Override
   public ReviewDto getReviewById(UUID id) {
@@ -108,8 +110,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     // jw
     recalculateBookStats(review.getBook());
-  }
-
   }
 
   @Transactional
@@ -171,13 +171,6 @@ public class ReviewServiceImpl implements ReviewService {
         .build();
 
   }
-
-  public Review findByIdEntityReturn(UUID reviewId){
-    return reviewRepository.findById(reviewId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-  }
-
-}
 
   @Override
   public CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto) {

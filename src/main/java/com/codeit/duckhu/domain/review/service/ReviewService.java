@@ -6,6 +6,7 @@ import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
+import com.codeit.duckhu.domain.review.entity.Review;
 import java.util.UUID;
 
 /**

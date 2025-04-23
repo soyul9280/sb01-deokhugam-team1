@@ -6,7 +6,7 @@ public enum PeriodType {
   DAILY,
   WEEKLY,
   MONTHLY,
-  ALL_TIME
+  ALL_TIME;
 
   public Instant toStartInstant(Instant now) {
     return switch (this) {

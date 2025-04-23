@@ -29,7 +29,7 @@ class UserRepositoryTest {
     @DisplayName("저장 성공")
     void save_success() {
         //given
-        User user = new User("testA@example.com", "testA", "testa1234!", false);
+        User user = new User("testA@example.com", "testA", "testa1234!");
 
         //when
         User result = userRepository.save(user);
@@ -44,7 +44,7 @@ class UserRepositoryTest {
     @DisplayName("저장 실패")
     void save_fail() {
         //given
-        User user = new User(null, null, "testa1234!", false);
+        User user = new User(null, null, "testa1234!");
         //when
         //then
         assertThatThrownBy(() -> {

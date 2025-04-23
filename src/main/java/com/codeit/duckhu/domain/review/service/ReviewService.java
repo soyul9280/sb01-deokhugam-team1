@@ -28,5 +28,7 @@ public interface ReviewService {
 
   void softDeleteReviewById(UUID reviewId);
 
+
   Review findByIdEntityReturn(UUID reviewId);
+
 }

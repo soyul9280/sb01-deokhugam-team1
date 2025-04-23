@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
@@ -87,7 +88,7 @@ public interface UserApi {
     })
     @PatchMapping("/api/users/{userId}")
     ResponseEntity<UserDto> update(
-            @RequestHeader("X-User-Id") UUID loginId,
+            HttpServletRequest request,
             @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId,
             @RequestBody @Valid UserUpdateRequest userUpdateRequest);
 
@@ -105,7 +106,7 @@ public interface UserApi {
     })
     @DeleteMapping("/api/users/{userId}")
     ResponseEntity<Void> softDelete(
-            @RequestHeader("X-User-Id") UUID loginId,
+            HttpServletRequest request,
             @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId);
 
 
@@ -121,6 +122,6 @@ public interface UserApi {
     })
     @DeleteMapping("/api/users/{userId}/hard")
     ResponseEntity<Void> hardDelete(
-            @RequestHeader("X-User-Id") UUID loginId,
+            HttpServletRequest request,
             @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId);
 }

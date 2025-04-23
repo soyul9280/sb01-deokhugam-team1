@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewLikeDto {
-    private UUID reviewId;
-    private UUID userId;
-    private boolean liked;
-} 
+  private UUID reviewId;
+  private UUID userId;
+  private boolean liked;
+}

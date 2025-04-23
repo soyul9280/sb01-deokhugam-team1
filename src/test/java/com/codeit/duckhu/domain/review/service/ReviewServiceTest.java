@@ -6,17 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.book.entity.Book;
@@ -33,7 +25,6 @@ import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
-import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -50,27 +41,19 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * 리뷰 서비스 테스트 클래스
- * TDD 방식으로 구현 예정
- */
+/** 리뷰 서비스 테스트 클래스 TDD 방식으로 구현 예정 */
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
-  @Mock
-  private UserRepository userRepository;
+  @Mock private UserRepository userRepository;
 
-  @Mock
-  private BookRepository bookRepository;
+  @Mock private BookRepository bookRepository;
 
-  @Mock
-  private ReviewRepository reviewRepository;
-  
-  @Mock
-  private ReviewMapper reviewMapper;
+  @Mock private ReviewRepository reviewRepository;
 
-  @InjectMocks
-  private ReviewServiceImpl reviewService;
+  @Mock private ReviewMapper reviewMapper;
+
+  @InjectMocks private ReviewServiceImpl reviewService;
 
   private User testUser;
   private Book testBook;
@@ -95,36 +78,39 @@ class ReviewServiceTest {
     testReview = Mockito.mock(Review.class);
 
     // 테스트용 DTO 생성
-    testReviewDto = ReviewDto.builder()
-        .id(testReviewId)
-        .content("볼만해요")
-        .rating(3)
-        .commentCount(0)
-        .likeCount(0)
-        .likedByMe(false)
-        .userId(testUserId)
-        .bookId(testBookId)
-        .userNickname("테스터")
-        .bookTitle("테스트 도서")
-        .bookThumbnailUrl("http://example.com/test.jpg")
-        .createdAt(LocalDateTime.now())
-        .build();
-        
+    testReviewDto =
+        ReviewDto.builder()
+            .id(testReviewId)
+            .content("볼만해요")
+            .rating(3)
+            .commentCount(0)
+            .likeCount(0)
+            .likedByMe(false)
+            .userId(testUserId)
+            .bookId(testBookId)
+            .userNickname("테스터")
+            .bookTitle("테스트 도서")
+            .bookThumbnailUrl("http://example.com/test.jpg")
+            .createdAt(LocalDateTime.now())
+            .build();
+
     // 테스트용 Create 요청 생성
-    testCreateRequest = ReviewCreateRequest.builder()
-        .userId(testUserId)
-        .bookId(testBookId)
-        .content("볼만해요")
-        .rating(3)
-        .build();
+    testCreateRequest =
+        ReviewCreateRequest.builder()
+            .userId(testUserId)
+            .bookId(testBookId)
+            .content("볼만해요")
+            .rating(3)
+            .build();
 
     // 테스트용 Update 요청 생성
-    testreviewUpdateRequest = ReviewUpdateRequest.builder()
-        .content("재밌어요")
-        .rating(5)
-        .userId(testUserId)
-        .bookId(testBookId)
-        .build();
+    testreviewUpdateRequest =
+        ReviewUpdateRequest.builder()
+            .content("재밌어요")
+            .rating(5)
+            .userId(testUserId)
+            .bookId(testBookId)
+            .build();
   }
 
   @Test
@@ -133,7 +119,8 @@ class ReviewServiceTest {
     // Given
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(bookRepository.findById(testBookId)).thenReturn(Optional.of(testBook));
-    when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId)).thenReturn(Optional.empty());
+    when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId))
+        .thenReturn(Optional.empty());
     when(reviewMapper.toEntity(any(), any(), any())).thenReturn(testReview);
     when(reviewRepository.save(any())).thenReturn(testReview);
     when(reviewMapper.toDto(any())).thenReturn(testReviewDto);
@@ -153,10 +140,10 @@ class ReviewServiceTest {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
-    
+
     // When
     ReviewDto result = reviewService.getReviewById(testReviewId);
-    
+
     // Then
     assertThat(result).isNotNull();
     assertThat(result.getContent()).isEqualTo(testReviewDto.getContent());
@@ -184,10 +171,10 @@ class ReviewServiceTest {
     // Given
     Review mockReview = Mockito.mock(Review.class);
     doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
-    
+
     // When
     reviewService.softDeleteReviewById(testReviewId);
-    
+
     // Then
     verify(mockReview).softDelete();
   }
@@ -217,20 +204,23 @@ class ReviewServiceTest {
     // Given
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(bookRepository.findById(testBookId)).thenReturn(Optional.of(testBook));
-    when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId)).thenReturn(Optional.of(testReview));
-    
+    when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId))
+        .thenReturn(Optional.of(testReview));
+
     // When & Then
     assertThrows(ReviewCustomException.class, () -> reviewService.createReview(testCreateRequest));
     verify(reviewRepository, never()).save(any());
   }
-  
+
   @Test
   @DisplayName("좋아요가 없는 상태에서 좋아요 누르면 likeCount 증가 및 liked=true 반환")
   void likeReview_firstTime_likeCountIncreased() {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-    when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
+    when(testReview.liked(testUserId))
+        .thenReturn(false)
+        .thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
     when(testReview.getId()).thenReturn(testReviewId);
 
     // When
@@ -249,7 +239,9 @@ class ReviewServiceTest {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-    when(testReview.liked(testUserId)).thenReturn(true).thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
+    when(testReview.liked(testUserId))
+        .thenReturn(true)
+        .thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
     when(testReview.getId()).thenReturn(testReviewId);
 
     // When
@@ -270,8 +262,9 @@ class ReviewServiceTest {
     when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
 
     // When & Then
-    ReviewCustomException ex = assertThrows(ReviewCustomException.class,
-        () -> reviewService.likeReview(testReviewId, testUserId));
+    ReviewCustomException ex =
+        assertThrows(
+            ReviewCustomException.class, () -> reviewService.likeReview(testReviewId, testUserId));
     assertThat(ex.getErrorCode()).isEqualTo(ReviewErrorCode.USER_NOT_FOUND);
   }
 
@@ -280,22 +273,18 @@ class ReviewServiceTest {
   void findReviews_success() {
     // Given
     List<Review> reviewList = new ArrayList<>();
-    
+
     // 정확한 파라미터로 stubbing 설정
     when(reviewRepository.findReviewsWithCursor(
-            eq(null), eq("createdAt"), eq("DESC"),
-            eq(null), eq(null), eq(null),
-            eq(null), eq(11)
-    )).thenReturn(reviewList);
-    
+            eq(null), eq("createdAt"), eq("DESC"), eq(null), eq(null), eq(null), eq(null), eq(11)))
+        .thenReturn(reviewList);
+
     // When
     CursorPageResponseReviewDto result = reviewService.findReviews(new ReviewSearchRequestDto());
-    
+
     // Then
     assertThat(result).isNotNull();
     assertThat(result.isHasNext()).isFalse();
     assertThat(result.getReviews()).isEmpty();
   }
 }
-
-

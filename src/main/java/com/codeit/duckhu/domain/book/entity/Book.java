@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +31,7 @@ public class Book extends BaseUpdatableEntity {
   @Column(nullable = false)
   private String author;
 
-  @Lob
-  @Column
-  private String description;
+  @Lob @Column private String description;
 
   @Column(nullable = false)
   private String publisher;
@@ -72,8 +69,8 @@ public class Book extends BaseUpdatableEntity {
     this.thumbnailUrl = thumbnailUrl;
   }
 
-  public void updateInfo(String title, String author, String description, String publisher,
-      LocalDate publishedDate) {
+  public void updateInfo(
+      String title, String author, String description, String publisher, LocalDate publishedDate) {
     this.title = title;
     this.author = author;
     this.description = description;

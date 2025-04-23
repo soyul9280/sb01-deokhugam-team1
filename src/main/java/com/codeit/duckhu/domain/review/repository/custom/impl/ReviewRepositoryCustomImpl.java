@@ -19,7 +19,6 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   private final JPAQueryFactory queryFactory;
   QReview review = QReview.review;
 
-
   @Override
   public List<Review> findReviewsWithCursor(
       String keyword,
@@ -38,8 +37,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
       booleanBuilder.andAnyOf(
           review.user.nickname.containsIgnoreCase(keyword),
           review.content.containsIgnoreCase(keyword),
-          review.book.title.containsIgnoreCase(keyword)
-      );
+          review.book.title.containsIgnoreCase(keyword));
     }
 
     // 작성자 ID 필터링
@@ -72,27 +70,39 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
     return "ASC".equalsIgnoreCase(direction);
   }
 
-
   // 정렬 조건 필드 - createdAt, rating
-  private BooleanBuilder getCursorCondition(String orderBy, String cursor, Instant after, boolean isAsc) {
+  private BooleanBuilder getCursorCondition(
+      String orderBy, String cursor, Instant after, boolean isAsc) {
     BooleanBuilder condition = new BooleanBuilder();
 
-    if(orderBy.equals("createdAt")){
+    if (orderBy.equals("createdAt")) {
       if (isAsc) {
-        condition.and(review.createdAt.gt(after)
-            .or(review.createdAt.eq(after).and(review.id.gt(UUID.fromString(cursor)))));
+        condition.and(
+            review
+                .createdAt
+                .gt(after)
+                .or(review.createdAt.eq(after).and(review.id.gt(UUID.fromString(cursor)))));
       } else {
-        condition.and(review.createdAt.lt(after)
-            .or(review.createdAt.eq(after).and(review.id.lt(UUID.fromString(cursor)))));
+        condition.and(
+            review
+                .createdAt
+                .lt(after)
+                .or(review.createdAt.eq(after).and(review.id.lt(UUID.fromString(cursor)))));
       }
-    } else if(orderBy.equals("rating")) {
+    } else if (orderBy.equals("rating")) {
       int cursorRating = Integer.parseInt(cursor);
       if (isAsc) {
-        condition.and(review.rating.gt(cursorRating)
-            .or(review.rating.eq(cursorRating).and(review.createdAt.gt(after))));
+        condition.and(
+            review
+                .rating
+                .gt(cursorRating)
+                .or(review.rating.eq(cursorRating).and(review.createdAt.gt(after))));
       } else {
-        condition.and(review.rating.lt(cursorRating)
-            .or(review.rating.eq(cursorRating).and(review.createdAt.lt(after))));
+        condition.and(
+            review
+                .rating
+                .lt(cursorRating)
+                .or(review.rating.eq(cursorRating).and(review.createdAt.lt(after))));
       }
     }
     return condition;

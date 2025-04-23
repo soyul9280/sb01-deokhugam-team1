@@ -5,10 +5,9 @@ import java.util.UUID;
 
 public class NotificationNotFoundException extends NotificationException {
 
-    public NotificationNotFoundException(UUID notificationId) {
-        super(
-            NotificationErrorCode.NOTIFICATION_NOT_FOUND,
-            Map.of("notificationId", notificationId.toString())
-        );
-    }
+  public NotificationNotFoundException(UUID notificationId) {
+    super(
+        NotificationErrorCode.NOTIFICATION_NOT_FOUND,
+        Map.of("notificationId", notificationId.toString()));
+  }
 }

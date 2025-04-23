@@ -1,5 +1,9 @@
 package com.codeit.duckhu.domain.user.integration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.codeit.duckhu.config.QueryDslConfig;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
@@ -7,6 +11,7 @@ import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,154 +28,141 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(QueryDslConfig.class)
 public class UserTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+  @Autowired private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    private UserRepository userRepository;
+  @Autowired private ObjectMapper objectMapper;
+  @Autowired private UserRepository userRepository;
 
-    @Test
-    @DisplayName("사용자 생성-성공")
-    @Transactional
-    void create_success() throws Exception {
-        //given
-        UserRegisterRequest request = new UserRegisterRequest(
-                "testA@example.com", "testA", "testa1234!"
-        );
+  @Test
+  @DisplayName("사용자 생성-성공")
+  @Transactional
+  void create_success() throws Exception {
+    // given
+    UserRegisterRequest request =
+        new UserRegisterRequest("testA@example.com", "testA", "testa1234!");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String json = objectMapper.writeValueAsString(request);
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+    String json = objectMapper.writeValueAsString(request);
+    HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
 
-        //when
-        ResponseEntity<UserDto> response = restTemplate.postForEntity("/api/users", requestEntity, UserDto.class);
+    // when
+    ResponseEntity<UserDto> response =
+        restTemplate.postForEntity("/api/users", requestEntity, UserDto.class);
 
-        //then
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody().getId());
-        assertEquals("testA", response.getBody().getNickname());
-        assertEquals("testA@example.com", response.getBody().getEmail());
-    }
+    // then
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertNotNull(response.getBody().getId());
+    assertEquals("testA", response.getBody().getNickname());
+    assertEquals("testA@example.com", response.getBody().getEmail());
+  }
 
-    @Test
-    @DisplayName("로그인 - 요청헤더 인증 성공")
-    @Sql("/data.sql")
-    void login_success() throws Exception {
-        //given
-        UserLoginRequest request = new UserLoginRequest("test@example.com", "test1234!");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        String json = objectMapper.writeValueAsString(request);
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
+  @Test
+  @DisplayName("로그인 - 요청헤더 인증 성공")
+  @Sql("/data.sql")
+  void login_success() throws Exception {
+    // given
+    UserLoginRequest request = new UserLoginRequest("test@example.com", "test1234!");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String json = objectMapper.writeValueAsString(request);
+    HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
 
-        //when
-        ResponseEntity<UserDto> response = restTemplate.postForEntity("/api/users/login", requestEntity, UserDto.class);
-        //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("테스트유저", response.getBody().getNickname());
-        assertEquals("test@example.com", response.getBody().getEmail());
-    }
+    // when
+    ResponseEntity<UserDto> response =
+        restTemplate.postForEntity("/api/users/login", requestEntity, UserDto.class);
+    // then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("테스트유저", response.getBody().getNickname());
+    assertEquals("test@example.com", response.getBody().getEmail());
+  }
 
-    @Test
-    @DisplayName("사용자 상세 조회- 성공")
-    @Sql("/data.sql")
-    void find_success(){
-        //given
-        UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Deokhugam-Request-User-ID",id.toString());
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-        //when
-        ResponseEntity<UserDto> response = restTemplate.exchange(
-                "/api/users/" + id,
-                HttpMethod.GET,
-                requestEntity,
-                UserDto.class);
+  @Test
+  @DisplayName("사용자 상세 조회- 성공")
+  @Sql("/data.sql")
+  void find_success() {
+    // given
+    UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Deokhugam-Request-User-ID", id.toString());
+    HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+    // when
+    ResponseEntity<UserDto> response =
+        restTemplate.exchange("/api/users/" + id, HttpMethod.GET, requestEntity, UserDto.class);
 
-        //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("테스트유저", response.getBody().getNickname());
-        assertEquals("test@example.com", response.getBody().getEmail());
-    }
+    // then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("테스트유저", response.getBody().getNickname());
+    assertEquals("test@example.com", response.getBody().getEmail());
+  }
 
-    @Test
-    @DisplayName("사용자 수정 - 성공")
-    @Sql("/data.sql")
-    void update_success() throws Exception {
-        //given
-        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        UserUpdateRequest request = new UserUpdateRequest("newName");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Deokhugam-Request-User-ID", targetId.toString());
-        HttpEntity<String> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
+  @Test
+  @DisplayName("사용자 수정 - 성공")
+  @Sql("/data.sql")
+  void update_success() throws Exception {
+    // given
+    UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+    UserUpdateRequest request = new UserUpdateRequest("newName");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("Deokhugam-Request-User-ID", targetId.toString());
+    HttpEntity<String> httpEntity =
+        new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
 
-        //when
-        ResponseEntity<UserDto> response = restTemplate.exchange("/api/users/" + targetId,
-                HttpMethod.PATCH, httpEntity, UserDto.class);
+    // when
+    ResponseEntity<UserDto> response =
+        restTemplate.exchange(
+            "/api/users/" + targetId, HttpMethod.PATCH, httpEntity, UserDto.class);
 
-        //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("newName", response.getBody().getNickname());
-    }
+    // then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("newName", response.getBody().getNickname());
+  }
 
-    @Test
-    @DisplayName("사용자 논리삭제 - 성공")
-    @Sql("/data.sql")
-    void softDelete_success() {
-        //given
-        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Deokhugam-Request-User-ID", targetId.toString());
-        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+  @Test
+  @DisplayName("사용자 논리삭제 - 성공")
+  @Sql("/data.sql")
+  void softDelete_success() {
+    // given
+    UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("Deokhugam-Request-User-ID", targetId.toString());
+    HttpEntity<String> httpEntity = new HttpEntity<>(headers);
 
-        //when
-        ResponseEntity<Void> response = restTemplate.exchange("/api/users/" + targetId,
-                HttpMethod.DELETE, httpEntity, Void.class);
+    // when
+    ResponseEntity<Void> response =
+        restTemplate.exchange("/api/users/" + targetId, HttpMethod.DELETE, httpEntity, Void.class);
 
-        //then
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    }
+    // then
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+  }
 
+  @Test
+  @DisplayName("사용자 물리삭제 - 성공")
+  @Sql("/data.sql")
+  void hardDelete_success() {
+    // given
+    UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("Deokhugam-Request-User-ID", targetId.toString());
+    HttpEntity<String> httpEntity = new HttpEntity<>(headers);
 
-    @Test
-    @DisplayName("사용자 물리삭제 - 성공")
-    @Sql("/data.sql")
-    void hardDelete_success() {
-        //given
-        UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Deokhugam-Request-User-ID", targetId.toString());
-        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+    // when
+    ResponseEntity<Void> response =
+        restTemplate.exchange(
+            "/api/users/" + targetId + "/hard", HttpMethod.DELETE, httpEntity, Void.class);
 
-        //when
-        ResponseEntity<Void> response = restTemplate.exchange("/api/users/" + targetId+"/hard",
-                HttpMethod.DELETE, httpEntity, Void.class);
-
-        //then
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        boolean exists=userRepository.existsById(targetId);
-        assertFalse(exists);
-    }
-
-
-
+    // then
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    boolean exists = userRepository.existsById(targetId);
+    assertFalse(exists);
+  }
 }
-

@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface PopularBookRepositoryCustom {
 
-  List<PopularBook> searchByPeriodWithCursorPaging(PeriodType period, Direction direction,
-      String cursor, Instant after, int limit);
+  List<PopularBook> searchByPeriodWithCursorPaging(
+      PeriodType period, Direction direction, String cursor, Instant after, int limit);
 }

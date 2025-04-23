@@ -23,31 +23,38 @@ import com.codeit.duckhu.domain.user.service.UserServiceImpl;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 @ActiveProfiles(profiles = "test")
 @Import({TestJpaConfig.class})
 class CommentServiceTest {
 
-  @Autowired
+  @InjectMocks
   private CommentService commentService;
 
-  @MockitoBean
+  @Mock
   private CommentRepository commentRepository;
 
-  @MockitoBean
+  @Mock
   private UserServiceImpl userService;
 
-  @MockitoBean
+  @Mock
   private ReviewServiceImpl reviewService;
 
-  @MockitoBean
+  @Mock
   private CommentMapper commentMapper;
+
+  @Mock
+  private User mockUser;
+
+  @Mock
+  private Review review;
 
 
   @Test
@@ -59,9 +66,6 @@ class CommentServiceTest {
 
     CommentDto dto = new CommentDto();
     dto.setContent("test comment");
-
-    User mockUser = mock(User.class);
-    Review review = mock(Review.class);
 
     given(userService.findByIdEntityReturn(any(UUID.class))).willReturn(mockUser);
     given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(review);
@@ -82,11 +86,10 @@ class CommentServiceTest {
     updateRequest.setContent("updated content");
 
     Comment mockComment = mock(Comment.class);
-    User mockUser = mock(User.class);
+
 
     when(mockComment.getUser()).thenReturn(mockUser);
     when(mockUser.getId()).thenReturn(userId);
-    when(mockComment.getContent()).thenReturn("old content");
 
     CommentDto updatedDto = new CommentDto();
     updatedDto.setId(commentId);
@@ -108,7 +111,6 @@ class CommentServiceTest {
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
     Comment mockComment = mock(Comment.class);
-    User mockUser = mock(User.class);
 
     when(mockComment.getUser()).thenReturn(mockUser);
     when(mockUser.getId()).thenReturn(userId);
@@ -123,9 +125,7 @@ class CommentServiceTest {
   void get(){
     UUID commentId = UUID.randomUUID();
 
-    User user = mock(User.class);
     Book book = mock(Book.class);
-    Review review = mock(Review.class);
 
     Comment comment = new Comment();
     comment.setContent("test comment");
@@ -135,8 +135,6 @@ class CommentServiceTest {
 
 
     given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(comment));
-    given(userService.findByIdEntityReturn(any(UUID.class))).willReturn(user);
-    given(reviewService.findByIdEntityReturn(any(UUID.class))).willReturn(review);
     given(commentMapper.toDto(comment)).willReturn(dto);
 
     CommentDto result = commentService.get(commentId);

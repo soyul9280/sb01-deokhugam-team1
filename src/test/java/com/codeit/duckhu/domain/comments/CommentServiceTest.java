@@ -10,11 +10,14 @@ import static org.mockito.Mockito.when;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.comment.domain.Comment;
 import com.codeit.duckhu.domain.comment.dto.CommentDto;
+import com.codeit.duckhu.domain.comment.exception.NoAuthorityException;
+import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.service.CommentMapper;
 import com.codeit.duckhu.domain.comment.service.CommentService;
+import com.codeit.duckhu.domain.comment.service.ErrorCode;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
@@ -77,7 +80,7 @@ class CommentServiceTest {
   }
 
   @Test
-  void update(){
+  void update_success(){
     // given
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -86,7 +89,6 @@ class CommentServiceTest {
     updateRequest.setContent("updated content");
 
     Comment mockComment = mock(Comment.class);
-
 
     when(mockComment.getUser()).thenReturn(mockUser);
     when(mockUser.getId()).thenReturn(userId);
@@ -105,6 +107,66 @@ class CommentServiceTest {
     assertEquals("updated content", result.getContent());
     assertEquals(commentId, result.getId());
   }
+
+
+  @Test
+  void update_fail_no_comment(){
+    UUID userId = UUID.randomUUID();
+    UUID commentId = UUID.randomUUID();
+
+    CommentUpdateRequest updateRequest = new CommentUpdateRequest();
+    updateRequest.setContent("updated content");
+
+    Comment mockComment = mock(Comment.class);
+
+    when(mockComment.getUser()).thenReturn(mockUser);
+    when(mockUser.getId()).thenReturn(userId);
+
+    CommentDto updatedDto = new CommentDto();
+    updatedDto.setId(UUID.randomUUID());
+    updatedDto.setContent("updated content");
+
+    given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(mockComment));
+    given(commentMapper.toDto(mockComment)).willReturn(updatedDto);
+
+    // when
+    CommentDto result = commentService.update(commentId, updateRequest,userId);
+
+    // then
+    assertThrows(NoCommentException.class, () -> {
+      commentService.update(commentId, updateRequest, userId);
+    });
+  }
+
+  @Test
+  void update_fail_no_authorities(){
+    UUID userId = UUID.randomUUID();
+    UUID commentId = UUID.randomUUID();
+
+    CommentUpdateRequest updateRequest = new CommentUpdateRequest();
+    updateRequest.setContent("updated content");
+
+    Comment mockComment = mock(Comment.class);
+
+    when(mockComment.getUser()).thenReturn(mockUser);
+    when(mockUser.getId()).thenReturn(UUID.randomUUID());
+
+    CommentDto updatedDto = new CommentDto();
+    updatedDto.setId(commentId);
+    updatedDto.setContent("updated content");
+
+    given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(mockComment));
+    given(commentMapper.toDto(mockComment)).willReturn(updatedDto);
+
+    // when
+    CommentDto result = commentService.update(commentId, updateRequest,userId);
+
+    // then
+    assertThrows(NoAuthorityException.class, () -> {
+      commentService.update(commentId, updateRequest, userId);
+    });
+  }
+
 
   @Test
   void delete(){

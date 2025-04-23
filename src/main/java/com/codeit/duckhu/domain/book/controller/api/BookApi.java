@@ -4,9 +4,11 @@ import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -138,6 +140,29 @@ public interface BookApi {
       @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage
   );
 
+  @Operation(summary = "인기 도서 목록 조회", description = "기간별 인기 도서 목록을 조회합니다.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "인기 도서 목록 조회 성공",
+      content = @Content(schema = @Schema(implementation = CursorPageResponsePopularBookDto.class))),
+      @ApiResponse(responseCode = "400", description = "잘못된 요청 (랭킹 기간 오류, 정렬 방향 오류 등)",
+          content = @Content(schema = @Schema(implementation = CursorPageResponsePopularBookDto.class))),
+      @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+          content = @Content(schema = @Schema(implementation = CursorPageResponsePopularBookDto.class)))
+  })
+  @GetMapping(value = "/popular")
+  ResponseEntity<CursorPageResponsePopularBookDto> getPopularBooks(
+      @Parameter(name = "period", description = "랭킹 기간", example = "DAILY")
+      @RequestParam(value = "period", defaultValue = "DAILY") PeriodType period,
+      @Parameter(name = "direction", description = "정렬 방향", example = "DESC")
+      @RequestParam(value = "direction", defaultValue = "ASC") Direction direction,
+      @Parameter(name = "cursor", description = "커서 페이지네이션 커서")
+      @RequestParam(value = "cursor", required = false) String cursor,
+      @Parameter(name = "after", description = "보조 커서(createdAt)")
+      @RequestParam(value = "after", required = false) Instant after,
+      @Parameter(name = "limit", description = "페이지 크기", example = "50")
+      @RequestParam(value = "limit", defaultValue = "50") int limit
+  );
+
   @Operation(summary = "도서 논리 삭제", description = "도서를 논리적으로 삭제합니다.")
   @ApiResponses({
       @ApiResponse(responseCode = "204", description = "도서 삭제 성공"),
@@ -170,5 +195,20 @@ public interface BookApi {
           required = true
       )
       @PathVariable("bookId") UUID bookId
+  );
+
+  @Operation(summary = "도서 상세 정보 조회", description = "도서 ID로 상세 정보를 조회합니다.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "도서 정보 조회 성공",
+          content = @Content(schema = @Schema(implementation = BookDto.class))),
+      @ApiResponse(responseCode = "404", description = "도서 정보 없음",
+          content = @Content(schema = @Schema(implementation = BookDto.class))),
+      @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+          content = @Content(schema = @Schema(implementation = BookDto.class)))
+  })
+  @GetMapping(value = "/{bookId}")
+  ResponseEntity<BookDto> getBookById(
+      @Parameter(name = "bookId", description = "도서 ID", example = "123e4567-e89b-12d3-a456-426614174000")
+      @PathVariable(name = "bookId", required = true) UUID bookId
   );
 }

@@ -1,7 +1,6 @@
 package com.codeit.duckhu.domain.comment.exception;
 
 import com.codeit.duckhu.domain.comment.service.ErrorCode;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 public class NoHeaderException extends RuntimeException {

@@ -13,8 +13,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-
 
 @Getter
 @Entity
@@ -22,39 +20,38 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
 
-    @Column(nullable = false)
-    private String email;
+  @Column(nullable = false)
+  private String email;
 
-    @Column(nullable = false)
-    private String nickname;
+  @Column(nullable = false)
+  private String nickname;
 
-    @Column(nullable = false)
-    private String password;
+  @Column(nullable = false)
+  private String password;
 
-    @Column(name = "is_deleted", nullable = false)
-    private boolean deleted;
+  @Column(name = "is_deleted", nullable = false)
+  private boolean deleted;
 
-    @OneToMany(mappedBy = "user")
-    private List<Review> review = new ArrayList<>();
+  @OneToMany(mappedBy = "user")
+  private List<Review> review = new ArrayList<>();
 
-    @Builder
-    public User(String email, String nickname, String password, boolean isDeleted) {
-        this.email = email;
-        this.nickname = nickname;
-        this.password = password;
-        this.deleted = isDeleted;
+  @Builder
+  public User(String email, String nickname, String password, boolean isDeleted) {
+    this.email = email;
+    this.nickname = nickname;
+    this.password = password;
+    this.deleted = isDeleted;
+  }
+
+  public void update(UserUpdateRequest userUpdateRequest) {
+    if (!this.getNickname().equals(userUpdateRequest.getNickname())) {
+      this.nickname = userUpdateRequest.getNickname();
     }
+  }
 
-    public void update(UserUpdateRequest userUpdateRequest) {
-        if(!this.getNickname().equals(userUpdateRequest.getNickname())) {
-            this.nickname = userUpdateRequest.getNickname();
-        }
+  public void softDelete() {
+    if (!this.isDeleted()) {
+      this.deleted = true;
     }
-
-    public void softDelete() {
-        if(!this.isDeleted()) {
-            this.deleted = true;
-        }
-    }
-
+  }
 }

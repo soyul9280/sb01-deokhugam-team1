@@ -1,5 +1,7 @@
 package com.codeit.duckhu.domain.book.repository;
 
+import static org.assertj.core.api.Assertions.*;
+
 import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.config.QueryDslConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
@@ -7,7 +9,6 @@ import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,28 +22,27 @@ import org.springframework.test.context.ActiveProfiles;
 @Import({JpaConfig.class, QueryDslConfig.class})
 public class CustomRepositoryTest {
 
-  @Autowired
-  private BookRepository bookRepository;
+  @Autowired private BookRepository bookRepository;
 
-  @Autowired
-  private EntityManager em;
+  @Autowired private EntityManager em;
 
   private final String keyword = "Effective";
 
   @BeforeEach
   void setUp() {
     for (int i = 1; i <= 5; i++) {
-      Book book = Book.builder()
-          .title("Effective Java Vol." + i)
-          .author("Joshua Bloch")
-          .description("Test Book " + i)
-          .publisher("Addison-Wasley")
-          .publishedDate(LocalDate.of(2023, 12, i))
-          .isbn("97801346859" + i)
-          .reviewCount(0)
-          .rating(0.0)
-          .isDeleted(false)
-          .build();
+      Book book =
+          Book.builder()
+              .title("Effective Java Vol." + i)
+              .author("Joshua Bloch")
+              .description("Test Book " + i)
+              .publisher("Addison-Wasley")
+              .publishedDate(LocalDate.of(2023, 12, i))
+              .isbn("97801346859" + i)
+              .reviewCount(0)
+              .rating(0.0)
+              .isDeleted(false)
+              .build();
 
       bookRepository.save(book);
     }
@@ -72,14 +72,14 @@ public class CustomRepositoryTest {
   @Test
   @DisplayName("제목 기준 ASC 정렬 + 커서 기반 페이지네이션")
   void paginateByTitleAsc() {
-      // given
+    // given
     List<Book> page1 = bookRepository.searchBooks(null, "title", "ASC", null, null, 2);
-      // when
+    // when
     String nextCursor = page1.get(1).getTitle();
     Instant nextAfter = page1.get(1).getCreatedAt();
     List<Book> page2 = bookRepository.searchBooks(null, "title", "ASC", nextCursor, nextAfter, 2);
 
-      // then
+    // then
     assertThat(page2).hasSize(2);
     assertThat(page2.get(0).getTitle()).isGreaterThan(page1.get(1).getTitle());
   }

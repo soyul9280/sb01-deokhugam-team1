@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 
 /**
  * Custom Error 지정 필요성이 있다면 에러 코드를 작성하여 진행.
- * <p>
- * 일반적인 상황의 에러만 적혀있지만, 특정 도메인에서 발생할 수 있는 에러 등 정의\n\n
+ *
+ * <p>일반적인 상황의 에러만 적혀있지만, 특정 도메인에서 발생할 수 있는 에러 등 정의\n\n
  * CustomException(ErrorCode.INTERNAL_SERVER_ERROR) 처럼 사용.
  */
 @Getter
@@ -18,8 +18,8 @@ public enum ReviewErrorCode {
   BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "책을 찾을 수 없습니다.", "책을 찾을 수 없습니다."),
   REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 작성한 리뷰가 존재합니다.", "한 도서에 리뷰는 1개만 작성할 수 있습니다."),
   USER_NOT_OWNER(HttpStatus.INTERNAL_SERVER_ERROR, "본인이 아닙니다.", "본인이 작성한 리뷰가 아닙니다."),
-  USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다.", "유저를 찾을 수 없습니다."),;
-
+  USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다.", "유저를 찾을 수 없습니다."),
+  ;
 
   private final HttpStatus status;
   private final String message;

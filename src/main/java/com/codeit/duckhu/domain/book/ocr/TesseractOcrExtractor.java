@@ -44,10 +44,10 @@ public class TesseractOcrExtractor implements OcrExtractor {
   private String extractIsbnFromText(String text) {
     String cleaned = text.replaceAll("[\\n\\r]", " ").replaceAll("\\s+", " ");
 
-    Pattern pattern = Pattern.compile(
-        "ISBN[\\s:-]*((?:97[89][- ]?)?\\d{1,5}[- ]?\\d{1,7}[- ]?\\d{1,7}[- ]?\\d)",
-        Pattern.CASE_INSENSITIVE
-    );
+    Pattern pattern =
+        Pattern.compile(
+            "ISBN[\\s:-]*((?:97[89][- ]?)?\\d{1,5}[- ]?\\d{1,7}[- ]?\\d{1,7}[- ]?\\d)",
+            Pattern.CASE_INSENSITIVE);
 
     Matcher matcher = pattern.matcher(cleaned);
     if (matcher.find()) {

@@ -1,33 +1,29 @@
 package com.codeit.duckhu.domain.book.naver;
 
-import com.codeit.duckhu.domain.book.dto.NaverBookDto;
-import com.codeit.duckhu.domain.book.exception.BookException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDate;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.anything;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
+import com.codeit.duckhu.domain.book.dto.NaverBookDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
+
 @RestClientTest(NaverBookClient.class)
 class NaverBookClientTest {
 
-  @Autowired
-  private NaverBookClient naverBookClient;
+  @Autowired private NaverBookClient naverBookClient;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
   private MockRestServiceServer mockServer;
 
@@ -47,7 +43,8 @@ class NaverBookClientTest {
   void searchByIsbn_success() {
     // given
     String isbn = "9788966261201";
-    String responseBody = """
+    String responseBody =
+        """
         {
           "items": [
             {
@@ -61,9 +58,11 @@ class NaverBookClientTest {
             }
           ]
         }
-        """.formatted(isbn);
+        """
+            .formatted(isbn);
 
-    mockServer.expect(requestTo("https://openapi.naver.com/v1/search/book_adv.json?d_isbn=" + isbn))
+    mockServer
+        .expect(requestTo("https://openapi.naver.com/v1/search/book_adv.json?d_isbn=" + isbn))
         .andExpect(method(org.springframework.http.HttpMethod.GET))
         .andExpect(header("X-Naver-Client-Id", anything()))
         .andExpect(header("X-Naver-Client-Secret", anything()))

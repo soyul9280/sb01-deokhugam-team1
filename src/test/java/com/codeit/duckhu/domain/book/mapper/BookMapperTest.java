@@ -1,11 +1,12 @@
 package com.codeit.duckhu.domain.book.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.entity.Book;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,16 +21,17 @@ public class BookMapperTest {
 
   @BeforeEach
   void setUp() {
-    book = Book.builder()
-        .title("Clean Code")
-        .author("Robert C. Martin")
-        .description("A handbook of agile software craftsmanship")
-        .publisher("Prentice Hall")
-        .publishedDate(LocalDate.of(2008, 8, 1))
-        .isbn("9780132350884")
-        .thumbnailUrl("https://example.com/image.jpg")
-        .isDeleted(false)
-        .build();
+    book =
+        Book.builder()
+            .title("Clean Code")
+            .author("Robert C. Martin")
+            .description("A handbook of agile software craftsmanship")
+            .publisher("Prentice Hall")
+            .publishedDate(LocalDate.of(2008, 8, 1))
+            .isbn("9780132350884")
+            .thumbnailUrl("https://example.com/image.jpg")
+            .isDeleted(false)
+            .build();
 
     ReflectionTestUtils.setField(book, "id", UUID.randomUUID());
     ReflectionTestUtils.setField(book, "createdAt", Instant.now());

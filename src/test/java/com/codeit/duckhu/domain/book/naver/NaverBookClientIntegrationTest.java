@@ -1,28 +1,27 @@
 package com.codeit.duckhu.domain.book.naver;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 /*
 TestPropertySource에 직접 clientId와 secret 값을 입력하여 테스트 성공을 확인함
  */
 @ActiveProfiles("test")
 @SpringBootTest
-//@TestPropertySource(properties = {
+// @TestPropertySource(properties = {
 //    "naver.client-id={client-id}}",
 //    "naver.client-secret={secret}}"
-//})
+// })
 class NaverBookClientIntegrationTest {
 
-  @Autowired
-  private NaverBookClient naverBookClient;
+  @Autowired private NaverBookClient naverBookClient;
 
   @Test
   @DisplayName("네이버 OpenAPI를 통해 ISBN으로 실제 책 정보를 조회할 수 있다")

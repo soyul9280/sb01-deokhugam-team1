@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-/**
- * 전역 예외 핸들러 - 전역 예외 처리를 위함.
- */
+/** 전역 예외 핸들러 - 전역 예외 처리를 위함. */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,17 +24,16 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(NoHandlerFoundException.class)
   public ResponseEntity<CustomApiResponse<?>> handleNoHandlerFound(NoHandlerFoundException ex) {
     log.warn("요청한 페이지 없음: {}", ex.getRequestURL());
-    return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(CustomApiResponse.fail(new CustomException(ErrorCode.NOT_FOUND)));
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(CustomApiResponse.fail(new CustomException(ErrorCode.NOT_FOUND)));
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-  public ResponseEntity<CustomApiResponse<?>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+  public ResponseEntity<CustomApiResponse<?>> handleMethodNotSupported(
+      HttpRequestMethodNotSupportedException ex) {
     log.warn("지원하지 않는 HTTP Method: {}", ex.getMethod());
-    return ResponseEntity
-            .status(HttpStatus.METHOD_NOT_ALLOWED)
-            .body(CustomApiResponse.fail(new CustomException(ErrorCode.METHOD_NOT_ALLOWED)));
+    return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+        .body(CustomApiResponse.fail(new CustomException(ErrorCode.METHOD_NOT_ALLOWED)));
   }
 
   /**
@@ -46,19 +43,16 @@ public class GlobalExceptionHandler {
    * @return 400 INVALID_INPUT_VALUE 응답
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<CustomApiResponse<?>> handleValidationException(MethodArgumentNotValidException e) {
+  public ResponseEntity<CustomApiResponse<?>> handleValidationException(
+      MethodArgumentNotValidException e) {
     log.error("Validation failed: {}", e.getMessage());
 
-    CustomApiResponse<?> response = CustomApiResponse.fail(
-            new CustomException(ErrorCode.INVALID_INPUT_VALUE)
-    );
+    CustomApiResponse<?> response =
+        CustomApiResponse.fail(new CustomException(ErrorCode.INVALID_INPUT_VALUE));
 
-    return ResponseEntity
-            .status(ErrorCode.INVALID_INPUT_VALUE.getStatus()) // 400
-            .body(response);
+    return ResponseEntity.status(ErrorCode.INVALID_INPUT_VALUE.getStatus()) // 400
+        .body(response);
   }
-
-
 
   /**
    * 커스텀 예외에 대한 처리.
@@ -68,10 +62,11 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(value = {CustomException.class})
   public ResponseEntity<CustomApiResponse<?>> handleCustomException(CustomException e) {
-    log.error("handleCustomException() in GlobalExceptionHandler throw CustomException : {}", e.getMessage());
-    return ResponseEntity
-            .status(e.getErrorCode().getStatus()) // ex. 403, 409, 401
-            .body(CustomApiResponse.fail(e));
+    log.error(
+        "handleCustomException() in GlobalExceptionHandler throw CustomException : {}",
+        e.getMessage());
+    return ResponseEntity.status(e.getErrorCode().getStatus()) // ex. 403, 409, 401
+        .body(CustomApiResponse.fail(e));
   }
 
   /**
@@ -83,11 +78,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(value = {Exception.class})
   public ResponseEntity<CustomApiResponse<?>> handleException(Exception e) {
     log.error("handleException() in GlobalExceptionHandler throw Exception : {}", e.getMessage());
-    return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(CustomApiResponse.fail(new CustomException(ErrorCode.INTERNAL_SERVER_ERROR)));
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(CustomApiResponse.fail(new CustomException(ErrorCode.INTERNAL_SERVER_ERROR)));
   }
-
-
-
 }

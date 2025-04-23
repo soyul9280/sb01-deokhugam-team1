@@ -73,44 +73,41 @@ public class ReviewRepositoryTest {
   void findByUserIdAndBookId_success() {
     // Given
     // 사용자 생성 및 저장
-    User user =
-        User.builder()
-            .email("test@example.com")
-            .nickname("테스터")
-            .password("password")
-            .isDeleted(false)
-            .build();
+    User user = User.builder()
+        .email("test@example.com")
+        .nickname("테스터")
+        .password("password")
+        //.isDeleted(false)
+        .build();
     User savedUser = userRepository.save(user);
 
     // 도서 생성 및 저장
-    Book book =
-        Book.builder()
-            .title("테스트 도서")
-            .author("테스트 작가")
-            .publisher("테스트 출판사")
-            .isbn("9788956609959")
-            .publishedDate(LocalDate.now())
-            .isDeleted(false)
-            .description("테스트 설명")
-            .thumbnailUrl("http://example.com/image.jpg")
-            .build();
+    Book book = Book.builder()
+        .title("테스트 도서")
+        .author("테스트 작가")
+        .publisher("테스트 출판사")
+        .isbn("9788956609959")
+        .publishedDate(LocalDate.now())
+        .isDeleted(false)
+        .description("테스트 설명")
+        .thumbnailUrl("http://example.com/image.jpg")
+        .build();
     Book savedBook = bookRepository.save(book);
 
     // 리뷰 생성 및 저장
-    Review review =
-        Review.builder()
-            .content("정말 좋은 책이에요")
-            .rating(5)
-            .likeCount(0)
-            .commentCount(0)
-            .user(savedUser)
-            .book(savedBook)
-            .build();
+    Review review = Review.builder()
+        .content("정말 좋은 책이에요")
+        .rating(5)
+        .likeCount(0)
+        .commentCount(0)
+        .user(savedUser)
+        .book(savedBook)
+        .build();
     reviewRepository.save(review);
 
     // When
-    Optional<Review> foundReview =
-        reviewRepository.findByUserIdAndBookId(savedUser.getId(), savedBook.getId());
+    Optional<Review> foundReview = reviewRepository.findByUserIdAndBookId(
+        savedUser.getId(), savedBook.getId());
 
     // Then
     assertThat(foundReview.isPresent()).isTrue();
@@ -125,34 +122,32 @@ public class ReviewRepositoryTest {
   void findByUserIdAndBookId_reviewNotFound() {
     // Given
     // 사용자 생성 및 저장
-    User user =
-        User.builder()
-            .email("test2@example.com")
-            .nickname("테스터2")
-            .password("password")
-            .isDeleted(false)
-            .build();
+    User user = User.builder()
+        .email("test2@example.com")
+        .nickname("테스터2")
+        .password("password")
+       // .isDeleted(false)
+        .build();
     User savedUser = userRepository.save(user);
 
     // 도서 생성 및 저장
-    Book book =
-        Book.builder()
-            .title("테스트 도서2")
-            .author("테스트 작가2")
-            .publisher("테스트 출판사2")
-            .isbn("9788956609958")
-            .publishedDate(LocalDate.now())
-            .isDeleted(false)
-            .description("테스트 설명2")
-            .thumbnailUrl("http://example.com/image2.jpg")
-            .build();
+    Book book = Book.builder()
+        .title("테스트 도서2")
+        .author("테스트 작가2")
+        .publisher("테스트 출판사2")
+        .isbn("9788956609958")
+        .publishedDate(LocalDate.now())
+        .isDeleted(false)
+        .description("테스트 설명2")
+        .thumbnailUrl("http://example.com/image2.jpg")
+        .build();
     Book savedBook = bookRepository.save(book);
 
     // 리뷰는 저장하지 않음
 
     // When
-    Optional<Review> foundReview =
-        reviewRepository.findByUserIdAndBookId(savedUser.getId(), savedBook.getId());
+    Optional<Review> foundReview = reviewRepository.findByUserIdAndBookId(
+        savedUser.getId(), savedBook.getId());
 
     // Then
     assertThat(foundReview.isPresent()).isFalse();
@@ -163,13 +158,12 @@ public class ReviewRepositoryTest {
   void findReviewsWithCursor_byCreatedAt_success() {
     // Given
     // 테스트 사용자 생성
-    User user =
-        User.builder()
-            .email("test-cursor1@example.com")
-            .nickname("커서테스터1")
-            .password("password")
-            .isDeleted(false)
-            .build();
+    User user = User.builder()
+        .email("test-cursor1@example.com")
+        .nickname("커서테스터1")
+        .password("password")
+//        .isDeleted(false)
+        .build();
     User savedUser = userRepository.save(user);
 
     // 테스트 도서 생성
@@ -249,7 +243,7 @@ public class ReviewRepositoryTest {
             .email("test-cursor2@example.com")
             .nickname("커서테스터2")
             .password("password")
-            .isDeleted(false)
+//            .isDeleted(false)
             .build();
     User savedUser = userRepository.save(user);
 
@@ -330,7 +324,7 @@ public class ReviewRepositoryTest {
             .email("test-keyword@example.com")
             .nickname("키워드테스터")
             .password("password")
-            .isDeleted(false)
+//            .isDeleted(false)
             .build();
     User savedUser = userRepository.save(user);
 
@@ -402,7 +396,7 @@ public class ReviewRepositoryTest {
             .email("test-user1@example.com")
             .nickname("사용자1")
             .password("password")
-            .isDeleted(false)
+//            .isDeleted(false)
             .build();
     User savedUser1 = userRepository.save(user1);
 
@@ -411,7 +405,7 @@ public class ReviewRepositoryTest {
             .email("test-user2@example.com")
             .nickname("사용자2")
             .password("password")
-            .isDeleted(false)
+//            .isDeleted(false)
             .build();
     User savedUser2 = userRepository.save(user2);
 
@@ -486,7 +480,7 @@ public class ReviewRepositoryTest {
             .email("test-book@example.com")
             .nickname("도서테스터")
             .password("password")
-            .isDeleted(false)
+//            .isDeleted(false)
             .build();
     User savedUser = userRepository.save(user);
 

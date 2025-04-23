@@ -52,9 +52,11 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private int commentCount = 0;
 
+
   @Column(name = "is_deleted", nullable = false)
   @Builder.Default
   private boolean isDeleted = false;
+
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn
@@ -64,9 +66,11 @@ public class Review extends BaseUpdatableEntity {
   @JoinColumn
   private Book book;
 
+
   @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   private List<LikedUserId> likedUserIds = new ArrayList<>();
+
 
   @Version
   private Long version;

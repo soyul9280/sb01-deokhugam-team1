@@ -80,7 +80,7 @@ public class ReviewController {
           .bookId(bookId)
           .cursor(cursor)
           .after(after != null ? Instant.parse(after) : null)
-          // limit가 null이면 기본값인 50이 적용됨
+          // limit가 null이면 기본값인 50이 적용됨?
           .limit(limit != null ? limit : 50)
           .build();
 

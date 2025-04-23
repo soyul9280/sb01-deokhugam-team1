@@ -39,7 +39,7 @@ public class ReviewServiceImpl implements ReviewService {
   private final ReviewMapper reviewMapper;
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
-  //알림 생성을 위해 DI추가
+  // 알림 생성을 위해 DI추가
   private final NotificationService notificationService;
 
   @Override
@@ -191,7 +191,6 @@ public class ReviewServiceImpl implements ReviewService {
         .userId(userId)
         .liked(likedAfter)
         .build();
-
   }
 
   @Override

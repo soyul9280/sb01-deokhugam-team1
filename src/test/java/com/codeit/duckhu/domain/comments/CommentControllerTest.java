@@ -1,7 +1,5 @@
 package com.codeit.duckhu.domain.comments;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -26,23 +24,19 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(CommentController.class)
 public class CommentControllerTest {
-  @Autowired
-  MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
 
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-  @MockitoBean
-  CommentService commentService;
+  @MockitoBean CommentService commentService;
 
   @Test
   void getMapping() throws Exception {
     UUID commentId = UUID.randomUUID();
     given(commentService.get(commentId)).willReturn(new CommentDto());
 
-    mockMvc.perform(get("/api/comments/"+commentId)).andExpect(status().isOk());
+    mockMvc.perform(get("/api/comments/" + commentId)).andExpect(status().isOk());
   }
-
 
   @Test
   void postMapping() throws Exception {
@@ -51,11 +45,12 @@ public class CommentControllerTest {
 
     given(commentService.create(request)).willReturn(new CommentDto());
 
-
-    mockMvc.perform(post("/api/comments")
-            .header("Deokhugam-Request-User-ID",UUID.randomUUID())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
+    mockMvc
+        .perform(
+            post("/api/comments")
+                .header("Deokhugam-Request-User-ID", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
   }
 
@@ -64,10 +59,10 @@ public class CommentControllerTest {
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
 
-    doNothing().when(commentService).delete(commentId,userId);
+    doNothing().when(commentService).delete(commentId, userId);
 
-    mockMvc.perform(delete("/api/comments/" + commentId)
-            .header("Deokhugam-Request-User-ID",userId))
+    mockMvc
+        .perform(delete("/api/comments/" + commentId).header("Deokhugam-Request-User-ID", userId))
         .andExpect(status().isNoContent());
   }
 
@@ -79,15 +74,14 @@ public class CommentControllerTest {
     CommentUpdateRequest request = new CommentUpdateRequest();
     request.setContent("update comment");
 
-    given(commentService.update(commentId,request,userId)).willReturn(new CommentDto());
+    given(commentService.update(commentId, request, userId)).willReturn(new CommentDto());
 
-    mockMvc.perform(patch("/api/comments/" + commentId)
-            .header("Deokhugam-Request-User-ID",userId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
+    mockMvc
+        .perform(
+            patch("/api/comments/" + commentId)
+                .header("Deokhugam-Request-User-ID", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk());
-
   }
-
-
 }

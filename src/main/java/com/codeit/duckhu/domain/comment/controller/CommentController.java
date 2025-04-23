@@ -8,8 +8,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Slice;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,28 +28,34 @@ public class CommentController {
   private final CommentService commentService;
 
   @PostMapping
-  public ResponseEntity<CommentDto> createComment(@RequestBody CommentCreateRequest commentCreateRequest){
-    return ResponseEntity.status(HttpStatus.CREATED).body(commentService.create(commentCreateRequest));
+  public ResponseEntity<CommentDto> createComment(
+      @RequestBody CommentCreateRequest commentCreateRequest) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(commentService.create(commentCreateRequest));
   }
 
   @PatchMapping("/{commentId}")
-  public ResponseEntity<CommentDto> updateComment(@RequestBody CommentUpdateRequest commentUpdateRequest,
+  public ResponseEntity<CommentDto> updateComment(
+      @RequestBody CommentUpdateRequest commentUpdateRequest,
       @PathVariable UUID commentId,
-      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-    return ResponseEntity.status(HttpStatus.OK).body(commentService.update(commentId,commentUpdateRequest,userId));
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId) {
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(commentService.update(commentId, commentUpdateRequest, userId));
   }
 
   @DeleteMapping("/{commentId}/hard")
-  public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId,
-      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-    commentService.delete(commentId,userId);
+  public ResponseEntity<Void> deleteComment(
+      @PathVariable UUID commentId,
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId) {
+    commentService.delete(commentId, userId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @DeleteMapping("/{commentId}")
-  public ResponseEntity<Void> deleteCommentSoft(@PathVariable UUID commentId,
-      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
-    commentService.deleteSoft(commentId,userId);
+  public ResponseEntity<Void> deleteCommentSoft(
+      @PathVariable UUID commentId,
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId) {
+    commentService.deleteSoft(commentId, userId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
@@ -61,13 +65,13 @@ public class CommentController {
       @RequestParam(defaultValue = "DESC") String direction,
       @RequestParam(required = false) UUID cursorId,
       @RequestParam(required = false) Instant createdAt,
-      @RequestParam(defaultValue = "30") int limit
-  ){
-    return ResponseEntity.status(HttpStatus.OK).body(commentService.getList(reviewId,direction,cursorId,createdAt,limit));
+      @RequestParam(defaultValue = "30") int limit) {
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(commentService.getList(reviewId, direction, cursorId, createdAt, limit));
   }
 
   @GetMapping("/{commentId}")
-  public ResponseEntity<CommentDto> getComment(@PathVariable UUID commentId){
+  public ResponseEntity<CommentDto> getComment(@PathVariable UUID commentId) {
     return ResponseEntity.status(HttpStatus.OK).body(commentService.get(commentId));
   }
 }

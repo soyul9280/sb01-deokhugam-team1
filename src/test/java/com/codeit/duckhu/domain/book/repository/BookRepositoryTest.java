@@ -3,7 +3,6 @@ package com.codeit.duckhu.domain.book.repository;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.codeit.duckhu.config.JpaConfig;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import java.time.LocalDate;

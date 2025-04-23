@@ -18,9 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @Slf4j
@@ -29,148 +27,143 @@ import org.springframework.test.util.ReflectionTestUtils;
 @Import(TestJpaConfig.class)
 public class NotificationRepositoryTest {
 
-    @Autowired
-    private NotificationRepository notificationRepository;
+  @Autowired private NotificationRepository notificationRepository;
 
-    @PersistenceContext
-    private EntityManager em;
+  @PersistenceContext private EntityManager em;
 
-    @Nested
-    @DisplayName("알림 저장")
-    class SaveNotificationTest {
+  @Nested
+  @DisplayName("알림 저장")
+  class SaveNotificationTest {
 
-        @Test
-        @DisplayName("사용자가 다른 사람의 리뷰에 좋아요를 누르면 알림이 저장된다")
-        void createsNotificationForOtherUsersReviewLike() {
-            // given
-            UUID reviewId = UUID.randomUUID();
-            UUID receiverId = UUID.randomUUID();
-            String nickname = "buzz";
-            String reviewTitle = "가나다";
+    @Test
+    @DisplayName("사용자가 다른 사람의 리뷰에 좋아요를 누르면 알림이 저장된다")
+    void createsNotificationForOtherUsersReviewLike() {
+      // given
+      UUID reviewId = UUID.randomUUID();
+      UUID receiverId = UUID.randomUUID();
+      String nickname = "buzz";
+      String reviewTitle = "가나다";
 
-            Notification notification = Notification.forLike(reviewId, receiverId, nickname,
-                reviewTitle);
+      Notification notification = Notification.forLike(reviewId, receiverId, nickname, reviewTitle);
 
-            // when
-            Notification saved = notificationRepository.save(notification);
+      // when
+      Notification saved = notificationRepository.save(notification);
 
-            // then
-            assertThat(saved.getId()).isNotNull();
-            assertThat(saved.getContent()).isEqualTo("[buzz]님이 나의 리뷰를 좋아합니다.");
-            assertThat(saved.getReviewId()).isEqualTo(reviewId);
-            assertThat(saved.getReceiverId()).isEqualTo(receiverId);
-            assertThat(saved.isConfirmed()).isFalse();
-            assertThat(saved.getCreatedAt()).isNotNull();
-            assertThat(saved.getUpdatedAt()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("사용자가 다른 사람의 리뷰에 댓글을 작성하면 알림이 저장된다")
-        void createsNotificationForOtherUsersReviewComment() {
-            // given
-            UUID reviewId = UUID.randomUUID();
-            UUID triggerUserId = UUID.randomUUID();
-            UUID receiverId = UUID.randomUUID();
-            String nickname = "buzz";
-            String reviewTitle = "~책에 대한 리뷰";
-            String comment = "12345";
-
-            Notification notification =
-                Notification.forComment(reviewId, receiverId, nickname, comment, reviewTitle);
-
-            // when
-            Notification saved = notificationRepository.save(notification);
-
-            // then
-            assertThat(saved.getId()).isNotNull();
-            assertThat(saved.getContent()).isEqualTo("[buzz]님이 나의 리뷰에 댓글을 남겼습니다.\n12345");
-            assertThat(saved.getReviewId()).isEqualTo(reviewId);
-            assertThat(saved.getReceiverId()).isEqualTo(receiverId);
-            assertThat(saved.isConfirmed()).isFalse();
-            assertThat(saved.getCreatedAt()).isNotNull();
-            assertThat(saved.getUpdatedAt()).isNotNull();
-        }
+      // then
+      assertThat(saved.getId()).isNotNull();
+      assertThat(saved.getContent()).isEqualTo("[buzz]님이 나의 리뷰를 좋아합니다.");
+      assertThat(saved.getReviewId()).isEqualTo(reviewId);
+      assertThat(saved.getReceiverId()).isEqualTo(receiverId);
+      assertThat(saved.isConfirmed()).isFalse();
+      assertThat(saved.getCreatedAt()).isNotNull();
+      assertThat(saved.getUpdatedAt()).isNotNull();
     }
 
-    @Nested
-    @DisplayName("알림 조회")
-    class FindNotificationTest {
+    @Test
+    @DisplayName("사용자가 다른 사람의 리뷰에 댓글을 작성하면 알림이 저장된다")
+    void createsNotificationForOtherUsersReviewComment() {
+      // given
+      UUID reviewId = UUID.randomUUID();
+      UUID triggerUserId = UUID.randomUUID();
+      UUID receiverId = UUID.randomUUID();
+      String nickname = "buzz";
+      String reviewTitle = "~책에 대한 리뷰";
+      String comment = "12345";
 
-        @Test
-        @DisplayName("사용자의 모든 알림을 조회한다")
-        void findAllByReceiverId() {
-            // Given
-            UUID receiverId = UUID.randomUUID();
-            String reviewTitle = "~책에 대한 리뷰";
-            Notification n1 = Notification.forLike(UUID.randomUUID(), receiverId, "buzz",
-                reviewTitle);
-            Notification n2 =
-                Notification.forComment(UUID.randomUUID(), receiverId, "buzz", "댓글", reviewTitle);
-            Notification n3 =
-                Notification.forLike(UUID.randomUUID(), UUID.randomUUID(), "buzz",
-                    reviewTitle); // 다른 수신자
+      Notification notification =
+          Notification.forComment(reviewId, receiverId, nickname, comment, reviewTitle);
 
-            notificationRepository.saveAll(List.of(n1, n2, n3));
+      // when
+      Notification saved = notificationRepository.save(notification);
 
-            // When
-            List<Notification> result = notificationRepository.findAllByReceiverId(receiverId);
-
-            // Then
-            assertThat(result).hasSize(2).allMatch(n -> n.getReceiverId().equals(receiverId));
-        }
+      // then
+      assertThat(saved.getId()).isNotNull();
+      assertThat(saved.getContent()).isEqualTo("[buzz]님이 나의 리뷰에 댓글을 남겼습니다.\n12345");
+      assertThat(saved.getReviewId()).isEqualTo(reviewId);
+      assertThat(saved.getReceiverId()).isEqualTo(receiverId);
+      assertThat(saved.isConfirmed()).isFalse();
+      assertThat(saved.getCreatedAt()).isNotNull();
+      assertThat(saved.getUpdatedAt()).isNotNull();
     }
+  }
 
-    @Nested
-    @DisplayName("알림 삭제")
-    class DeleteNotificationTest {
+  @Nested
+  @DisplayName("알림 조회")
+  class FindNotificationTest {
 
-        @Test
-        @Transactional
-        @DisplayName("1주일이 지난 확인된 알림은 삭제된다")
-        void deleteOldConfirmedNotifications() {
-            // given: 알림 3개 생성 (1개는 8일 전, 나머지는 최근 생성 or 미확인 상태)
-            UUID receiverId = UUID.randomUUID();
-            String nickname = "buzz";
-            String reviewTitle = "테스트 리뷰 제목";
+    @Test
+    @DisplayName("사용자의 모든 알림을 조회한다")
+    void findAllByReceiverId() {
+      // Given
+      UUID receiverId = UUID.randomUUID();
+      String reviewTitle = "~책에 대한 리뷰";
+      Notification n1 = Notification.forLike(UUID.randomUUID(), receiverId, "buzz", reviewTitle);
+      Notification n2 =
+          Notification.forComment(UUID.randomUUID(), receiverId, "buzz", "댓글", reviewTitle);
+      Notification n3 =
+          Notification.forLike(UUID.randomUUID(), UUID.randomUUID(), "buzz", reviewTitle); // 다른 수신자
 
-            Notification oldConfirmed = Notification.forLike(UUID.randomUUID(), receiverId,
-                nickname, reviewTitle);
-            oldConfirmed.markAsConfirmed();
+      notificationRepository.saveAll(List.of(n1, n2, n3));
 
-            Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
+      // When
+      List<Notification> result = notificationRepository.findAllByReceiverId(receiverId);
 
-            // oldConfirmed의 updatedAt을 cutoff보다 확실히 과거로 설정
-            ReflectionTestUtils.setField(oldConfirmed, "updatedAt",
-                cutoff.minus(1, ChronoUnit.DAYS));
-
-            Notification recentConfirmed = Notification.forLike(UUID.randomUUID(), receiverId,
-                nickname, reviewTitle);
-            recentConfirmed.markAsConfirmed();
-            ReflectionTestUtils.setField(recentConfirmed, "updatedAt", Instant.now());
-
-            Notification unconfirmed = Notification.forLike(UUID.randomUUID(), receiverId, nickname,
-                reviewTitle);
-
-            notificationRepository.saveAll(List.of(oldConfirmed, recentConfirmed, unconfirmed));
-            notificationRepository.flush();
-
-            // 수동으로 oldConfirmed의 updatedAt을 DB에 반영
-            em.createQuery("UPDATE Notification n SET n.updatedAt = :updatedAt WHERE n.id = :id")
-                .setParameter("updatedAt", cutoff.minus(1, ChronoUnit.DAYS))
-                .setParameter("id", oldConfirmed.getId())
-                .executeUpdate();
-
-            // 영속성 컨텍스트 초기화 (캐시 무효화)
-            em.clear();
-
-            // when
-            notificationRepository.deleteOldConfirmedNotifications(cutoff);
-
-            // then
-            List<Notification> remaining = notificationRepository.findAll();
-            List<UUID> remainingIds = remaining.stream().map(Notification::getId).toList();
-            List<UUID> expectedIds = List.of(recentConfirmed.getId(), unconfirmed.getId());
-
-            assertThat(remainingIds).containsExactlyInAnyOrderElementsOf(expectedIds);        }
+      // Then
+      assertThat(result).hasSize(2).allMatch(n -> n.getReceiverId().equals(receiverId));
     }
+  }
+
+  @Nested
+  @DisplayName("알림 삭제")
+  class DeleteNotificationTest {
+
+    @Test
+    @Transactional
+    @DisplayName("1주일이 지난 확인된 알림은 삭제된다")
+    void deleteOldConfirmedNotifications() {
+      // given: 알림 3개 생성 (1개는 8일 전, 나머지는 최근 생성 or 미확인 상태)
+      UUID receiverId = UUID.randomUUID();
+      String nickname = "buzz";
+      String reviewTitle = "테스트 리뷰 제목";
+
+      Notification oldConfirmed =
+          Notification.forLike(UUID.randomUUID(), receiverId, nickname, reviewTitle);
+      oldConfirmed.markAsConfirmed();
+
+      Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
+
+      // oldConfirmed의 updatedAt을 cutoff보다 확실히 과거로 설정
+      ReflectionTestUtils.setField(oldConfirmed, "updatedAt", cutoff.minus(1, ChronoUnit.DAYS));
+
+      Notification recentConfirmed =
+          Notification.forLike(UUID.randomUUID(), receiverId, nickname, reviewTitle);
+      recentConfirmed.markAsConfirmed();
+      ReflectionTestUtils.setField(recentConfirmed, "updatedAt", Instant.now());
+
+      Notification unconfirmed =
+          Notification.forLike(UUID.randomUUID(), receiverId, nickname, reviewTitle);
+
+      notificationRepository.saveAll(List.of(oldConfirmed, recentConfirmed, unconfirmed));
+      notificationRepository.flush();
+
+      // 수동으로 oldConfirmed의 updatedAt을 DB에 반영
+      em.createQuery("UPDATE Notification n SET n.updatedAt = :updatedAt WHERE n.id = :id")
+          .setParameter("updatedAt", cutoff.minus(1, ChronoUnit.DAYS))
+          .setParameter("id", oldConfirmed.getId())
+          .executeUpdate();
+
+      // 영속성 컨텍스트 초기화 (캐시 무효화)
+      em.clear();
+
+      // when
+      notificationRepository.deleteOldConfirmedNotifications(cutoff);
+
+      // then
+      List<Notification> remaining = notificationRepository.findAll();
+      List<UUID> remainingIds = remaining.stream().map(Notification::getId).toList();
+      List<UUID> expectedIds = List.of(recentConfirmed.getId(), unconfirmed.getId());
+
+      assertThat(remainingIds).containsExactlyInAnyOrderElementsOf(expectedIds);
+    }
+  }
 }

@@ -17,8 +17,8 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<PopularBook> searchByPeriodWithCursorPaging(PeriodType period, Direction direction,
-      String cursor, Instant after, int limit) {
+  public List<PopularBook> searchByPeriodWithCursorPaging(
+      PeriodType period, Direction direction, String cursor, Instant after, int limit) {
 
     QPopularBook popularBook = QPopularBook.popularBook;
 
@@ -37,25 +37,24 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
       BooleanBuilder cursorCondition = new BooleanBuilder();
       if (isAsc) {
         cursorCondition.and(
-            popularBook.rank.gt(rank)
-                .or(popularBook.rank.eq(rank).and(popularBook.createdAt.gt(after)))
-        );
+            popularBook
+                .rank
+                .gt(rank)
+                .or(popularBook.rank.eq(rank).and(popularBook.createdAt.gt(after))));
       } else {
         cursorCondition.and(
-            popularBook.rank.lt(rank)
-                .or(popularBook.rank.eq(rank).and(popularBook.createdAt.lt(after)))
-        );
+            popularBook
+                .rank
+                .lt(rank)
+                .or(popularBook.rank.eq(rank).and(popularBook.createdAt.lt(after))));
       }
       condition.and(cursorCondition);
     }
 
-    OrderSpecifier<?>[] orderSpecifiers = isAsc ? new OrderSpecifier[]{
-        popularBook.rank.asc(),
-        popularBook.createdAt.asc()
-    } : new OrderSpecifier[]{
-        popularBook.rank.desc(),
-        popularBook.createdAt.desc()
-    };
+    OrderSpecifier<?>[] orderSpecifiers =
+        isAsc
+            ? new OrderSpecifier[] {popularBook.rank.asc(), popularBook.createdAt.asc()}
+            : new OrderSpecifier[] {popularBook.rank.desc(), popularBook.createdAt.desc()};
 
     return queryFactory
         .selectFrom(popularBook)

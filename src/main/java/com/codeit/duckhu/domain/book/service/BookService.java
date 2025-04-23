@@ -6,6 +6,7 @@ import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
 import com.codeit.duckhu.domain.book.dto.NaverBookDto;
+import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.io.IOException;
 import java.time.Instant;
@@ -17,10 +18,10 @@ public interface BookService {
 
   BookDto registerBook(BookCreateRequest bookData, Optional<MultipartFile> thumbnailImage);
 
-  CursorPageResponseBookDto searchBooks(String keyword, String orderBy, String direction,
+  CursorPageResponseBookDto searchBooks(String keyword, String orderBy, Direction direction,
       String cursor, Instant after, int limit);
 
-  CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, String direction, String cursor,
+  CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, Direction direction, String cursor,
       Instant after, int limit);
 
   BookDto getBookById(UUID id);

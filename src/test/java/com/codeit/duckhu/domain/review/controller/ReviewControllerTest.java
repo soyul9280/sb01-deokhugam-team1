@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.review.controller;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -12,9 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
+import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -147,6 +151,13 @@ public class ReviewControllerTest {
           .andExpect(status().isNoContent());
     }
 
-  }
+    @Test
+    @DisplayName("DELETE /api/reviews/{reviewId}/hard - 물리 삭제 성공")
+    void hardDeleteReview_Success() throws Exception {
+      UUID reviewId = UUID.randomUUID();
 
+      mockMvc.perform(delete("/api/reviews/{reviewId}/hard", reviewId))
+          .andExpect(status().isNoContent());
+    }
+  }
 }

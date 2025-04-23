@@ -39,9 +39,17 @@ public class ReviewController {
   }
 
   @DeleteMapping("/{reviewId}")
-  private ResponseEntity<ReviewDto> softDeleteReview(
-      @PathVariable("reviewId") UUID reviewId) {
+  public ResponseEntity<Void> softDeleteReview(
+      @PathVariable UUID reviewId) {
+
     reviewService.softDeleteReviewById(reviewId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping("/{reviewId}/hard")
+  private ResponseEntity<Void> hardDeleteReview(
+      @PathVariable("reviewId") UUID reviewId) {
+    reviewService.hardDeleteReviewById(reviewId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 

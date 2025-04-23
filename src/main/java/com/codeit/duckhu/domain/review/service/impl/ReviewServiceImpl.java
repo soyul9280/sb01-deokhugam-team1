@@ -109,6 +109,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     review.softDelete();
 
+    reviewRepository.save(review);
+
     // jw
     recalculateBookStats(review.getBook());
   }

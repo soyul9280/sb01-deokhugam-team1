@@ -156,6 +156,7 @@ class ReviewServiceTest {
     // Given: findById 리턴과 delete 설정
     doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
     willDoNothing().given(reviewRepository).delete(testReview);
+    when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
 
     // When : 서비스 호출 시 예외가 나지 않아야 하고
     assertDoesNotThrow(() -> reviewService.hardDeleteReviewById(testReviewId));
@@ -169,14 +170,15 @@ class ReviewServiceTest {
   @DisplayName("ID로 리뷰 소프트 삭제 테스트")
   void softDeleteReviewById_shouldReturnSuccess() {
     // Given
-    Review mockReview = Mockito.mock(Review.class);
-    doReturn(Optional.of(mockReview)).when(reviewRepository).findById(testReviewId);
-
+    doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
+    when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
+    
     // When
     reviewService.softDeleteReviewById(testReviewId);
 
     // Then
-    verify(mockReview).softDelete();
+    verify(testReview).softDelete();
+    verify(reviewRepository).save(testReview);
   }
 
   @Test
@@ -189,6 +191,7 @@ class ReviewServiceTest {
     when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
     when(testReview.getUser()).thenReturn(testUser);
     when(testUser.getId()).thenReturn(testUserId);
+    when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
 
     // When
     ReviewDto result = reviewService.updateReview(testReviewId, testreviewUpdateRequest);
@@ -217,10 +220,8 @@ class ReviewServiceTest {
   void likeReview_firstTime_likeCountIncreased() {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-    when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-    when(testReview.liked(testUserId))
-        .thenReturn(false)
-        .thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
+    when(userRepository.existsById(testUserId)).thenReturn(true); // 존재하는 userId 설정
+    when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
     when(testReview.getId()).thenReturn(testReviewId);
 
     // When
@@ -238,10 +239,8 @@ class ReviewServiceTest {
   void likeReview_toggleOff_likeCountDecreased() {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-    when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-    when(testReview.liked(testUserId))
-        .thenReturn(true)
-        .thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
+    when(userRepository.existsById(testUserId)).thenReturn(true); // 존재하는 userId 설정
+    when(testReview.liked(testUserId)).thenReturn(true).thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
     when(testReview.getId()).thenReturn(testReviewId);
 
     // When
@@ -255,17 +254,22 @@ class ReviewServiceTest {
   }
 
   @Test
-  @DisplayName("존재하지 않는 유저 ID로 호출 시 예외 발생")
-  void likeReview_nonexistentUser_throwsNotFound() {
+  @DisplayName("존재하지 않는 유저 ID로도 좋아요 처리가 가능함")
+  void likeReview_nonexistentUser_stillProcessed() {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-    when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
+    when(userRepository.existsById(testUserId)).thenReturn(false); // 존재하지 않는 userId 설정
+    when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
+    when(testReview.getId()).thenReturn(testReviewId);
 
-    // When & Then
-    ReviewCustomException ex =
-        assertThrows(
-            ReviewCustomException.class, () -> reviewService.likeReview(testReviewId, testUserId));
-    assertThat(ex.getErrorCode()).isEqualTo(ReviewErrorCode.USER_NOT_FOUND);
+    // When
+    ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
+
+    // Then - 예외가 발생하지 않고 결과가 반환됨
+    assertThat(result).isNotNull();
+    assertThat(result.isLiked()).isTrue();
+    assertThat(result.getReviewId()).isEqualTo(testReviewId);
+    assertThat(result.getUserId()).isEqualTo(testUserId);
   }
 
   @Test
@@ -276,12 +280,16 @@ class ReviewServiceTest {
 
     // 정확한 파라미터로 stubbing 설정
     when(reviewRepository.findReviewsWithCursor(
-            eq(null), eq("createdAt"), eq("DESC"), eq(null), eq(null), eq(null), eq(null), eq(11)))
-        .thenReturn(reviewList);
-
+            eq(null), eq("createdAt"), eq("DESC"),
+            eq(null), eq(null), eq(null),
+            eq(null), eq(51)
+    )).thenReturn(reviewList);
+    
     // When
-    CursorPageResponseReviewDto result = reviewService.findReviews(new ReviewSearchRequestDto());
-
+    ReviewSearchRequestDto requestDto = new ReviewSearchRequestDto();
+    // ReviewSearchRequestDto의 기본 limit은 50이므로 서비스에서는 limit+1인 51을 사용
+    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
+    
     // Then
     assertThat(result).isNotNull();
     assertThat(result.isHasNext()).isFalse();

@@ -13,11 +13,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReviewSearchRequestDto {
   private String keyword;
-  private String orderBy;
-  private String direction;
+  
+  @Builder.Default
+  private String orderBy = "createdAt";
+  
+  @Builder.Default
+  private String direction = "DESC";
+  
   private UUID userId;
   private UUID bookId;
   private String cursor;
   private Instant after;
-  private int size = 10;
+  
+  @Builder.Default
+  private int limit = 50;
 }

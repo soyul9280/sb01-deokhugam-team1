@@ -11,7 +11,7 @@ public class FilterConfig {
     FilterRegistrationBean<UserAuthenticationFilter> userAuthFilter(UserAuthenticationFilter filter) {
         FilterRegistrationBean<UserAuthenticationFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(filter);
-        registration.addUrlPatterns("/*");
+        registration.addUrlPatterns("/api/*");
         registration.setOrder(1);
         return registration;
     };

@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.review.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,9 +61,6 @@ public class ReviewControllerTest {
     given(reviewService.createReview(any(ReviewCreateRequest.class)))
         .willReturn(review);
 
-    // When
-
-    // Then
     mockMvc.perform(post("/api/reviews")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -72,6 +71,37 @@ public class ReviewControllerTest {
         .andExpect(jsonPath("$.bookId").value(review.getBookId().toString()))
         .andExpect(jsonPath("$.rating").value(review.getRating()))
         .andExpect(jsonPath("$.content").value(review.getContent()));
+  }
+
+  @Test
+  @DisplayName("PATCH /api/reviews-성공")
+  void updateReview_Success() throws Exception{
+    UUID reviewId = UUID.randomUUID();
+
+    ReviewUpdateRequest request = ReviewUpdateRequest.builder()
+        .userId(UUID.randomUUID())
+        .bookId(UUID.randomUUID())
+        .rating(4)
+        .content("볼만해요 !")
+        .build();
+
+    ReviewDto review = ReviewDto.builder()
+        .id(reviewId)
+        .userId(UUID.randomUUID())
+        .bookId(UUID.randomUUID())
+        .rating(request.getRating())
+        .content(request.getContent())
+        .build();
+
+    given(reviewService.updateReview(any(UUID.class), any(ReviewUpdateRequest.class)))
+        .willReturn(review);
+
+    mockMvc.perform(patch("/api/reviews/{reviewId}", reviewId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.rating").value(request.getRating()))
+        .andExpect(jsonPath("$.content").value(request.getContent()));
   }
 
 }

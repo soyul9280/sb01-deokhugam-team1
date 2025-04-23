@@ -174,7 +174,10 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // 사용자 찾기
-    userRepository.existsById(userId);
+    var isExistUser = userRepository.existsById(userId);
+    if(!isExistUser) {
+      throw new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND);
+    }
 
     boolean likedBefore = review.liked(userId);
 

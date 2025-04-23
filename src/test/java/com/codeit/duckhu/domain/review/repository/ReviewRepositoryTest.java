@@ -166,7 +166,7 @@ public class ReviewRepositoryTest {
         .email("test-cursor1@example.com")
         .nickname("커서테스터1")
         .password("password")
-        .isDeleted(false)
+//        .isDeleted(false)
         .build();
     User savedUser = userRepository.save(user);
 
@@ -240,7 +240,7 @@ public class ReviewRepositoryTest {
         .email("test-cursor2@example.com")
         .nickname("커서테스터2")
         .password("password")
-        .isDeleted(false)
+//        .isDeleted(false)
         .build();
     User savedUser = userRepository.save(user);
 
@@ -314,7 +314,7 @@ public class ReviewRepositoryTest {
         .email("test-keyword@example.com")
         .nickname("키워드테스터")
         .password("password")
-        .isDeleted(false)
+//        .isDeleted(false)
         .build();
     User savedUser = userRepository.save(user);
 
@@ -381,7 +381,7 @@ public class ReviewRepositoryTest {
         .email("test-user1@example.com")
         .nickname("사용자1")
         .password("password")
-        .isDeleted(false)
+//        .isDeleted(false)
         .build();
     User savedUser1 = userRepository.save(user1);
 
@@ -389,7 +389,7 @@ public class ReviewRepositoryTest {
         .email("test-user2@example.com")
         .nickname("사용자2")
         .password("password")
-        .isDeleted(false)
+//        .isDeleted(false)
         .build();
     User savedUser2 = userRepository.save(user2);
 
@@ -459,7 +459,7 @@ public class ReviewRepositoryTest {
         .email("test-book@example.com")
         .nickname("도서테스터")
         .password("password")
-        .isDeleted(false)
+//        .isDeleted(false)
         .build();
     User savedUser = userRepository.save(user);
 

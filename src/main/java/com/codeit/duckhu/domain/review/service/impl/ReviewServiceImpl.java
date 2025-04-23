@@ -180,24 +180,24 @@ public class ReviewServiceImpl implements ReviewService {
   public CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto) {
     // 요청 DTO에서 필요한 값 추출
     String keyword = requestDto.getKeyword();
-    String orderBy = requestDto.getOrderBy() != null ? requestDto.getOrderBy() : "createdAt";
-    String direction = requestDto.getDirection() != null ? requestDto.getDirection() : "DESC";
+    String orderBy = requestDto.getOrderBy();
+    String direction = requestDto.getDirection();
     UUID userId = requestDto.getUserId();
     UUID bookId = requestDto.getBookId();
     String cursor = requestDto.getCursor();
     Instant after = requestDto.getAfter();
-    int size = requestDto.getSize() > 0 ? requestDto.getSize() : 10;
+    int limit = requestDto.getLimit();
 
     // 리포지토리 메서드 호출하여 데이터 조회
     List<Review> reviews = reviewRepository.findReviewsWithCursor(
-        keyword, orderBy, direction, userId, bookId, cursor, after, size + 1
+        keyword, orderBy, direction, userId, bookId, cursor, after, limit + 1
     );
 
     // 다음 페이지 존재 여부 확인 (N+1 조회 방식)
-    boolean hasNext = reviews.size() > size;
+    boolean hasNext = reviews.size() > limit;
 
     // 실제 응답에 포함될 리뷰 목록 (마지막 요소는 next cursor 확인용이므로 제외)
-    List<Review> responseReviews = hasNext ? reviews.subList(0, size) : reviews;
+    List<Review> responseReviews = hasNext ? reviews.subList(0, limit) : reviews;
 
     // 다음 페이지 커서 정보 설정
     String nextCursor = null;
@@ -222,6 +222,7 @@ public class ReviewServiceImpl implements ReviewService {
         .nextCursor(nextCursor)
         .nextAfter(nextAfter)
         .hasNext(hasNext)
+        .size(responseReviews.size())
         .build();
   }
 

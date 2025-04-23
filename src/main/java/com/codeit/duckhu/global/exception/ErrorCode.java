@@ -31,7 +31,14 @@ public enum ErrorCode {
   LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.", "USER_401"),
   NOT_FOUND_USER(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다.", "USER_404"),
   UNAUTHORIZED_UPDATE(HttpStatus.FORBIDDEN, "사용자 정보 수정 권한 없음", "USER_403"),
-  UNAUTHORIZED_DELETE(HttpStatus.FORBIDDEN, "사용자 삭제 권한 없음", "USER_403");
+  UNAUTHORIZED_DELETE(HttpStatus.FORBIDDEN, "사용자 삭제 권한 없음", "USER_403"),
+
+  //notification
+  NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 알림을 찾을 수 없습니다.", "존재하지 않는 알림입니다."),
+  NOTIFICATION_ALREADY_CONFIRMED(HttpStatus.BAD_REQUEST, "이미 확인된 알림입니다.", "해당 알림은 이미 확인되었습니다."),
+  FAILED_TO_CREATE_NOTIFICATION(HttpStatus.INTERNAL_SERVER_ERROR, "알림 생성에 실패했습니다.", "알림 저장 중 오류가 발생했습니다."),
+  INVALID_NOTIFICATION_RECEIVER(HttpStatus.FORBIDDEN, "알림 수정 권한이 없습니다.", "해당 알림에 접근할 수 없습니다.");
+
 
   private final HttpStatus status;
   private final String message;

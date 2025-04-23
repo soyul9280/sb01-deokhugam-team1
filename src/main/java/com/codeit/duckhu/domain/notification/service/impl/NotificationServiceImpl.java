@@ -2,19 +2,22 @@ package com.codeit.duckhu.domain.notification.service.impl;
 
 import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
-import com.codeit.duckhu.domain.comment.service.ErrorCode;
 import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.entity.Notification;
 import com.codeit.duckhu.domain.notification.exception.NotificationAccessDeniedException;
+import com.codeit.duckhu.domain.notification.exception.NotificationAlreadyConfirmedException;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
 import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
 import com.codeit.duckhu.domain.notification.repository.NotificationRepository;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
+import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -59,8 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
             .findById(triggerUserId)
             .orElseThrow(
                 () ->
-                    new NotFoundUserException(
-                        com.codeit.duckhu.global.exception.ErrorCode.NOT_FOUND_USER));
+                    new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
     String nickname = triggerUser.getNickname();
 
     // Todo
@@ -91,7 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
     Review review =
         reviewRepository
             .findById(reviewId)
-            .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
+            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     // 2. 수신자 ID = 리뷰 작성자의 ID
     UUID receiverId = review.getUser().getId();
@@ -102,8 +104,7 @@ public class NotificationServiceImpl implements NotificationService {
             .findById(triggerUserId)
             .orElseThrow(
                 () ->
-                    new NotFoundUserException(
-                        com.codeit.duckhu.global.exception.ErrorCode.NOT_FOUND_USER));
+                    new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
     String nickname = triggerUser.getNickname();
 
     // 알림 객체 생성
@@ -131,11 +132,16 @@ public class NotificationServiceImpl implements NotificationService {
     Notification notification =
         notificationRepository
             .findById(notificationId)
-            .orElseThrow(() -> new NotificationNotFoundException(notificationId));
+            .orElseThrow(() -> new NotificationNotFoundException(ErrorCode.NOTIFICATION_NOT_FOUND));
 
     // 2. 알림의 수신자가 현재 요청자와 다를 경우 접근 권한 없음 예외 발생
     if (!notification.getReceiverId().equals(receiverId)) {
-      throw new NotificationAccessDeniedException(receiverId, notificationId);
+      throw new NotificationAccessDeniedException(ErrorCode.INVALID_NOTIFICATION_RECEIVER);
+    }
+
+    // 이미 확인된 알림에 대해 다시 true 요청이 들어오면 400
+    if (confirmed && notification.isConfirmed()) {
+      throw new NotificationAlreadyConfirmedException(ErrorCode.NOTIFICATION_ALREADY_CONFIRMED);
     }
 
     // 3. 요청값이 true인 경우에만 확인 처리 (추후 false 처리 허용 시 확장 가능)

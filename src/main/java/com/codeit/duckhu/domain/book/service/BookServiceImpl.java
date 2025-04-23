@@ -1,9 +1,13 @@
 package com.codeit.duckhu.domain.book.service;
 
 import com.codeit.duckhu.domain.book.dto.BookUpdateRequest;
+import com.codeit.duckhu.domain.book.dto.CursorPageResponsePopularBookDto;
+import com.codeit.duckhu.domain.book.dto.PopularBookDto;
 import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.book.entity.PopularBook;
 import com.codeit.duckhu.domain.book.exception.BookException;
 import com.codeit.duckhu.domain.book.exception.OCRException;
+import com.codeit.duckhu.domain.book.mapper.PopularBookMapper;
 import com.codeit.duckhu.domain.book.naver.NaverBookClient;
 import com.codeit.duckhu.domain.book.dto.BookCreateRequest;
 import com.codeit.duckhu.domain.book.dto.BookDto;
@@ -12,12 +16,12 @@ import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.mapper.BookMapper;
 import com.codeit.duckhu.domain.book.ocr.OcrExtractor;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
-import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.global.exception.ErrorCode;
+import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +42,11 @@ public class BookServiceImpl implements BookService {
 
   private final BookRepository bookRepository;
 
+  private final PopularBookRepository popularBookRepository;
+
   private final BookMapper bookMapper;
+
+  private final PopularBookMapper popularBookMapper;
 
   private final ThumbnailImageStorage thumbnailImageStorage;
 
@@ -149,11 +157,45 @@ public class BookServiceImpl implements BookService {
         hasNext);
   }
 
-//  @Override
-//  public CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, String direction, String cursor,
-//      Instant after, int limit) {
-//    return null;
-//  }
+  @Override
+  public CursorPageResponsePopularBookDto searchPopularBooks(PeriodType period, String direction, String cursor,
+      Instant after, int limit) {
+
+    boolean isAsc = "ASC".equalsIgnoreCase(direction);
+
+    int pageLimit = limit + 1;
+
+    List<PopularBook> books = popularBookRepository.searchByPeriodWithCursorPaging(period,
+        direction, cursor, after, pageLimit);
+
+    boolean hasNext = books.size() > limit;
+    if (hasNext) {
+      books = books.subList(0, limit);
+    }
+
+    List<PopularBookDto> content = books.stream()
+        .map(popularBookMapper::toDto)
+        .toList();
+
+    String nextCursor = null;
+    Instant nextAfter = null;
+    if (hasNext && !books.isEmpty()) {
+      PopularBook last = books.get(books.size() - 1);
+      nextCursor = String.valueOf(last.getRank());
+      nextAfter = last.getCreatedAt();
+    }
+
+    int total = popularBookRepository.countByPeriod(period);
+
+    return new CursorPageResponsePopularBookDto(
+        content,
+        nextCursor,
+        nextAfter,
+        limit,
+        total,
+        hasNext
+    );
+  }
 
   /**
    * 도서 정보 상세 조회

@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.notification.service.impl;
 
 import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
+import com.codeit.duckhu.domain.notification.dto.CursorPageResponseNotificationDto;
 import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.entity.Notification;
 import com.codeit.duckhu.domain.notification.exception.NotificationAccessDeniedException;
@@ -23,8 +24,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   @Transactional
   public NotificationDto createNotifyByLike(UUID reviewId, UUID triggerUserId) {
+
     // 1. 리뷰 조회 → 수신자 ID 확보
     Review review =
         reviewRepository.findById(reviewId).orElseThrow(() -> new NoSuchElementException());
@@ -112,6 +118,51 @@ public class NotificationServiceImpl implements NotificationService {
         Notification.forComment(reviewId, receiverId, nickname, comment, review.getContent());
 
     return notificationMapper.toDto(notificationRepository.save(notification));
+  }
+
+  @Override
+  public CursorPageResponseNotificationDto getNotifications(UUID receiverId, String direction, Instant cursor, int limit) {
+    log.info("서비스 시작: getNotifications, receiverId={}, direction={}, cursor={}, limit={}",
+        receiverId, direction, cursor, limit);
+
+    // 1) 정렬 방향 & 페이징 설정
+    Sort.Direction sortDir = "ASC".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(sortDir, "createdAt"));
+
+    // 2) JPQL 메서드 분기 호출
+    List<Notification> raw;
+    if ("ASC".equalsIgnoreCase(direction)) {
+      raw = (cursor == null) ? notificationRepository.findAscNoCursor(receiverId, pageable) : notificationRepository.findAscWithCursor(receiverId, cursor, pageable);
+    } else {
+      raw = (cursor == null) ? notificationRepository.findDescNoCursor(receiverId, pageable) : notificationRepository.findDescWithCursor(receiverId, cursor, pageable);
+    }
+
+    // 3) hasNext 판단 및 잘라내기
+    boolean hasNext = raw.size() > limit;
+    List<Notification> page = hasNext ? raw.subList(0, limit) : raw;
+
+    // 4) DTO 변환
+    List<NotificationDto> content = page.stream()
+        .map(notificationMapper::toDto)
+        .collect(Collectors.toList());
+
+    // 5) nextCursor/nextAfter
+    Instant nextAfter = hasNext ? page.get(page.size() - 1).getCreatedAt() : null;
+    String nextCursor = nextAfter != null ? nextAfter.toString() : null;
+
+    // 6) 전체 카운트
+    long total = notificationRepository.countByReceiverId(receiverId);
+    log.info("전체 알림 카운트: receiverId={}, total={}", receiverId, total);
+
+    log.info("서비스 종료: getNotifications 반환 DTO 준비 완료");
+    return new CursorPageResponseNotificationDto(
+        content,
+        nextCursor,
+        nextAfter,
+        content.size(),
+        total,
+        hasNext
+    );
   }
 
   /**

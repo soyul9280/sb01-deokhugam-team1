@@ -70,14 +70,17 @@ public class CommentService {
             .user(userService.findByIdEntityReturn(request.getUserId()))
             .review(reviewService.findByIdEntityReturn(request.getReviewId()))
             .content(request.getContent())
+            .isDeleted(false)
             .build();
 
     repository.save(comment);
 
     // 알림 생성 로직 이 과정에서 comment의 저장은 영향이 가지 않도록 try catch문으로 잡는다
     try {
+      log.info("알림 생성 시작");
       notificationService.createNotifyByComment(
           request.getReviewId(), request.getUserId(), request.getContent());
+      log.info("알림 생성 완료");
     } catch (NotificationException e) {
       // 예외 로깅만 하고 무시
       log.debug("알림 생성 실패: {}", e.getMessage(), e);

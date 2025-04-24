@@ -208,9 +208,9 @@ public class ReviewServiceImpl implements ReviewService {
     int limit = requestDto.getLimit();
 
     // 리포지토리 메서드 호출하여 데이터 조회
-    List<Review> reviews = reviewRepository.findReviewsWithCursor(
-        keyword, orderBy, direction, userId, bookId, cursor, after, limit + 1
-    );
+    List<Review> reviews =
+        reviewRepository.findReviewsWithCursor(
+            keyword, orderBy, direction, userId, bookId, cursor, after, limit + 1);
 
     // 다음 페이지 존재 여부 확인 (N+1 조회 방식)
     boolean hasNext = reviews.size() > limit;

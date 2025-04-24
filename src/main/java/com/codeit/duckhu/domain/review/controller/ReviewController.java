@@ -37,8 +37,7 @@ public class ReviewController {
 
   @PatchMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> updateReview(
-      @PathVariable("reviewId") UUID reviewId,
-      @Valid @RequestBody ReviewUpdateRequest request) {
+      @PathVariable("reviewId") UUID reviewId, @Valid @RequestBody ReviewUpdateRequest request) {
     ReviewDto review = reviewService.updateReview(reviewId, request);
     return ResponseEntity.ok(review);
   }
@@ -72,19 +71,20 @@ public class ReviewController {
       @RequestParam(name = "after", required = false) String after,
       @RequestParam(name = "limit", required = false) Integer limit) {
 
-      ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder()
-          .keyword(keyword)
-          .orderBy(orderBy)
-          .direction(direction)
-          .userId(userId)
-          .bookId(bookId)
-          .cursor(cursor)
-          .after(after != null ? Instant.parse(after) : null)
-          // limit가 null이면 기본값인 50이 적용됨?
-          .limit(limit != null ? limit : 50)
-          .build();
+    ReviewSearchRequestDto requestDto =
+        ReviewSearchRequestDto.builder()
+            .keyword(keyword)
+            .orderBy(orderBy)
+            .direction(direction)
+            .userId(userId)
+            .bookId(bookId)
+            .cursor(cursor)
+            .after(after != null ? Instant.parse(after) : null)
+            // limit가 null이면 기본값인 50이 적용됨?
+            .limit(limit != null ? limit : 50)
+            .build();
 
-      CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
-      return ResponseEntity.ok(result);
+    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
+    return ResponseEntity.ok(result);
   }
 }

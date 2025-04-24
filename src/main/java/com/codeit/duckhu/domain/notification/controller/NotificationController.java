@@ -4,6 +4,9 @@ import com.codeit.duckhu.domain.notification.dto.CursorPageResponseNotificationD
 import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.dto.NotificationUpdateRequest;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
@@ -31,10 +34,17 @@ public class NotificationController {
 
     @GetMapping
     public CursorPageResponseNotificationDto getNotifications(
+        HttpServletRequest httpservlet,
         @RequestParam UUID userId,
         @RequestParam(defaultValue = "DESC") String direction,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant cursor,
         @RequestParam(defaultValue = "20") int limit) {
+
+        User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
+        if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
+            log.warn("비인증 사용자 알림 목록 요청 차단: userId={}", userId);
+            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
+        }
 
         log.info("API 호출: GET /api/notifications, userId={}, direction={}, cursor={}, limit={}",
             userId, direction, cursor, limit);
@@ -52,30 +62,49 @@ public class NotificationController {
      * 특정 알림의 읽음 상태를 업데이트합니다.
      *
      * @param notificationId 읽음 처리할 알림 ID
-     * @param userId         요청자 ID (헤더)
+     * @param httpservlet         요청자 ID (헤더)
      * @param request        읽음 여부 정보
      * @return 업데이트된 알림 정보
      */
     @PatchMapping("/{notificationId}")
     public ResponseEntity<NotificationDto> updateConfirmedStatus(
         @PathVariable UUID notificationId,
-        @RequestHeader("Deokhugam-Request-User-ID") UUID userId,
+        HttpServletRequest httpservlet,
         @RequestBody @Valid NotificationUpdateRequest request) {
+
+        User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
+        if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
+            log.warn("비인증 사용자 알림 읽음 처리 시도 차단: notificationId={}", notificationId);
+            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
+        }
+
+        log.info("알림 읽음 요청: notificationId={}, userId={}, confirmed={}",
+            notificationId, authenticatedUser.getId(), request.confirmed());
         NotificationDto updated =
-            notificationService.updateConfirmedStatus(notificationId, userId, request.confirmed());
+            notificationService.updateConfirmedStatus(notificationId, authenticatedUser.getId(), request.confirmed());
+        log.info("알림 읽음 처리 완료: notificationId={}, userId={}", updated.id(), authenticatedUser.getId());
         return ResponseEntity.ok(updated);
     }
 
     /**
      * 사용자의 모든 알림을 읽음 상태로 일괄 처리합니다.
      *
-     * @param userId 요청자 ID (헤더)
+     * @param httpServlet 요청자 ID (헤더)
      * @return 204 No Content
      */
     @PatchMapping("/read-all")
     public ResponseEntity<Void> updateAllConfirmedStatus(
-        @RequestHeader("Deokhugam-Request-User-ID") UUID userId) {
-        notificationService.updateAllConfirmedStatus(userId);
+        HttpServletRequest httpServlet) {
+        User authenticatedUser = (User) httpServlet.getAttribute("authenticatedUser");
+        if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
+            log.warn("비인증 사용자 전체 알림 읽음 시도 차단");
+            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
+        }
+
+        log.info("전체 알림 읽음 요청: userId={}", authenticatedUser.getId());
+        notificationService.updateAllConfirmedStatus(authenticatedUser.getId());
+        log.info("전체 알림 읽음 처리 완료: userId={}", authenticatedUser.getId());
+
         return ResponseEntity.noContent().build();
     }
 }

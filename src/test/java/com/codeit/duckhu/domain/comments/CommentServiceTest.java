@@ -25,6 +25,7 @@ import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
+import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -236,7 +237,7 @@ class CommentServiceTest {
     given(commentMapper.toDto(comment)).willReturn(dto);
     given(commentRepository.findByReview_Id(reviewId)).willReturn(comments);
 
-    CursorPageResponseCommentDto responseCommentDto = commentService.getList(reviewId, "ASC", null, Instant.now(), 10);
+    CursorPageResponseCommentDto responseCommentDto = commentService.getList(reviewId, Direction.ASC, null, Instant.now(), 10);
 
     assertThat(responseCommentDto.getContent()).hasSize(1);
     assertThat(responseCommentDto.getContent().get(0).getContent()).isEqualTo("test comment");

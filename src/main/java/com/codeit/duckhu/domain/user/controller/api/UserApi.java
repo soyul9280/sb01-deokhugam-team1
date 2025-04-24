@@ -1,9 +1,12 @@
 package com.codeit.duckhu.domain.user.controller.api;
 
+import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,7 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
+import java.time.Instant;
 import java.util.UUID;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +29,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "사용자 관리", description = "사용자 관련 API")
 public interface UserApi {
@@ -157,4 +165,27 @@ public interface UserApi {
   ResponseEntity<Void> hardDelete(
       HttpServletRequest request,
       @Parameter(description = "사용자 ID") @PathVariable("userId") UUID targetId);
+
+
+  @Operation(summary = "파워 유저 목록 조회", description = "기간별 파워 유저 목록을 조회합니다.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "파워 유저 목록 조회 성공",
+            content = @Content(schema = @Schema(implementation = CursorPageResponsePowerUserDto.class))),
+    @ApiResponse(
+        responseCode = "400",
+        description = "잘못된 요청(랭킹 기간 오류, 정렬 방향 오류 등)",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @ApiResponse(
+        responseCode = "500",
+        description = "서버 내부 오류",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  @GetMapping("/api/users/power")
+  ResponseEntity<CursorPageResponsePowerUserDto> findPowerUsers(
+      @Parameter(description = "랭킹 기간") @RequestParam PeriodType period,
+      @Parameter(description = "정렬 방향") @RequestParam(defaultValue = "ASC") Direction direction,
+      @Parameter(description = "커서 페이지네이션 커서") @RequestParam(required = false) String cursor,
+      @Parameter(description = "보조 커서(createdAt)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant after,
+      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "50") int limit
+      );
 }

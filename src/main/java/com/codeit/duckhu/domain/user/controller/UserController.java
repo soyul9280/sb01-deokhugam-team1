@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.user.controller;
 
 import com.codeit.duckhu.domain.user.controller.api.UserApi;
+import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
@@ -9,8 +10,12 @@ import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
 import com.codeit.duckhu.domain.user.service.UserService;
 import com.codeit.duckhu.global.exception.ErrorCode;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -100,5 +105,12 @@ public class UserController implements UserApi {
     }
     userService.hardDelete(targetId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  @Override
+  @GetMapping("/power")
+  public ResponseEntity<CursorPageResponsePowerUserDto> findPowerUsers(PeriodType period, Direction direction, String cursor, Instant after, int limit) {
+    CursorPageResponsePowerUserDto result = userService.findPowerUsers(period, direction, cursor, after, limit);
+    return ResponseEntity.status(HttpStatus.OK).body(result);
   }
 }

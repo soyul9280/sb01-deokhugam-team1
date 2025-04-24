@@ -44,7 +44,7 @@ public class PopularReviewBatchService {
       log.info("{} 기간 인기 리뷰 계산 시작 (시작 시간: {})", period, startTime);
 
       // 삭제되지 않은 모든 리뷰 조회
-      List<Review> allActiveReviews = reviewRepository.findAllByDeletedFalse();
+      List<Review> allActiveReviews = reviewRepository.findAllByIsDeletedFalse();
       List<PopularReviewData> scoredReviews = new ArrayList<>();
 
       for (Review review : allActiveReviews) {

@@ -42,5 +42,5 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   double calculateAverageRatingByBookIdAndCreatedAtBetween(@Param("bookId") UUID bookId,
       @Param("from") Instant from, @Param("to") Instant to);
 
-  List<Review> findAllByDeletedFalse();
+  List<Review> findAllByIsDeletedFalse();
 }

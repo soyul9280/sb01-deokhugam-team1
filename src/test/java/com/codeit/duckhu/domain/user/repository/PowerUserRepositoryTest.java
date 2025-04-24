@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.user.repository;
 
 import com.codeit.duckhu.config.QueryDslConfig;
+import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.user.dto.PowerUserStatsDto;
 import com.codeit.duckhu.domain.user.entity.PowerUser;
 import com.codeit.duckhu.domain.user.entity.User;
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 @Sql("/data.sql")
-@Import({PowerUserRepositoryImpl.class, QueryDslConfig.class})
+@Import({PowerUserRepositoryImpl.class, TestJpaConfig.class})
 public class PowerUserRepositoryTest {
 
     @Autowired

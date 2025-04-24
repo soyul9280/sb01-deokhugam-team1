@@ -68,7 +68,7 @@ public class Review extends BaseUpdatableEntity {
   @Builder.Default
   private List<LikedUserId> likedUserIds = new ArrayList<>();
 
-  @Version private Long version;
+ // @Version private Long version;
 
   public void updateContent(String content) {
     this.content = content;

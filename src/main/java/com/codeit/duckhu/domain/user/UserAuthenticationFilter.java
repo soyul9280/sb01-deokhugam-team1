@@ -55,8 +55,9 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
   private boolean isPublicPath(String path) {
     return path.equals("/")
-        || path.startsWith("/api/users/login")
-        || path.startsWith("/api/users")
+        || path.equals("/api/users/login")
+        || path.equals("/api/users")
+        || path.equals("/api/users/power")
         || path.startsWith("/static")
         || path.startsWith("/favicon.ico")
         || path.startsWith("/index.html")

@@ -15,4 +15,6 @@ public interface PopularReviewRepositoryCustom {
       int size);
 
   long countByPeriodSince(PeriodType period, Instant from);
+
+  void deleteByPeriod(PeriodType period);
 }

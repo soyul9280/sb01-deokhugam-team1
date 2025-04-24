@@ -11,6 +11,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositoryCustom {
@@ -89,5 +90,14 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
         .from(review)
         .where(booleanBuilder)
         .fetchOne();
+  }
+
+  @Override
+  @Transactional
+  public void deleteByPeriod(PeriodType period) {
+    queryFactory
+        .delete(review)
+        .where(review.period.eq(period))
+        .execute();
   }
 }

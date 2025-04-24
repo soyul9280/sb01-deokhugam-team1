@@ -1,8 +1,11 @@
 package com.codeit.duckhu.domain.book.service;
 
+import com.codeit.duckhu.domain.book.dto.BookDto;
+import java.time.Instant;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,22 +30,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceImplTest {
 
   @Mock private BookRepository bookRepository;
 
-  @Mock private ReviewRepository reviewRepository;
-
   @Mock private BookMapper bookMapper;
 
   @Mock private ThumbnailImageStorage thumbnailImageStorage;
-
-  @Mock private NaverBookClient naverBookClient;
-
-  @Mock private OcrExtractor ocrExtractor;
 
   @InjectMocks private BookServiceImpl bookService;
 
@@ -50,86 +49,86 @@ public class BookServiceImplTest {
   @DisplayName("도서 저장")
   class SaveBookTest {
 
-    //    @Test
-    //    @DisplayName("도서 등록 성공 - 썸네일 있음")
-    //    void registerBook_withThumbnail() {
-    //      // given
-    //      BookCreateRequest request = new BookCreateRequest(
-    //          "Effective Java", "Joshua Bloch", "Best practices", "Addison-Wesley",
-    //          LocalDate.of(2018, 1, 1), "9780134685991"
-    //      );
-    //
-    //      MultipartFile file = new MockMultipartFile("file", "image.jpg", "image/jpeg",
-    //          "image-content".getBytes());
-    //      String thumbnailUrl = "https://s3.com/image.jpg";
-    //
-    //      Book savedBook = Book.builder()
-    //          .title(request.title())
-    //          .author(request.author())
-    //          .description(request.description())
-    //          .publisher(request.publisher())
-    //          .publishedDate(request.publishedDate())
-    //          .isbn(request.isbn())
-    //          .thumbnailUrl(thumbnailUrl)
-    //          .build();
-    //
-    //      BookDto expectedDto = new BookDto(
-    //          UUID.randomUUID(), request.title(), request.author(), request.description(),
-    //          request.publisher(), request.publishedDate(), request.isbn(),
-    //          thumbnailUrl, 0, 0.0, Instant.now(), Instant.now()
-    //      );
-    //
-    //      given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
-    //      given(thumbnailImageStorage.upload(file)).willReturn(thumbnailUrl);
-    //      given(bookRepository.save(any(Book.class))).willReturn(savedBook);
-    //      given(bookMapper.toDto(any(Book.class))).willReturn(expectedDto);
-    //
-    //      // when
-    //      BookDto result = bookService.registerBook(request, Optional.of(file));
-    //
-    //      // then
-    //      assertThat(result).isEqualTo(expectedDto);
-    //      verify(bookRepository).save(any(Book.class));
-    //      verify(thumbnailImageStorage).upload(file);
-    //    }
+        @Test
+        @DisplayName("도서 등록 성공 - 썸네일 있음")
+        void registerBook_withThumbnail() {
+          // given
+          BookCreateRequest request = new BookCreateRequest(
+              "Effective Java", "Joshua Bloch", "Best practices", "Addison-Wesley",
+              LocalDate.of(2018, 1, 1), "9780134685991"
+          );
 
-    //    @Test
-    //    @DisplayName("도서 등록 성공 - 썸네일 없음")
-    //    void registerBook_withoutThumbnail_success() {
-    //      // given
-    //      BookCreateRequest request = new BookCreateRequest(
-    //          "Clean Code", "Robert C. Martin", "Clean coding principles", "Prentice Hall",
-    //          LocalDate.of(2008, 8, 1), "9780132350884"
-    //      );
-    //
-    //      Book savedBook = Book.builder()
-    //          .title(request.title())
-    //          .author(request.author())
-    //          .description(request.description())
-    //          .publisher(request.publisher())
-    //          .publishedDate(request.publishedDate())
-    //          .isbn(request.isbn())
-    //          .thumbnailUrl(null)
-    //          .build();
-    //
-    //      BookDto expectedDto = new BookDto(
-    //          UUID.randomUUID(), request.title(), request.author(), request.description(),
-    //          request.publisher(), request.publishedDate(), request.isbn(),
-    //          null, 0, 0.0, Instant.now(), Instant.now()
-    //      );
-    //
-    //      given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
-    //      given(bookRepository.save(any(Book.class))).willReturn(savedBook);
-    //      given(bookMapper.toDto(any(Book.class))).willReturn(expectedDto);
-    //
-    //      // when
-    //      BookDto result = bookService.registerBook(request, Optional.empty());
-    //
-    //      // then
-    //      assertThat(result).isEqualTo(expectedDto);
-    //      verify(bookRepository).save(any(Book.class));
-    //      verify(thumbnailImageStorage, never()).upload(any());
-    //    }
+          MultipartFile file = new MockMultipartFile("file", "image.jpg", "image/jpeg",
+              "image-content".getBytes());
+          String thumbnailUrl = "https://s3.com/image.jpg";
+
+          Book savedBook = Book.builder()
+              .title(request.title())
+              .author(request.author())
+              .description(request.description())
+              .publisher(request.publisher())
+              .publishedDate(request.publishedDate())
+              .isbn(request.isbn())
+              .thumbnailUrl(thumbnailUrl)
+              .build();
+
+          BookDto expectedDto = new BookDto(
+              UUID.randomUUID(), request.title(), request.author(), request.description(),
+              request.publisher(), request.publishedDate(), request.isbn(),
+              thumbnailUrl, 0, 0.0, Instant.now(), Instant.now()
+          );
+
+          given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
+          given(thumbnailImageStorage.upload(file)).willReturn(thumbnailUrl);
+          given(bookRepository.save(any(Book.class))).willReturn(savedBook);
+          given(bookMapper.toDto(any(Book.class), any())).willReturn(expectedDto);
+
+          // when
+          BookDto result = bookService.registerBook(request, Optional.of(file));
+
+          // then
+          assertThat(result).isEqualTo(expectedDto);
+          verify(bookRepository).save(any(Book.class));
+          verify(thumbnailImageStorage).upload(file);
+        }
+
+        @Test
+        @DisplayName("도서 등록 성공 - 썸네일 없음")
+        void registerBook_withoutThumbnail_success() {
+          // given
+          BookCreateRequest request = new BookCreateRequest(
+              "Clean Code", "Robert C. Martin", "Clean coding principles", "Prentice Hall",
+              LocalDate.of(2008, 8, 1), "9780132350884"
+          );
+
+          Book savedBook = Book.builder()
+              .title(request.title())
+              .author(request.author())
+              .description(request.description())
+              .publisher(request.publisher())
+              .publishedDate(request.publishedDate())
+              .isbn(request.isbn())
+              .thumbnailUrl(null)
+              .build();
+
+          BookDto expectedDto = new BookDto(
+              UUID.randomUUID(), request.title(), request.author(), request.description(),
+              request.publisher(), request.publishedDate(), request.isbn(),
+              null, 0, 0.0, Instant.now(), Instant.now()
+          );
+
+          given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
+          given(bookRepository.save(any(Book.class))).willReturn(savedBook);
+          given(bookMapper.toDto(any(Book.class), any())).willReturn(expectedDto);
+
+          // when
+          BookDto result = bookService.registerBook(request, Optional.empty());
+
+          // then
+          assertThat(result).isEqualTo(expectedDto);
+          verify(bookRepository).save(any(Book.class));
+          verify(thumbnailImageStorage, never()).upload(any());
+        }
 
     @Test
     @DisplayName("ISBN 중복 시 예외 발생")
@@ -177,51 +176,49 @@ public class BookServiceImplTest {
   @DisplayName("도서 업데이트")
   class UpdateBookTest {
 
-    //    @Test
-    //    @DisplayName("도서 정보와 썸네일을 수정하면 BookDto가 반환된다.")
-    //    void updateBook_withThumbnailImage_success() {
-    //      // Given
-    //      UUID bookId = UUID.randomUUID();
-    //      Book originalBook = Book.builder()
-    //          .title("Old Title")
-    //          .author("Old Author")
-    //          .description("Old Desc")
-    //          .publisher("Old Publisher")
-    //          .publishedDate(LocalDate.of(2000, 1, 1))
-    //          .isDeleted(false)
-    //          .build();
-    //      ReflectionTestUtils.setField(originalBook, "id", bookId);
-    //
-    //      BookUpdateRequest request = new BookUpdateRequest(
-    //          "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
-    //      );
-    //
-    //      MultipartFile thumbnail = new MockMultipartFile("thumbnail", "thumbnail.jpg",
-    // "image/jpeg",
-    //          "fake".getBytes());
-    //      String uploadedUrl = "https://s3.bucket/thumbnail.jpg";
-    //
-    //      int reviewCount = 5;
-    //      double rating = 4.2;
-    //      BookDto expectedDto = new BookDto(bookId, "New Title", "New Author", "New Desc",
-    //          "New Publisher",
-    //          LocalDate.now(), null, uploadedUrl, reviewCount, rating, Instant.now(),
-    // Instant.now());
-    //
-    //      given(bookRepository.findById(bookId)).willReturn(Optional.of(originalBook));
-    //      given(thumbnailImageStorage.upload(thumbnail)).willReturn(uploadedUrl);
-    //      given(reviewRepository.countByBookId(bookId)).willReturn(reviewCount);
-    //      given(reviewRepository.calculateAverageRatingByBookId(bookId)).willReturn(rating);
-    //      given(bookMapper.toDto(originalBook)).willReturn(expectedDto);
-    //
-    //      // When
-    //      BookDto result = bookService.updateBook(bookId, request, Optional.of(thumbnail));
-    //
-    //      // Then
-    //      assertThat(result).isEqualTo(expectedDto);
-    //      assertThat(originalBook.getTitle()).isEqualTo("New Title");
-    //      assertThat(originalBook.getThumbnailUrl()).isEqualTo(uploadedUrl);
-    //    }
+        @Test
+        @DisplayName("도서 정보와 썸네일을 수정하면 BookDto가 반환된다.")
+        void updateBook_withThumbnailImage_success() {
+          // Given
+          UUID bookId = UUID.randomUUID();
+          Book originalBook = Book.builder()
+              .title("Old Title")
+              .author("Old Author")
+              .description("Old Desc")
+              .publisher("Old Publisher")
+              .publishedDate(LocalDate.of(2000, 1, 1))
+              .isDeleted(false)
+              .build();
+          ReflectionTestUtils.setField(originalBook, "id", bookId);
+
+          BookUpdateRequest request = new BookUpdateRequest(
+              "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
+          );
+
+          MultipartFile thumbnail = new MockMultipartFile("thumbnail", "thumbnail.jpg",
+     "image/jpeg",
+              "fake".getBytes());
+          String uploadedUrl = "https://s3.bucket/thumbnail.jpg";
+
+          int reviewCount = 5;
+          double rating = 4.2;
+          BookDto expectedDto = new BookDto(bookId, "New Title", "New Author", "New Desc",
+              "New Publisher",
+              LocalDate.now(), null, uploadedUrl, reviewCount, rating, Instant.now(),
+     Instant.now());
+
+          given(bookRepository.findById(bookId)).willReturn(Optional.of(originalBook));
+          given(thumbnailImageStorage.upload(thumbnail)).willReturn(uploadedUrl);
+          given(bookMapper.toDto(eq(originalBook), any())).willReturn(expectedDto);
+
+          // When
+          BookDto result = bookService.updateBook(bookId, request, Optional.of(thumbnail));
+
+          // Then
+          assertThat(result).isEqualTo(expectedDto);
+          assertThat(originalBook.getTitle()).isEqualTo("New Title");
+          assertThat(originalBook.getThumbnailUrl()).isEqualTo(uploadedUrl);
+        }
 
     @Test
     @DisplayName("도서 수정 실패 - 존재하지 않는 도서")

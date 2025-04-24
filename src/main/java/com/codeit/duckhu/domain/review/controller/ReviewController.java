@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.review.controller;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
@@ -30,9 +31,18 @@ public class ReviewController {
   private final ReviewService reviewService;
 
   @PostMapping
-  public ResponseEntity<ReviewDto> createReview(@Valid @RequestBody ReviewCreateRequest request) {
+  public ResponseEntity<ReviewDto> createReview(
+      @Valid @RequestBody ReviewCreateRequest request) {
     ReviewDto review = reviewService.createReview(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(review);
+  }
+
+  @PostMapping("/{reviewId}/like")
+  public ResponseEntity<ReviewLikeDto> likeReview(
+      @PathVariable("reviewId") UUID reviewId,
+      @RequestParam("userId") UUID userId) {
+    reviewService.likeReview(reviewId, userId);
+    return ResponseEntity.ok().build();
   }
 
   @PatchMapping("/{reviewId}")
@@ -86,7 +96,7 @@ public class ReviewController {
           .userId(userId)
           .bookId(bookId)
           .cursor(cursor)
-          .after(after != null ? Instant.parse(after) : null) // 코드레빗 , 예외 처리를 어떻게 할지?
+          .after(after != null ? Instant.parse(after) : null) // TODO : 코드레빗 , 예외 처리를 어떻게 할지?
           // limit가 null이면 기본값인 50이 적용됨?
           .limit(limit != null ? limit : 50)
           .build();

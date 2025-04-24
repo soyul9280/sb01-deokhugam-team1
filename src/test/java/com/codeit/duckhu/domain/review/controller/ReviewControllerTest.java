@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
@@ -43,6 +44,7 @@ class ReviewControllerTest {
   private ReviewDto reviewDto;
   private ReviewCreateRequest createRequest;
   private ReviewUpdateRequest updateRequest;
+  private ReviewLikeDto reviewLikeDto;
 
   @BeforeEach
   void setUp() {
@@ -118,6 +120,20 @@ class ReviewControllerTest {
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertEquals(reviewDto, response.getBody());
     verify(reviewService).createReview(createRequest);
+  }
+
+  @Test
+  @DisplayName("리뷰 좋아요")
+  void createReviewLike_Success() {
+    // Given
+    when(reviewService.likeReview(userId, reviewId)).thenReturn(reviewLikeDto);
+
+    // When
+    ResponseEntity<ReviewLikeDto> response = reviewController.likeReview(userId, reviewId);
+
+    // Then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    verify(reviewService).likeReview(userId, reviewId);
   }
 
   @Test

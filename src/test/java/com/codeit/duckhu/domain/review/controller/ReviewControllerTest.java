@@ -78,6 +78,12 @@ class ReviewControllerTest {
         .rating(5)
         .content("정말 좋은 책이에요!")
         .build();
+
+    reviewLikeDto = ReviewLikeDto.builder()
+               .reviewId(reviewId)
+               .userId(userId)
+               .liked(true)
+               .build();
   }
 
   @Test
@@ -126,14 +132,14 @@ class ReviewControllerTest {
   @DisplayName("리뷰 좋아요")
   void createReviewLike_Success() {
     // Given
-    when(reviewService.likeReview(userId, reviewId)).thenReturn(reviewLikeDto);
+    when(reviewService.likeReview(reviewId, userId)).thenReturn(reviewLikeDto);
 
     // When
-    ResponseEntity<ReviewLikeDto> response = reviewController.likeReview(userId, reviewId);
+    ResponseEntity<ReviewLikeDto> response = reviewController.likeReview(reviewId, userId);
 
     // Then
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    verify(reviewService).likeReview(userId, reviewId);
+    verify(reviewService).likeReview(reviewId, userId);
   }
 
   @Test

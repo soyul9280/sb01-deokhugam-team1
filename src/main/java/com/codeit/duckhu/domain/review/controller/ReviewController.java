@@ -41,8 +41,8 @@ public class ReviewController {
   public ResponseEntity<ReviewLikeDto> likeReview(
       @PathVariable("reviewId") UUID reviewId,
       @RequestParam("userId") UUID userId) {
-    reviewService.likeReview(reviewId, userId);
-    return ResponseEntity.ok().build();
+    ReviewLikeDto result = reviewService.likeReview(reviewId, userId);
+    return ResponseEntity.ok(result);
   }
 
   @PatchMapping("/{reviewId}")

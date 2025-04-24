@@ -13,8 +13,7 @@ public class PopularBookBatchScheduler {
 
   private final PopularBookBatchService popularBookBatchService;
 
-//  @Scheduled(cron = "0 0 12 * * *")
-  @Scheduled(fixedRate = 5000)
+  @Scheduled(cron = "0 0 12 * * *")
   public void schedule() {
     executePopularBookBatch(PeriodType.DAILY, "[일간 배치 작업]");
     executePopularBookBatch(PeriodType.WEEKLY, "[주간 배치 작업]");

@@ -194,8 +194,10 @@ public class ReviewServiceImpl implements ReviewService {
     } else {
       review.increaseLikeCount(userId);
 
+      log.info("좋아요 처리 시작");
       // 2) 새 좋아요가 생긴 경우에만 알림 생성
       notificationService.createNotifyByLike(reviewId, userId);
+      log.info("좋아요 처리 완료");
     }
 
     boolean likedAfter = review.liked(userId);

@@ -7,10 +7,15 @@ import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
+import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
+import com.codeit.duckhu.global.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
@@ -41,8 +47,13 @@ public class ReviewController {
   @PostMapping("/{reviewId}/like")
   public ResponseEntity<ReviewLikeDto> likeReview(
       @PathVariable("reviewId") UUID reviewId,
-      @RequestHeader("X-USER-ID") UUID userId) {
-    ReviewLikeDto result = reviewService.likeReview(reviewId, userId);
+      HttpServletRequest httpServletRequest) {
+    User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
+    if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
+      log.warn("비인증 사용자 리뷰 좋아요 요청 차단");
+      throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
+    }
+    ReviewLikeDto result = reviewService.likeReview(reviewId, authenticatedUser.getId());
     return ResponseEntity.ok(result);
   }
 
@@ -74,9 +85,15 @@ public class ReviewController {
 
   @GetMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> getReviewById(
-      @RequestParam("userId") UUID userId,
+      HttpServletRequest httpServletRequest,
       @PathVariable("reviewId") UUID reviewId) {
-    ReviewDto review = reviewService.getReviewById(userId, reviewId);
+    User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
+    if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
+      log.warn("비인증 사용자 리뷰 상세 조회 요청 차단");
+      throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
+    }
+
+    ReviewDto review = reviewService.getReviewById(authenticatedUser.getId(), reviewId);
     return ResponseEntity.ok(review);
   }
 

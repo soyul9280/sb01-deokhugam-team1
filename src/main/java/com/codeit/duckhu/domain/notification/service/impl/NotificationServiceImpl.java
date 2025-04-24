@@ -2,26 +2,34 @@ package com.codeit.duckhu.domain.notification.service.impl;
 
 import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
-import com.codeit.duckhu.domain.comment.service.ErrorCode;
+import com.codeit.duckhu.domain.notification.dto.CursorPageResponseNotificationDto;
 import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.entity.Notification;
 import com.codeit.duckhu.domain.notification.exception.NotificationAccessDeniedException;
+import com.codeit.duckhu.domain.notification.exception.NotificationAlreadyConfirmedException;
 import com.codeit.duckhu.domain.notification.exception.NotificationNotFoundException;
 import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
 import com.codeit.duckhu.domain.notification.repository.NotificationRepository;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
+import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,9 +54,15 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   @Transactional
   public NotificationDto createNotifyByLike(UUID reviewId, UUID triggerUserId) {
+
+    log.info("좋아요 알림 생성 시작: reviewId={}, triggerUserId={}", reviewId, triggerUserId);
+
     // 1. 리뷰 조회 → 수신자 ID 확보
     Review review =
-        reviewRepository.findById(reviewId).orElseThrow(() -> new NoSuchElementException());
+        reviewRepository.findById(reviewId).orElseThrow(() -> {
+          log.warn("리뷰 없음: reviewId={}", reviewId);
+          return new NoSuchElementException("리뷰가 존재하지 않습니다.");
+        });
 
     // 2. 수신자 ID = 리뷰 작성자의 ID
     UUID receiverId = review.getUser().getId();
@@ -58,9 +72,10 @@ public class NotificationServiceImpl implements NotificationService {
         userRepository
             .findById(triggerUserId)
             .orElseThrow(
-                () ->
-                    new NotFoundUserException(
-                        com.codeit.duckhu.global.exception.ErrorCode.NOT_FOUND_USER));
+                () -> {
+                  log.warn("사용자 없음: triggerUserId={}", triggerUserId);
+                  return new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
+                });
     String nickname = triggerUser.getNickname();
 
     // Todo
@@ -71,6 +86,7 @@ public class NotificationServiceImpl implements NotificationService {
     Notification notification =
         Notification.forLike(reviewId, receiverId, nickname, review.getContent());
     Notification saved = notificationRepository.save(notification);
+    log.info("좋아요 알림 생성 완료: notificationId={}", saved.getId());
 
     // DTO 생성
     return notificationMapper.toDto(saved);
@@ -87,11 +103,16 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   @Transactional
   public NotificationDto createNotifyByComment(UUID reviewId, UUID triggerUserId, String comment) {
+    log.info("댓글 알림 생성 시작: reviewId={}, triggerUserId={}", reviewId, triggerUserId);
+
     // 1. 리뷰 조회 → 알림 수신자 확인 + 리뷰 제목 확보
     Review review =
         reviewRepository
             .findById(reviewId)
-            .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
+            .orElseThrow(() -> {
+              log.warn("리뷰 없음: reviewId={}", reviewId);
+              return new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+            });
 
     // 2. 수신자 ID = 리뷰 작성자의 ID
     UUID receiverId = review.getUser().getId();
@@ -101,16 +122,63 @@ public class NotificationServiceImpl implements NotificationService {
         userRepository
             .findById(triggerUserId)
             .orElseThrow(
-                () ->
-                    new NotFoundUserException(
-                        com.codeit.duckhu.global.exception.ErrorCode.NOT_FOUND_USER));
+                () -> {
+                  log.warn("사용자 없음: triggerUserId={}", triggerUserId);
+                  return new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
+                });
     String nickname = triggerUser.getNickname();
 
     // 알림 객체 생성
     Notification notification =
         Notification.forComment(reviewId, receiverId, nickname, comment, review.getContent());
+    Notification saved = notificationRepository.save(notification);
+    log.info("댓글 알림 생성 완료: notificationId={}", saved.getId());
 
-    return notificationMapper.toDto(notificationRepository.save(notification));
+    return notificationMapper.toDto(notificationRepository.save(saved));
+  }
+
+  @Override
+  public CursorPageResponseNotificationDto getNotifications(UUID receiverId, String direction, Instant cursor, int limit) {
+    log.info("서비스 시작: getNotifications, receiverId={}, direction={}, cursor={}, limit={}",
+        receiverId, direction, cursor, limit);
+
+    // 1) 정렬 방향 & 페이징 설정
+    Sort.Direction sortDir = "ASC".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(sortDir, "createdAt"));
+
+    // 2) JPQL 메서드 분기 호출
+    List<Notification> raw;
+    if ("ASC".equalsIgnoreCase(direction)) {
+      raw = (cursor == null) ? notificationRepository.findAscNoCursor(receiverId, pageable) : notificationRepository.findAscWithCursor(receiverId, cursor, pageable);
+    } else {
+      raw = (cursor == null) ? notificationRepository.findDescNoCursor(receiverId, pageable) : notificationRepository.findDescWithCursor(receiverId, cursor, pageable);
+    }
+
+    // 3) hasNext 판단 및 잘라내기
+    boolean hasNext = raw.size() > limit;
+    List<Notification> page = hasNext ? raw.subList(0, limit) : raw;
+
+    // 4) DTO 변환
+    List<NotificationDto> content = page.stream()
+        .map(notificationMapper::toDto)
+        .collect(Collectors.toList());
+
+    // 5) nextCursor/nextAfter
+    Instant nextAfter = hasNext ? page.get(page.size() - 1).getCreatedAt() : null;
+    String nextCursor = nextAfter != null ? nextAfter.toString() : null;
+
+    // 6) 전체 카운트
+    long total = notificationRepository.countByReceiverId(receiverId);
+    log.info("전체 알림 카운트: receiverId={}, total={}", receiverId, total);
+
+    return new CursorPageResponseNotificationDto(
+        content,
+        nextCursor,
+        nextAfter,
+        content.size(),
+        total,
+        hasNext
+    );
   }
 
   /**
@@ -131,11 +199,21 @@ public class NotificationServiceImpl implements NotificationService {
     Notification notification =
         notificationRepository
             .findById(notificationId)
-            .orElseThrow(() -> new NotificationNotFoundException(notificationId));
+            .orElseThrow(() -> {
+              log.warn("알림을 찾을 수 없음: notificationId={}", notificationId);
+              return new NotificationNotFoundException(ErrorCode.NOTIFICATION_NOT_FOUND);
+            });
 
     // 2. 알림의 수신자가 현재 요청자와 다를 경우 접근 권한 없음 예외 발생
     if (!notification.getReceiverId().equals(receiverId)) {
-      throw new NotificationAccessDeniedException(receiverId, notificationId);
+      log.warn("알림 접근 권한 오류: notificationId={}, 요청자={}, 실제 수신자={}", notificationId, receiverId, notification.getReceiverId());
+      throw new NotificationAccessDeniedException(ErrorCode.INVALID_NOTIFICATION_RECEIVER);
+    }
+
+    // 이미 확인된 알림에 대해 다시 true 요청이 들어오면 400
+    if (confirmed && notification.isConfirmed()) {
+      log.debug("이미 읽음 처리된 알림에 중복 요청: notificationId={}", notificationId);
+      throw new NotificationAlreadyConfirmedException(ErrorCode.NOTIFICATION_ALREADY_CONFIRMED);
     }
 
     // 3. 요청값이 true인 경우에만 확인 처리 (추후 false 처리 허용 시 확장 가능)
@@ -156,12 +234,20 @@ public class NotificationServiceImpl implements NotificationService {
   @Transactional
   public void updateAllConfirmedStatus(UUID receiverId) {
     // 1. 수신자 ID로 등록된 모든 알림을 조회
+    log.info("전체 알림 읽음 처리 시작: receiverId={}", receiverId);
     List<Notification> notifications = notificationRepository.findAllByReceiverId(receiverId);
 
     // 2. 이미 읽지 않은 알림만 선별하여 확인 처리
-    notifications.stream()
-        .filter(n -> !n.isConfirmed())
-        .forEach(Notification::markAsConfirmed); // JPA dirty checking
+    int updatedCount = 0;
+    for (Notification notification : notifications) {
+      if (!notification.isConfirmed()) {
+        notification.markAsConfirmed();
+        updatedCount++;
+      }
+    }
+
+    log.info("읽음 처리된 알림 수: receiverId={}, count={}", receiverId, updatedCount);
+
   }
 
   @Override

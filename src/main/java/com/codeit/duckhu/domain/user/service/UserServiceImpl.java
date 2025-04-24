@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
     //유저목록가져오기
     Set<UUID> userIds = stats.stream().map(PowerUserStatsDto::userId).collect(Collectors.toSet());
     Map<UUID, User> userMap = userRepository.findAllById(userIds).stream()
-            .collect(Collectors.toMap(User::getId, Function.identity()));
+            .collect(Collectors.toMap(User::getId, Function.identity()));//
 
     //활동점수 계산
     List<PowerUser> powerUsers = stats.stream()
@@ -180,6 +180,7 @@ public class UserServiceImpl implements UserService {
     List<PowerUser> powerUsers = powerUserRepository.searchByPeriodWithCursorPaging(
             period, direction, cursor, after, limit + 1
     );
+
     boolean hasNext = powerUsers.size() > limit;
 
     //저장된 PowerUser 커서페이지로 갖고오기

@@ -103,7 +103,7 @@ public class ReviewController {
           .limit(limit != null ? limit : 50)
           .build();
 
-      CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
-      return ResponseEntity.ok(result);
+    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
+    return ResponseEntity.ok(result);
   }
 }

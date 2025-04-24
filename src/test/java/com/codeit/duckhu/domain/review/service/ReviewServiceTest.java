@@ -21,7 +21,6 @@ import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
-import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
@@ -299,8 +298,6 @@ class ReviewServiceTest {
      */
   }
 
-
-
   @Test
   @DisplayName("리뷰 커서 페이지네이션 테스트")
   void findReviews_success() {
@@ -309,16 +306,14 @@ class ReviewServiceTest {
 
     // 정확한 파라미터로 stubbing 설정
     when(reviewRepository.findReviewsWithCursor(
-            eq(null), eq("createdAt"), eq("DESC"),
-            eq(null), eq(null), eq(null),
-            eq(null), eq(51)
-    )).thenReturn(reviewList);
-    
+            eq(null), eq("createdAt"), eq("DESC"), eq(null), eq(null), eq(null), eq(null), eq(51)))
+        .thenReturn(reviewList);
+
     // When
     ReviewSearchRequestDto requestDto = new ReviewSearchRequestDto();
     // ReviewSearchRequestDto의 기본 limit은 50이므로 서비스에서는 limit+1인 51을 사용
     CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
-    
+
     // Then
     assertThat(result).isNotNull();
     assertThat(result.isHasNext()).isFalse();

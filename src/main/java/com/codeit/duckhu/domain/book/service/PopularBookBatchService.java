@@ -25,8 +25,14 @@ public class PopularBookBatchService {
   private final ReviewRepository reviewRepository;
   private final PopularBookRepository popularBookRepository;
 
+  /**
+   * 인기 도서 랭킹을 지정하는 배치 메서드
+   * 지정된 기간(일간, 주간, 월간, 역대)에 해당하는 리뷰 수와 평점을 기반으로 점수를 계산합니다.
+   * @param period 대상 기간 타입 (DAILY, WEEKLY, MONTHLY, ALL_TIME)
+   */
   @Transactional
   public void savePopularBook(PeriodType period) {
+    // 현재 시간과 주어진 기간의 시작 지점을 구합니다.
     Instant now = Instant.now();
     Instant from = period.toStartInstant(now);
 
@@ -34,10 +40,12 @@ public class PopularBookBatchService {
 
     List<Book> books = bookRepository.findAll();
 
+    // 각 도서에 대해 해당 기간의 리뷰수, 평균 평점, 점수를 계산합니다.
     List<PopularBookScore> popularBookScores = books.stream()
         .map(book -> {
           int reviewCount = reviewRepository.countByBookIdAndCreatedAtBetween(book.getId(), from, now);
           double rating = reviewRepository.calculateAverageRatingByBookIdAndCreatedAtBetween(book.getId(), from, now);
+          // 점수는 리뷰수 * 0.4 + 평점 * 0.6로 계산합니다
           double score = (reviewCount * 0.4) + (rating * 0.6);
 
           log.info("도서: {} | 리뷰 수: {} | 평점: {} | 점수: {}", book.getTitle(), reviewCount, rating, score);
@@ -48,9 +56,11 @@ public class PopularBookBatchService {
         .sorted(Comparator.comparingDouble(PopularBookScore::score).reversed())
         .toList();
 
+    // 이전에 저장된 해당 기간의 랭킹 정보를 삭제합니다.
     popularBookRepository.deleteByPeriod(period);
     log.info("[삭제 완료] 기존 PopularBook 삭제 - period={}", period);
 
+    // 새로 계산된 점수를 기반으로 PopularBook 엔티티를 생성하고 랭킹을 부여합니다.
     List<PopularBook> popularBooks = new ArrayList<>();
     for (int i = 0; i < popularBookScores.size(); i++) {
       PopularBookScore pb = popularBookScores.get(i);

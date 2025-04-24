@@ -38,13 +38,14 @@ public class PopularReviewBatchService {
     log.info("인기 리뷰 점수 계산 및 랭킹 업데이트");
     Instant now = Instant.now();
 
+    List<Review> allActiveReviews = reviewRepository.findAllByIsDeletedFalse();
+
     for (PeriodType period : PeriodType.values()) {
       // ALL_TIME은 startTime을 null로 설정하여 전체 기간을 대상으로 합니다.
-      Instant startTime = period == PeriodType.ALL_TIME ? null : period.toStartInstant(now);
+      Instant startTime = period.toStartInstant(now);
       log.info("{} 기간 인기 리뷰 계산 시작 (시작 시간: {})", period, startTime);
 
       // 삭제되지 않은 모든 리뷰 조회
-      List<Review> allActiveReviews = reviewRepository.findAllByIsDeletedFalse();
       List<PopularReviewData> scoredReviews = new ArrayList<>();
 
       for (Review review : allActiveReviews) {
@@ -52,13 +53,9 @@ public class PopularReviewBatchService {
         int commentsInPeriod;
 
         // 기간별 좋아요/댓글 수 계산
-        if (startTime == null) { // ALL TIME
-          likesInPeriod = likedUserIdRepository.countByReview(review);
-          commentsInPeriod = commentRepository.countByReviewAndIsDeletedFalse(review);
-        } else {
-          likesInPeriod = likedUserIdRepository.countByReviewAndCreatedAtBetween(review, startTime, now);
-          commentsInPeriod = commentRepository.countByReviewAndIsDeletedFalseAndCreatedAtBetween(review, startTime, now);
-        }
+        likesInPeriod = likedUserIdRepository.countByReviewAndCreatedAtBetween(review, startTime, now);
+        commentsInPeriod = commentRepository.countByReviewAndIsDeletedFalseAndCreatedAtBetween(review, startTime, now);
+
 
         // 좋아요 또는 댓글이 있는 경우에만 점수 계산
         if (likesInPeriod > 0 || commentsInPeriod > 0) {

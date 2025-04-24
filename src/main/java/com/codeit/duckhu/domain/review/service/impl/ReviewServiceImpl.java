@@ -25,6 +25,7 @@ import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -272,10 +273,23 @@ public class ReviewServiceImpl implements ReviewService {
       Instant after,
       Integer limit) {
 
-    int size = (limit == null ? 50 : limit);
+    log.info("인기 리뷰 조회 시작 - 기간 : {}, 방향 : {}", period, direction);
+
+    int size = Optional.ofNullable(limit).orElse(50);
 
     List<PopularReview> fetched = popularRepository.findReviewsWithCursor(period, direction,
         cursor, after, size + 1);
+
+    if (fetched.isEmpty()) {
+      log.info("조회딘 인기 리뷰가 없습니다 . - 기간 : {}", period);
+      return CursorPageResponsePopularReviewDto.builder()
+              .content(List.of())
+              .size(0)
+              .totalElements(0L)
+              .hasNext(false)
+              .build();
+    }
+
 
     boolean hasNext = fetched.size() > size;
 
@@ -292,6 +306,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     Instant from = period.toStartInstant(Instant.now());
     long totalElements = popularRepository.countByPeriodSince(period, from);
+
+    log.info("인기 리뷰 조회 안료 - 기간 : {}, 결과 수 : {}, 총 개수: {}",period, responseReviews.size(), totalElements);
 
     // DTO 변환 로직
     List<PopularReviewDto> content = responseReviews.stream()

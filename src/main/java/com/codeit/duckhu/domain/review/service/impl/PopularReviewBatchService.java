@@ -32,7 +32,7 @@ public class PopularReviewBatchService {
   /**
    * 매일 새벽 12시에 실행
    */
-  @Scheduled(cron = "0 0 12 * * ?")
+  @Scheduled(cron = "0 0 0 * * ?")
   @Transactional
   public void calculatePopularReviews() {
     log.info("인기 리뷰 점수 계산 및 랭킹 업데이트");

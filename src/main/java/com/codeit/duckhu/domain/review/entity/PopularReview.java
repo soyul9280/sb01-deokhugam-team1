@@ -8,6 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -16,10 +17,23 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+
+/**
+  * 인기 리뷰 엔티티
+  *
+  * 좋아요 수와 댓글 수를 기반으로 계산된 점수와 랭킹 정보를 저장합니다.
+  * 기간별(일간, 주간, 월간 등)로 인기 리뷰를 관리합니다.
+  */
 @Entity @Builder @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "popular_reviews")
+@Table(
+        name = "popular_reviews",
+        indexes = {
+            @Index(name = "idx_popular_reviews_period_rank", columnList = "period, rank"),
+            @Index(name = "idx_popular_reviews_period_created_at", columnList = "period, created_at")
+    }
+    )
 public class PopularReview extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -36,15 +50,15 @@ public class PopularReview extends BaseEntity {
   @Column(name = "period", nullable = false)
   private PeriodType period;
 
-  @Column(name = "like_count")
+  @Column(name = "like_count", nullable = false)
   private Integer likeCount;
 
-  @Column(name = "comment_count")
+  @Column(name = "comment_count", nullable = false)
   private Integer commentCount;
 
   @Column(name = "score", nullable = false)
   private Double score;
 
-  @Column(name = "rank")
+  @Column(name = "rank", nullable = false)
   private Integer rank;
 }

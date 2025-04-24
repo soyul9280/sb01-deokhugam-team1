@@ -37,5 +37,5 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   int countByReviewAndIsDeletedFalse(Review review);
 
   // 특정 리뷰에 대한 댓글 수를 계산
-  int countByReviewId(UUID reviewId);
+  int countByReviewIdAndIsDeletedFalse(UUID reviewId);
 }

@@ -11,8 +11,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositoryCustom {
 
@@ -32,10 +34,12 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
 
     // 현재 시간 기준으로 시작 시간 계산
     Instant now = Instant.now();
-    Instant from = period.toStartInstant(now);
-    booleanBuilder.and(review.createdAt.goe(from));
+    if(period != null) {
+      Instant startTime = period.toStartInstant(now);
+      booleanBuilder.and(review.createdAt.goe(startTime));
+    }
 
-    boolean isAsc = "ASC".equalsIgnoreCase(String.valueOf(direction));
+    boolean isAsc = direction == Direction.ASC;
 
     // 커서 조건 추가
     if (cursor != null && after != null) {
@@ -60,12 +64,9 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
     }
 
     // 정렬 조건 설정
-    OrderSpecifier<?>[] orderSpecifiers =
-        isAsc
-            ? new OrderSpecifier[] {review.rank.asc(), review.createdAt.asc()}
-            : new OrderSpecifier[] {review.rank.desc(), review.createdAt.desc()};
-
-
+    OrderSpecifier<?>[] orderSpecifiers = isAsc
+            ? new OrderSpecifier[]{review.rank.asc(), review.createdAt.asc()}
+            : new OrderSpecifier[]{review.rank.desc(), review.createdAt.desc()};
 
     return queryFactory
         .selectFrom(review)
@@ -79,7 +80,7 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
   public long countByPeriodSince(PeriodType period, Instant from) {
     BooleanBuilder booleanBuilder = new BooleanBuilder();
 
-    if(period != null) {
+    if (period != null) {
       booleanBuilder.and(review.period.eq(period));
     }
 
@@ -95,9 +96,12 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
   @Override
   @Transactional
   public void deleteByPeriod(PeriodType period) {
-    queryFactory
-        .delete(review)
-        .where(review.period.eq(period))
-        .execute();
+    if (period != null) {
+      long deletedCount = queryFactory
+          .delete(review)
+          .where(review.period.eq(period))
+          .execute();
+      log.info("기간별 인기 리뷰 삭제 완료 - 기간 : {}, 삭제된 수 : {}", period, deletedCount);
+    }
   }
 }

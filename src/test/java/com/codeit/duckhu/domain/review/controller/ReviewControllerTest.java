@@ -83,7 +83,7 @@ class ReviewControllerTest {
   void findReviews_Success() {
     // Given
     CursorPageResponseReviewDto responseDto = CursorPageResponseReviewDto.builder()
-        .reviews(List.of(reviewDto))
+        .content(List.of(reviewDto))
         .nextCursor("next-cursor")
         .nextAfter(Instant.now())
         .size(1)
@@ -183,7 +183,7 @@ class ReviewControllerTest {
   void findReviews_WithDefaultParams() {
     // Given
     CursorPageResponseReviewDto responseDto = CursorPageResponseReviewDto.builder()
-        .reviews(Collections.emptyList())
+        .content(Collections.emptyList())
         .size(0)
         .hasNext(false)
         .build();

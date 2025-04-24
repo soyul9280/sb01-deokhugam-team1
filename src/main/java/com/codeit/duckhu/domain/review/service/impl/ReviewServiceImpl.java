@@ -248,7 +248,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()
-            .reviews(reviewDtos)
+            .content(reviewDtos)
             .nextCursor(nextCursor)
             .nextAfter(nextAfter)
             .hasNext(hasNext)

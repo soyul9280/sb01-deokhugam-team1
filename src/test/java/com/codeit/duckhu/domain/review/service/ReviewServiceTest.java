@@ -322,6 +322,6 @@ class ReviewServiceTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.isHasNext()).isFalse();
-    assertThat(result.getReviews()).isEmpty();
+    assertThat(result.getContent()).isEmpty();
   }
 }

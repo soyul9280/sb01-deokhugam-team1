@@ -22,8 +22,13 @@ import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -130,19 +135,26 @@ public class UserServiceImpl implements UserService {
 
     // 계산에 필요한 요소들 갖고오기
     List<PowerUserStatsDto> stats = powerUserRepository.findPowerUserStatsBetween(start, end);
+
+    //유저목록가져오기
+    Set<UUID> userIds = stats.stream().map(PowerUserStatsDto::userId).collect(Collectors.toSet());
+    Map<UUID, User> userMap = userRepository.findAllById(userIds).stream()
+            .collect(Collectors.toMap(User::getId, Function.identity()));
+
     //활동점수 계산
     List<PowerUser> powerUsers = stats.stream()
             .map(dto -> {
               Double score = dto.reviewScoreSum() * 0.5
                       + dto.likedCount() * 0.2
                       + dto.commentCount() * 0.3;
-              User user = userRepository.findById(dto.userId()).orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
+              User user = Optional.ofNullable(userMap.get(dto.userId()))
+                      .orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
 
               return PowerUser.builder()
                       .user(user)
                       .reviewScoreSum(dto.reviewScoreSum())
-                      .likeCount(dto.likedCount().intValue())
-                      .commentCount(dto.commentCount().intValue())
+                      .likeCount(dto.likedCount())
+                      .commentCount(dto.commentCount())
                       .score(score)
                       .period(period)
                       .build();

@@ -49,7 +49,7 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
             .fetch();
 
     //유저가 누른 좋아요 수
-    Map<UUID, Long> likedCounts = queryFactory
+    Map<UUID, Integer> likedCounts = queryFactory
             .select(likedUser.userId, likedUser.count())
             .from(likedUser)
             .where(likedUser.createdAt.between(start, end))
@@ -58,11 +58,11 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
             .stream()
             .collect(Collectors.toMap(
                     t -> t.get(likedUser.userId),
-                    t -> t.get(1, Long.class)
+                    t -> Math.toIntExact(t.get(1, Long.class))
             ));
 
     //유저가 쓴 댓글 수
-    Map<UUID,Long> commentCounts=queryFactory
+    Map<UUID,Integer> commentCounts=queryFactory
             .select(comment.user.id,comment.count())
             .from(comment)
             .where(comment.createdAt.between(start,end),
@@ -72,7 +72,7 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
             .stream()
             .collect(Collectors.toMap(
                     t->t.get(comment.user.id),
-                    t->t.get(1, Long.class)
+                    t->Math.toIntExact(t.get(1, Long.class))
             ));
 
     return reviewScores.stream()
@@ -80,8 +80,8 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
               UUID userId = tuple.get(review.user.id);
               Double reviewScoreSum = tuple.get(1, Double.class);
 
-              Long likeCount = likedCounts.getOrDefault(userId, 0L);
-              Long commCount = commentCounts.getOrDefault(userId, 0L);
+              Integer likeCount = likedCounts.getOrDefault(userId, 0);
+              Integer commCount = commentCounts.getOrDefault(userId, 0);
 
               return PowerUserStatsDto.builder()
                       .userId(userId)

@@ -9,7 +9,7 @@ spring:
     driver-class-name: org.h2.Driver
   sql:
     init:
-      mode: never # 도서 테이블이랑 엔티티랑 달라서 테스트가 되지 않아 never로 우선 설정해두었습니다.
+      mode: always
       data-locations: classpath:data.sql
   jpa:
     hibernate:

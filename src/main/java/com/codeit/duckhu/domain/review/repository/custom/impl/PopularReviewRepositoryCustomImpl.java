@@ -73,4 +73,21 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
         .limit(size)
         .fetch();
   }
+
+  @Override
+  public long countByPeriodSince(PeriodType period, Instant from) {
+    BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+    if(period != null) {
+      booleanBuilder.and(review.period.eq(period));
+    }
+
+    booleanBuilder.and(review.createdAt.goe(from));
+
+    return queryFactory
+        .select(review.count())
+        .from(review)
+        .where(booleanBuilder)
+        .fetchOne();
+  }
 }

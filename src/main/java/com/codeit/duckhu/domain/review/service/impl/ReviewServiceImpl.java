@@ -3,21 +3,26 @@ package com.codeit.duckhu.domain.review.service.impl;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
+import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
+import com.codeit.duckhu.domain.review.dto.PopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
+import com.codeit.duckhu.domain.review.entity.PopularReview;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
 import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
+import com.codeit.duckhu.domain.review.repository.PopularReviewRepository;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +36,6 @@ import org.springframework.validation.annotation.Validated;
 /** 리뷰 서비스 구현체 */
 @Slf4j
 @Service
-@Validated
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ReviewServiceImpl implements ReviewService {
@@ -40,6 +44,7 @@ public class ReviewServiceImpl implements ReviewService {
   private final ReviewMapper reviewMapper;
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
+  private final PopularReviewRepository popularRepository;
   // 알림 생성을 위해 DI추가
   private final NotificationService notificationService;
 
@@ -256,6 +261,69 @@ public class ReviewServiceImpl implements ReviewService {
             .nextAfter(nextAfter)
             .hasNext(hasNext)
             .size(responseReviews.size())
+            .build();
+  }
+
+  @Override
+  public CursorPageResponsePopularReviewDto getPopularReviews(
+      PeriodType period,
+      Direction direction,
+      String cursor,
+      Instant after,
+      Integer limit) {
+
+    int size = (limit == null ? 50 : limit);
+
+    List<PopularReview> fetched = popularRepository.findReviewsWithCursor(period, direction,
+        cursor, after, size + 1);
+
+    boolean hasNext = fetched.size() > size;
+
+    List<PopularReview> responseReviews = hasNext ? fetched.subList(0, size) : fetched;
+
+    String nextCursor = null;
+    Instant nextAfter = null;
+
+    if (hasNext && !responseReviews.isEmpty()) {
+      PopularReview lastReview = responseReviews.get(responseReviews.size() - 1);
+      nextCursor = String.valueOf(lastReview.getRank());
+      nextAfter = lastReview.getCreatedAt();
+    }
+
+    Instant from = period.toStartInstant(Instant.now());
+    long totalElements = popularRepository.countByPeriodSince(period, from);
+
+    // DTO 변환 로직
+    List<PopularReviewDto> content = responseReviews.stream()
+            .map(popularReview -> {
+                Review review = popularReview.getReview(); // 연관된 Review 엔티티 가져오기
+                return PopularReviewDto.builder()
+                        .id(popularReview.getId())
+                        .reviewId(review.getId()) // 연관된 Review의 ID
+                        .bookId(review.getBook().getId()) // Review를 통해 Book ID 접근
+                        .bookTitle(review.getBook().getTitle()) // Review를 통해 Book Title 접근
+                        .bookThumbnailUrl(review.getBook().getThumbnailUrl()) // Review를 통해 Book Thumbnail URL 접근
+                        .userId(review.getUser().getId()) // Review를 통해 User ID 접근
+                        .userNickname(review.getUser().getNickname()) // Review를 통해 User Nickname 접근
+                        .reviewContent(review.getContent())
+                        .reviewRating(popularReview.getReviewRating()) // PopularReview의 평점
+                        .period(popularReview.getPeriod())
+                        .createdAt(popularReview.getCreatedAt()) // PopularReview의 생성 시간 (점수 계산 시간)
+                        .rank(popularReview.getRank())
+                        .score(popularReview.getScore())
+                        .likeCount(popularReview.getLikeCount())
+                        .commentCount(popularReview.getCommentCount())
+                        .build();
+            }).toList();
+
+    // 빌더 패턴으로 응답 DTO 생성
+    return CursorPageResponsePopularReviewDto.builder()
+            .content(content)
+            .nextCursor(nextCursor)
+            .nextAfter(nextAfter)
+            .size(content.size())
+            .totalElements(totalElements)
+            .hasNext(hasNext)
             .build();
   }
 

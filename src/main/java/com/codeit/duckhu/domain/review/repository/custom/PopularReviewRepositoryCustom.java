@@ -13,4 +13,6 @@ public interface PopularReviewRepositoryCustom {
       String cursor,
       Instant after,
       int size);
+
+  long countByPeriodSince(PeriodType period, Instant from);
 }

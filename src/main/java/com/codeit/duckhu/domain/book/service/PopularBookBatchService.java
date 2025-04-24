@@ -32,55 +32,59 @@ public class PopularBookBatchService {
    */
   @Transactional
   public void savePopularBook(PeriodType period) {
-    // 현재 시간과 주어진 기간의 시작 지점을 구합니다.
-    Instant now = Instant.now();
-    Instant from = period.toStartInstant(now);
+    try {
+      // 현재 시간과 주어진 기간의 시작 지점을 구합니다.
+      Instant now = Instant.now();
+      Instant from = period.toStartInstant(now);
 
-    log.info("[Batch 시작] period={} | from={} ~ to={}", period, from, now);
+      log.info("[Batch 시작] period={} | from={} ~ to={}", period, from, now);
 
-    List<Book> books = bookRepository.findAll();
+      List<Book> books = bookRepository.findAll();
 
-    // 각 도서에 대해 해당 기간의 리뷰수, 평균 평점, 점수를 계산합니다.
-    List<PopularBookScore> popularBookScores = books.stream()
-        .map(book -> {
-          int reviewCount = reviewRepository.countByBookIdAndCreatedAtBetween(book.getId(), from, now);
-          double rating = reviewRepository.calculateAverageRatingByBookIdAndCreatedAtBetween(book.getId(), from, now);
-          // 점수는 리뷰수 * 0.4 + 평점 * 0.6로 계산합니다
-          double score = (reviewCount * 0.4) + (rating * 0.6);
+      // 각 도서에 대해 해당 기간의 리뷰수, 평균 평점, 점수를 계산합니다.
+      List<PopularBookScore> popularBookScores = books.stream()
+          .map(book -> {
+            int reviewCount = reviewRepository.countByBookIdAndCreatedAtBetween(book.getId(), from, now);
+            double rating = reviewRepository.calculateAverageRatingByBookIdAndCreatedAtBetween(book.getId(), from, now);
+            // 점수는 리뷰수 * 0.4 + 평점 * 0.6로 계산합니다
+            double score = (reviewCount * 0.4) + (rating * 0.6);
 
-          log.info("도서: {} | 리뷰 수: {} | 평점: {} | 점수: {}", book.getTitle(), reviewCount, rating, score);
+            log.info("도서: {} | 리뷰 수: {} | 평점: {} | 점수: {}", book.getTitle(), reviewCount, rating, score);
 
-          return new PopularBookScore(book, reviewCount, rating, score);
-        })
-        .filter(sb -> sb.reviewCount() > 0)
-        .sorted(Comparator.comparingDouble(PopularBookScore::score).reversed())
-        .toList();
+            return new PopularBookScore(book, reviewCount, rating, score);
+          })
+          .filter(sb -> sb.reviewCount() > 0)
+          .sorted(Comparator.comparingDouble(PopularBookScore::score).reversed())
+          .toList();
 
-    // 이전에 저장된 해당 기간의 랭킹 정보를 삭제합니다.
-    popularBookRepository.deleteByPeriod(period);
-    log.info("[삭제 완료] 기존 PopularBook 삭제 - period={}", period);
+      // 이전에 저장된 해당 기간의 랭킹 정보를 삭제합니다.
+      popularBookRepository.deleteByPeriod(period);
+      log.info("[삭제 완료] 기존 PopularBook 삭제 - period={}", period);
 
-    // 새로 계산된 점수를 기반으로 PopularBook 엔티티를 생성하고 랭킹을 부여합니다.
-    List<PopularBook> popularBooks = new ArrayList<>();
-    for (int i = 0; i < popularBookScores.size(); i++) {
-      PopularBookScore pb = popularBookScores.get(i);
+      // 새로 계산된 점수를 기반으로 PopularBook 엔티티를 생성하고 랭킹을 부여합니다.
+      List<PopularBook> popularBooks = new ArrayList<>();
+      for (int i = 0; i < popularBookScores.size(); i++) {
+        PopularBookScore pb = popularBookScores.get(i);
 
-      log.info("[랭킹 {}] 도서: {} | 리뷰 수: {} | 평점: {} | 점수: {}", i + 1,
-          pb.book().getTitle(), pb.reviewCount(), pb.rating(), pb.score());
+        log.info("[랭킹 {}] 도서: {} | 리뷰 수: {} | 평점: {} | 점수: {}", i + 1,
+            pb.book().getTitle(), pb.reviewCount(), pb.rating(), pb.score());
 
-      PopularBook popularBook = PopularBook.builder()
-          .book(pb.book())
-          .period(period)
-          .reviewCount(pb.reviewCount())
-          .rating(pb.rating())
-          .score(pb.score())
-          .rank(i + 1)
-          .build();
+        PopularBook popularBook = PopularBook.builder()
+            .book(pb.book())
+            .period(period)
+            .reviewCount(pb.reviewCount())
+            .rating(pb.rating())
+            .score(pb.score())
+            .rank(i + 1)
+            .build();
 
-      popularBooks.add(popularBook);
+        popularBooks.add(popularBook);
+      }
+
+      popularBookRepository.saveAll(popularBooks);
+      log.info("[저장 완료] PopularBook {}건 저장 완료", popularBooks.size());
+    } catch (Exception e) {
+      log.info("[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage());
     }
-
-    popularBookRepository.saveAll(popularBooks);
-    log.info("[저장 완료] PopularBook {}건 저장 완료", popularBooks.size());
   }
 }

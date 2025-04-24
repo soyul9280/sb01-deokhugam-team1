@@ -15,17 +15,19 @@ public class PopularBookBatchScheduler {
 
   @Scheduled(cron = "0 0 12 * * *")
   public void schedule() {
-    log.info("[일간 배치 작업] 일간 인기 도서를 갱신합니다");
-    popularBookBatchService.savePopularBook(PeriodType.DAILY);
+    executePopularBookBatch(PeriodType.DAILY, "[일간 배치 작업]");
+    executePopularBookBatch(PeriodType.WEEKLY, "[주간 배치 작업]");
+    executePopularBookBatch(PeriodType.MONTHLY, "[월간 배치 작업]");
+    executePopularBookBatch(PeriodType.ALL_TIME, "[역대 배치 작업]");
 
-    log.info("[주간 배치 작업] 주간 인기 도서를 갱신합니다");
-    popularBookBatchService.savePopularBook(PeriodType.WEEKLY);
+  }
 
-    log.info("[월간 배치 작업] 월간 인기 도서를 갱신합니다");
-    popularBookBatchService.savePopularBook(PeriodType.MONTHLY);
-
-    log.info("[역대 배치 작업] 역대 인기 도서를 갱신합니다");
-    popularBookBatchService.savePopularBook(PeriodType.ALL_TIME);
-
+  private void executePopularBookBatch(PeriodType period, String logPrefix) {
+    try {
+      log.info("{} {} 인기 도서를 갱신합니다.", logPrefix, period);
+      popularBookBatchService.savePopularBook(period);
+    } catch (Exception e) {
+      log.info("{} {} 인기 도서 갱신 중 오류 발생 {}", logPrefix, period, e.getMessage());
+    }
   }
 }

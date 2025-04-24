@@ -7,16 +7,20 @@ import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.exception.NoAuthorityException;
 import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
+import com.codeit.duckhu.domain.notification.exception.NotificationException;
+import com.codeit.duckhu.domain.notification.service.impl.NotificationServiceImpl;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -26,6 +30,7 @@ public class CommentService {
 
   private final UserServiceImpl userService;
   private final ReviewServiceImpl reviewService;
+  private final NotificationServiceImpl notificationService;
 
   public CommentDto get(UUID id) {
     Comment comment =
@@ -52,6 +57,15 @@ public class CommentService {
             .build();
 
     repository.save(comment);
+
+    // 알림 생성 로직 이 과정에서 comment의 저장은 영향이 가지 않도록 try catch문으로 잡는다
+    try {
+      notificationService.createNotifyByComment(
+          request.getReviewId(), request.getUserId(), request.getContent());
+    } catch (NotificationException e) {
+      // 예외 로깅만 하고 무시
+      log.debug("알림 생성 실패: {}", e.getMessage(), e);
+    }
 
     return commentMapper.toDto(comment);
   }

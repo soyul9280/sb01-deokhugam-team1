@@ -50,7 +50,7 @@ public class ReviewController {
       HttpServletRequest httpServletRequest) {
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
-      log.warn("비인증 사용자 알림 목록 요청 차단: userId={}", authenticatedUser.getId());
+      log.warn("비인증 사용자 리뷰 좋아요 요청 차단");
       throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
     }
     ReviewLikeDto result = reviewService.likeReview(reviewId, authenticatedUser.getId());
@@ -89,7 +89,7 @@ public class ReviewController {
       @PathVariable("reviewId") UUID reviewId) {
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
-      log.warn("비인증 사용자 알림 목록 요청 차단: userId={}", authenticatedUser.getId());
+      log.warn("비인증 사용자 리뷰 상세 조회 요청 차단");
       throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
     }
 

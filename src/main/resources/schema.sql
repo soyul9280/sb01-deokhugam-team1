@@ -11,7 +11,7 @@ CREATE TABLE books (
                        publisher VARCHAR(50) NOT NULL,
                        rating DOUBLE PRECISION NOT NULL DEFAULT 0.0, -- 정렬을 위해 추가
                        review_count INTEGER NOT NULL DEFAULT 0, -- 정렬을 위해 추가
-                       humbnail_url VARCHAR(255),
+                       thumbnail_url VARCHAR(255),
                        title VARCHAR(50) NOT NULL
 );
 

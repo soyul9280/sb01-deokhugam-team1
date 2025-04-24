@@ -42,7 +42,7 @@ public class NotificationController {
 
         User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
-            log.warn("비인증 사용자 알림 목록 요청 차단: userId={}", userId);
+            log.warn("비인증 사용자 알림 목록 요청 차단");
             throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
         }
 
@@ -74,7 +74,7 @@ public class NotificationController {
 
         User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
-            log.warn("비인증 사용자 알림 읽음 처리 시도 차단: notificationId={}", notificationId);
+            log.warn("비인증 사용자 알림 읽음 처리 시도 차단");
             throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
         }
 

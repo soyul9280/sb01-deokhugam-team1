@@ -11,6 +11,6 @@ import lombok.Getter;
 public class NotificationException extends CustomException {
 
   public NotificationException(ErrorCode errorCode) {
-    super(errorCode);;
+    super(errorCode);
   }
 }

@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.review.dto;
 
+import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -17,8 +18,7 @@ public class ReviewSearchRequestDto {
   @Builder.Default
   private String orderBy = "createdAt";
 
-  @Builder.Default
-  private String direction = "DESC";
+  private Direction direction;
  
   private UUID userId;
   private UUID bookId;

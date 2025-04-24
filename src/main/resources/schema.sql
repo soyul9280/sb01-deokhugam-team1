@@ -118,10 +118,10 @@ CREATE TABLE popular_reviews (
                                  review_rating DOUBLE PRECISION NOT NULL CHECK (review_rating BETWEEN 0 AND 5),
                                  period VARCHAR(20) NOT NULL CHECK (period IN ('DAILY', 'WEEKLY', 'MONTHLY', 'ALL_TIME')), -- 문자열로 수정
                                  created_at TIMESTAMP NOT NULL,
-                                 like_count INT,
-                                 comment_count INT,
+                                 like_count INT NOT NULL,
+                                 comment_count INT NOT NULL,
                                  score DOUBLE PRECISION,
-                                 rank INT,
+                                 rank INT NOT NULL,
                                  CONSTRAINT fk_popular_reviews
                                      FOREIGN KEY (review_id)
                                          REFERENCES reviews(id)

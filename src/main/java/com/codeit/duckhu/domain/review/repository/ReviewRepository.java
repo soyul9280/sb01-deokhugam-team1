@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.review.repository;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.custom.ReviewRepositoryCustom;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,4 +41,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.createdAt BETWEEN :from AND :to AND r.isDeleted = false")
   double calculateAverageRatingByBookIdAndCreatedAtBetween(@Param("bookId") UUID bookId,
       @Param("from") Instant from, @Param("to") Instant to);
+
+  List<Review> findAllByIsDeletedFalse();
 }

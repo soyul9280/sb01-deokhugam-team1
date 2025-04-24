@@ -49,23 +49,23 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 사용자 찾기
     User user =
-        userRepository
-            .findById(request.getUserId())
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+            userRepository
+                    .findById(request.getUserId())
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
 
     // 도서 찾기
     Book book =
-        bookRepository
-            .findById(request.getBookId())
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.BOOK_NOT_FOUND));
+            bookRepository
+                    .findById(request.getBookId())
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.BOOK_NOT_FOUND));
 
     // 동일한 도서에 대한 리뷰가 이미 존재하는지 확인
     reviewRepository
-        .findByUserIdAndBookId(request.getUserId(), request.getBookId())
-        .ifPresent(
-            existingReview -> {
-              throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
-            });
+            .findByUserIdAndBookId(request.getUserId(), request.getBookId())
+            .ifPresent(
+                    existingReview -> {
+                      throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
+                    });
 
     // 매퍼를 사용하여 엔티티 생성
     Review review = reviewMapper.toEntity(request, user, book);
@@ -85,9 +85,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 리뷰 조회
     Review review =
-        reviewRepository
-            .findById(id)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            reviewRepository
+                    .findById(id)
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     if (review.isDeleted()) {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
@@ -101,9 +101,9 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public void hardDeleteReviewById(UUID id) {
     Review review =
-        reviewRepository
-            .findById(id)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            reviewRepository
+                    .findById(id)
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     reviewRepository.delete(review);
 
@@ -115,9 +115,9 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public void softDeleteReviewById(UUID id) {
     Review review =
-        reviewRepository
-            .findById(id)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            reviewRepository
+                    .findById(id)
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     review.softDelete();
 
@@ -131,15 +131,15 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public ReviewDto updateReview(UUID id, ReviewUpdateRequest request) {
     Review review =
-        reviewRepository
-            .findById(id)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            reviewRepository
+                    .findById(id)
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     // 사용자 찾기
     User user =
-        userRepository
-            .findById(request.getUserId())
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+            userRepository
+                    .findById(request.getUserId())
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
 
     if (review.isDeleted()) {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
@@ -165,16 +165,19 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public ReviewLikeDto likeReview(UUID reviewId, UUID userId) {
     Review review =
-        reviewRepository
-            .findById(reviewId)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            reviewRepository
+                    .findById(reviewId)
+                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     if (review.isDeleted()) {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
     }
 
     // 사용자 찾기
-    userRepository.existsById(userId);
+    var isExistUser = userRepository.existsById(userId);
+    if(!isExistUser) {
+      throw new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND);
+    }
 
     boolean likedBefore = review.liked(userId);
 
@@ -189,10 +192,10 @@ public class ReviewServiceImpl implements ReviewService {
 
     boolean likedAfter = review.liked(userId);
     return ReviewLikeDto.builder()
-        .reviewId(review.getId())
-        .userId(userId)
-        .liked(likedAfter)
-        .build();
+            .reviewId(review.getId())
+            .userId(userId)
+            .liked(likedAfter)
+            .build();
   }
 
   @Override
@@ -208,9 +211,9 @@ public class ReviewServiceImpl implements ReviewService {
     int limit = requestDto.getLimit();
 
     // 리포지토리 메서드 호출하여 데이터 조회
-    List<Review> reviews =
-        reviewRepository.findReviewsWithCursor(
-            keyword, orderBy, direction, userId, bookId, cursor, after, limit + 1);
+    List<Review> reviews = reviewRepository.findReviewsWithCursor(
+            keyword, orderBy, direction, userId, bookId, cursor, after, limit + 1
+    );
 
     // 다음 페이지 존재 여부 확인 (N+1 조회 방식)
     boolean hasNext = reviews.size() > limit;
@@ -225,31 +228,31 @@ public class ReviewServiceImpl implements ReviewService {
     if (hasNext && !responseReviews.isEmpty()) {
       Review lastReview = responseReviews.get(responseReviews.size() - 1);
       nextCursor =
-          orderBy.equals("rating")
-              ? String.valueOf(lastReview.getRating())
-              : lastReview.getId().toString();
+              orderBy.equals("rating")
+                      ? String.valueOf(lastReview.getRating())
+                      : lastReview.getId().toString();
       nextAfter = lastReview.getCreatedAt();
     }
 
     // DTO로 변환
     List<ReviewDto> reviewDtos =
-        responseReviews.stream().map(reviewMapper::toDto).collect(Collectors.toList());
+            responseReviews.stream().map(reviewMapper::toDto).collect(Collectors.toList());
 
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()
-        .reviews(reviewDtos)
-        .nextCursor(nextCursor)
-        .nextAfter(nextAfter)
-        .hasNext(hasNext)
-        .size(responseReviews.size())
-        .build();
+            .reviews(reviewDtos)
+            .nextCursor(nextCursor)
+            .nextAfter(nextAfter)
+            .hasNext(hasNext)
+            .size(responseReviews.size())
+            .build();
   }
 
   @Override
   public Review findByIdEntityReturn(UUID reviewId) {
     return reviewRepository
-        .findById(reviewId)
-        .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            .findById(reviewId)
+            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
   }
 
   // 도서에 관련된 집계 필드 업데이트 - jw

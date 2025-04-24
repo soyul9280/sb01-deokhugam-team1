@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.comment.controller;
 
 import com.codeit.duckhu.domain.comment.dto.CommentDto;
+import com.codeit.duckhu.domain.comment.dto.CursorPageResponseCommentDto;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.service.CommentService;
@@ -60,7 +61,7 @@ public class CommentController {
   }
 
   @GetMapping
-  public ResponseEntity<List<CommentDto>> getCommentsList(
+  public ResponseEntity<CursorPageResponseCommentDto> getCommentsList(
       @RequestParam UUID reviewId,
       @RequestParam(defaultValue = "DESC") String direction,
       @RequestParam(required = false) UUID cursorId,

@@ -1,7 +1,9 @@
 package com.codeit.duckhu.domain.comments;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -10,6 +12,7 @@ import static org.mockito.Mockito.when;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.comment.domain.Comment;
 import com.codeit.duckhu.domain.comment.dto.CommentDto;
+import com.codeit.duckhu.domain.comment.dto.CursorPageResponseCommentDto;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.exception.NoAuthorityException;
@@ -22,6 +25,8 @@ import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -30,6 +35,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.context.ActiveProfiles;
 
 @ExtendWith(MockitoExtension.class)
@@ -193,8 +201,6 @@ class CommentServiceTest {
   void get() {
     UUID commentId = UUID.randomUUID();
 
-    Book book = mock(Book.class);
-
     Comment comment = new Comment();
     comment.setContent("test comment");
 
@@ -209,4 +215,31 @@ class CommentServiceTest {
     assertEquals("test comment", result.getContent());
     assertNotNull(result);
   }
+
+  @Test
+  void getList() {
+    UUID reviewId = UUID.randomUUID();
+
+    Comment comment = new Comment();
+    comment.setContent("test comment");
+
+    CommentDto dto = new CommentDto();
+    dto.setId(UUID.randomUUID());
+    dto.setCreatedAt(Instant.now());
+    dto.setContent("test comment");
+
+    List<Comment> comments = List.of(comment);
+    Slice<Comment> slice = new SliceImpl<>(comments, PageRequest.of(0, 10), false);
+
+    given(commentRepository.searchAll(eq(reviewId), eq("ASC"), any(), any(), eq(10)))
+        .willReturn(slice);
+    given(commentMapper.toDto(comment)).willReturn(dto);
+    given(commentRepository.findByReview_Id(reviewId)).willReturn(comments);
+
+    CursorPageResponseCommentDto responseCommentDto = commentService.getList(reviewId, "ASC", null, Instant.now(), 10);
+
+    assertThat(responseCommentDto.getContent()).hasSize(1);
+    assertThat(responseCommentDto.getContent().get(0).getContent()).isEqualTo("test comment");
+  }
+
 }

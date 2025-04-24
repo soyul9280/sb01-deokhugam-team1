@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CursorPageResponseReviewDto {
 
-  private List<ReviewDto> reviews;
+  private List<ReviewDto> content;
   private String nextCursor;
   private Instant nextAfter;
   private int size;

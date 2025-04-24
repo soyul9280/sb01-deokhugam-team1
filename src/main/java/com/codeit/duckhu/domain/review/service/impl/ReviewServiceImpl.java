@@ -80,14 +80,12 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public ReviewDto getReviewById(UUID id) {
-    log.info("리뷰 조회, ID: {}", id);
+  public ReviewDto getReviewById(UUID userId, UUID reviewId) {
+    log.info("리뷰 조회, ID: {}", reviewId);
 
     // 리뷰 조회
-    Review review =
-            reviewRepository
-                    .findById(id)
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+    Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     if (review.isDeleted()) {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
@@ -99,13 +97,18 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Transactional
   @Override
-  public void hardDeleteReviewById(UUID id) {
+  public void hardDeleteReviewById(UUID userId, UUID reviewId) {
     Review review =
-            reviewRepository
-                    .findById(id)
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+        reviewRepository
+            .findById(reviewId)
+            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-    reviewRepository.delete(review);
+    // 사용자가 권한이 있는지 확인
+    if (review.getUser().getId().equals(userId)) {
+      reviewRepository.delete(review);
+    } else {
+      throw new ReviewCustomException(ReviewErrorCode.NO_AUTHORITY_USER);
+    }
 
     // jw
     recalculateBookStats(review.getBook());
@@ -113,15 +116,19 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Transactional
   @Override
-  public void softDeleteReviewById(UUID id) {
+  public void softDeleteReviewById(UUID userId, UUID reviewId) {
     Review review =
-            reviewRepository
-                    .findById(id)
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+        reviewRepository
+            .findById(reviewId)
+            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
-    review.softDelete();
-
-    reviewRepository.save(review);
+    // 사용자가 권한이 있는지 확인
+    if (review.getUser().getId().equals(userId)) {
+      review.softDelete();
+      reviewRepository.save(review);
+    } else {
+      throw new ReviewCustomException(ReviewErrorCode.NO_AUTHORITY_USER);
+    }
 
     // jw
     recalculateBookStats(review.getBook());
@@ -129,24 +136,25 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Transactional
   @Override
-  public ReviewDto updateReview(UUID id, ReviewUpdateRequest request) {
+  public ReviewDto updateReview(UUID userId, UUID reviewId, ReviewUpdateRequest request) {
     Review review =
-            reviewRepository
-                    .findById(id)
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+        reviewRepository
+            .findById(reviewId)
+            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     // 사용자 찾기
     User user =
-            userRepository
-                    .findById(request.getUserId())
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+        userRepository
+            .findById(request.getUserId())
+            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
 
     if (review.isDeleted()) {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
     }
 
+    // 사용자가 권한이 있는지 확인
     if (!user.getId().equals(review.getUser().getId())) {
-      throw new ReviewCustomException(ReviewErrorCode.USER_NOT_OWNER);
+      throw new ReviewCustomException(ReviewErrorCode.NO_AUTHORITY_USER);
     }
 
     review.updateContent(request.getContent());
@@ -240,7 +248,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()
-            .reviews(reviewDtos)
+            .content(reviewDtos)
             .nextCursor(nextCursor)
             .nextAfter(nextAfter)
             .hasNext(hasNext)

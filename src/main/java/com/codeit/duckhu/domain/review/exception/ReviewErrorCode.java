@@ -17,7 +17,7 @@ public enum ReviewErrorCode {
   REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다.", "리뷰를 찾을 수 없습니다."),
   BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "책을 찾을 수 없습니다.", "책을 찾을 수 없습니다."),
   REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 작성한 리뷰가 존재합니다.", "한 도서에 리뷰는 1개만 작성할 수 있습니다."),
-  USER_NOT_OWNER(HttpStatus.INTERNAL_SERVER_ERROR, "본인이 아닙니다.", "본인이 작성한 리뷰가 아닙니다."),
+  NO_AUTHORITY_USER(HttpStatus.FORBIDDEN, "본인이 아닙니다.", "권한이 없습니다."),
   USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다.", "유저를 찾을 수 없습니다."),
   ;
 

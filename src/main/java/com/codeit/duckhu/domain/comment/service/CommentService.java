@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.comment.service;
 
 import com.codeit.duckhu.domain.comment.domain.Comment;
 import com.codeit.duckhu.domain.comment.dto.CommentDto;
+import com.codeit.duckhu.domain.comment.dto.CursorPageResponseCommentDto;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.exception.NoAuthorityException;
@@ -36,11 +37,26 @@ public class CommentService {
     return commentMapper.toDto(comment);
   }
 
-  public List<CommentDto> getList(
+  public CursorPageResponseCommentDto getList(
       UUID reviewId, String direction, UUID cursorId, Instant createdAt, int limit) {
-    Slice<Comment> list = repository.searchAll(reviewId, direction, createdAt, cursorId, limit);
+    Slice<Comment> slice = repository.searchAll(reviewId, direction, createdAt, cursorId, limit);
 
-    return list.getContent().stream().map(commentMapper::toDto).toList();
+   List<CommentDto> list = slice.getContent().stream().map(commentMapper::toDto).toList();
+
+    CursorPageResponseCommentDto response = new CursorPageResponseCommentDto();
+    response.setContent(list);
+    response.setSize(list.size());
+    response.setHasNext(slice.hasNext());
+
+    if (!list.isEmpty()) {
+      CommentDto lastComment = list.get(list.size() - 1);
+      response.setNextCursor(lastComment.getId().toString());
+      response.setNextAfter(lastComment.getCreatedAt());
+    }
+
+    response.setTotalElements((long) repository.findByReview_Id(reviewId).size());
+
+    return response;
   }
 
   public CommentDto create(CommentCreateRequest request) {

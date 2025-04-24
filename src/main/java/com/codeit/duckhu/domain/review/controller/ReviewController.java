@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.review.controller;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,34 +32,51 @@ public class ReviewController {
   private final ReviewService reviewService;
 
   @PostMapping
-  public ResponseEntity<ReviewDto> createReview(@Valid @RequestBody ReviewCreateRequest request) {
+  public ResponseEntity<ReviewDto> createReview(
+      @Valid @RequestBody ReviewCreateRequest request) {
     ReviewDto review = reviewService.createReview(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(review);
   }
 
+  @PostMapping("/{reviewId}/like")
+  public ResponseEntity<ReviewLikeDto> likeReview(
+      @PathVariable("reviewId") UUID reviewId,
+      @RequestHeader("X-USER-ID") UUID userId) {
+    ReviewLikeDto result = reviewService.likeReview(reviewId, userId);
+    return ResponseEntity.ok(result);
+  }
+
   @PatchMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> updateReview(
+      @RequestParam("userId") UUID userId,
       @PathVariable("reviewId") UUID reviewId,
       @Valid @RequestBody ReviewUpdateRequest request) {
-    ReviewDto review = reviewService.updateReview(reviewId, request);
+    ReviewDto review = reviewService.updateReview(userId, reviewId, request);
     return ResponseEntity.ok(review);
   }
 
   @DeleteMapping("/{reviewId}")
-  public ResponseEntity<Void> softDeleteReview(@PathVariable UUID reviewId) {
-    reviewService.softDeleteReviewById(reviewId);
+  public ResponseEntity<Void> softDeleteReview(
+      @RequestParam("userId") UUID userId,
+      @PathVariable UUID reviewId) {
+    reviewService.softDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
 
+  // TODO : 코드레빗, 관리자 권한 ? -> security
   @DeleteMapping("/{reviewId}/hard")
-  public ResponseEntity<Void> hardDeleteReview(@PathVariable("reviewId") UUID reviewId) {
-    reviewService.hardDeleteReviewById(reviewId);
+  public ResponseEntity<Void> hardDeleteReview(
+      @RequestParam("userId") UUID userId,
+      @PathVariable("reviewId") UUID reviewId) {
+    reviewService.hardDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/{reviewId}")
-  public ResponseEntity<ReviewDto> getReviewById(@PathVariable("reviewId") UUID reviewId) {
-    ReviewDto review = reviewService.getReviewById(reviewId);
+  public ResponseEntity<ReviewDto> getReviewById(
+      @RequestParam("userId") UUID userId,
+      @PathVariable("reviewId") UUID reviewId) {
+    ReviewDto review = reviewService.getReviewById(userId, reviewId);
     return ResponseEntity.ok(review);
   }
 
@@ -79,12 +98,12 @@ public class ReviewController {
           .userId(userId)
           .bookId(bookId)
           .cursor(cursor)
-          .after(after != null ? Instant.parse(after) : null)
+          .after(after != null ? Instant.parse(after) : null) // TODO : 코드레빗 , 예외 처리를 어떻게 할지?
           // limit가 null이면 기본값인 50이 적용됨?
           .limit(limit != null ? limit : 50)
           .build();
 
-      CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
-      return ResponseEntity.ok(result);
+    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
+    return ResponseEntity.ok(result);
   }
 }

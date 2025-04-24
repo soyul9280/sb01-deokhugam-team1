@@ -25,7 +25,7 @@ public class PowerUserBatchScheduler {
             log.info("{} {} 파워 유저를 갱신합니다.", logPrefix, period);
             userService.savePowerUser(period);
         } catch (Exception e) {
-            log.error("{} {} 파워 유저 갱신 중 오류 발생 {}", logPrefix, period, e.getMessage());
+            log.warn("{} {} 파워 유저 갱신 중 오류 발생 {}", logPrefix, period, e.getMessage());
         }
     }
 }

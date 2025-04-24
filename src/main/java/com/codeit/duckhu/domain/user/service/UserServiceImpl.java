@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserDto create(UserRegisterRequest request) {
     if (userRepository.existsByEmail(request.getEmail())) {
-      log.warn("[사용자 등록 실패] 이메일 중복: {}", request.getEmail());
+      log.info("[사용자 등록 실패] 이메일 중복: {}", request.getEmail());
       throw new EmailDuplicateException(ErrorCode.EMAIL_DUPLICATION);
     }
 
@@ -69,11 +69,11 @@ public class UserServiceImpl implements UserService {
         userRepository
             .findByEmail(email)
             .orElseGet(() -> {
-              log.warn("[로그인 실패] 존재하지 않는 이메일: {}", email);
+              log.info("[로그인 실패] 존재하지 않는 이메일: {}", email);
               throw new InvalidLoginException(ErrorCode.LOGIN_INPUT_INVALID);
             });
     if (!user.getPassword().equals(password)) {
-      log.warn("[로그인 실패] 일치하지 않는 비밀번호: {}", password);
+      log.info("[로그인 실패] 일치하지 않는 비밀번호: {}", password);
       throw new InvalidLoginException(ErrorCode.LOGIN_INPUT_INVALID);
     }
     log.info("[로그인 완료] 사용자 ID: {}, 이메일: {}", user.getId(), email);
@@ -87,11 +87,11 @@ public class UserServiceImpl implements UserService {
         userRepository
             .findById(id)
             .orElseGet(() ->{
-              log.warn("[사용자 조회 실패] id: {}", id);
+              log.info("[사용자 조회 실패] id: {}", id);
               throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
             });
     if (user.isDeleted()) {
-      log.warn("[사용자 조회 실패] 논리 삭제된 id: {}", id);
+      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
       throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
     }
     return userMapper.toDto(user);
@@ -103,12 +103,12 @@ public class UserServiceImpl implements UserService {
         userRepository
             .findById(id)
             .orElseGet(() -> {
-              log.warn("[사용자 조회 실패] id: {}", id);
+              log.info("[사용자 조회 실패] id: {}", id);
               throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
             });
 
     if (user.isDeleted()) {
-      log.warn("[사용자 조회 실패] 논리 삭제된 id: {}", id);
+      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
       throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
     }
     user.update(userUpdateRequest);
@@ -120,12 +120,12 @@ public class UserServiceImpl implements UserService {
         userRepository
             .findById(id)
             .orElseGet(() -> {
-              log.warn("[사용자 조회 실패] id: {}", id);
+              log.info("[사용자 조회 실패] id: {}", id);
               throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
             });
 
     if (user.isDeleted()) {
-      log.warn("[사용자 조회 실패] 논리 삭제된 id: {}", id);
+      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
       throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
     }
 
@@ -138,7 +138,7 @@ public class UserServiceImpl implements UserService {
         userRepository
             .findById(id)
                 .orElseGet(() -> {
-                  log.warn("[사용자 조회 실패] id: {}", id);
+                  log.info("[사용자 조회 실패] id: {}", id);
                   throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
                 });
 
@@ -152,12 +152,12 @@ public class UserServiceImpl implements UserService {
         userRepository
             .findById(id)
                 .orElseGet(() -> {
-                  log.warn("[사용자 조회 실패] id: {}", id);
+                  log.info("[사용자 조회 실패] id: {}", id);
                   throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
                 });
 
     userRepository.deleteById(user.getId());
-    log.warn("[사용자 물리 삭제 완료] id: {}", id); //정상적이지만 주의가 필요한 행동이니까 warn
+    log.warn("[사용자 물리 삭제 완료] id: {}", id); //정상적이지만 주의가 필요한 행동(복구 불가능한 행위)이니까 warn
   }
 
   @Override
@@ -214,7 +214,7 @@ public class UserServiceImpl implements UserService {
      powerUserRepository.saveAll(powerUsers);
      log.info("[PowerUser 저장 완료] 대상 수: {}, period={}", powerUsers.size(), period);
    }catch (Exception e) {
-     log.error("[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage());
+     log.warn("[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage()); //배치작업 오류 그냥 넘어가면 안되니까
    }
   }
 

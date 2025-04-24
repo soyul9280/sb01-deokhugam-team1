@@ -31,11 +31,9 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 class ReviewControllerTest {
 
-  @Mock
-  private ReviewService reviewService;
+  @Mock private ReviewService reviewService;
 
-  @InjectMocks
-  private ReviewController reviewController;
+  @InjectMocks private ReviewController reviewController;
 
   private UUID reviewId;
   private UUID userId;
@@ -50,57 +48,61 @@ class ReviewControllerTest {
     userId = UUID.randomUUID();
     bookId = UUID.randomUUID();
 
-    reviewDto = ReviewDto.builder()
-        .id(reviewId)
-        .userId(userId)
-        .bookId(bookId)
-        .rating(4)
-        .content("좋은 책이에요")
-        .userNickname("테스터")
-        .bookTitle("테스트 도서")
-        .likeCount(5)
-        .commentCount(3)
-        .createdAt(LocalDateTime.now())
-        .build();
+    reviewDto =
+        ReviewDto.builder()
+            .id(reviewId)
+            .userId(userId)
+            .bookId(bookId)
+            .rating(4)
+            .content("좋은 책이에요")
+            .userNickname("테스터")
+            .bookTitle("테스트 도서")
+            .likeCount(5)
+            .commentCount(3)
+            .createdAt(LocalDateTime.now())
+            .build();
 
-    createRequest = ReviewCreateRequest.builder()
-        .userId(userId)
-        .bookId(bookId)
-        .rating(4)
-        .content("좋은 책이에요")
-        .build();
+    createRequest =
+        ReviewCreateRequest.builder()
+            .userId(userId)
+            .bookId(bookId)
+            .rating(4)
+            .content("좋은 책이에요")
+            .build();
 
-    updateRequest = ReviewUpdateRequest.builder()
-        .userId(userId)
-        .bookId(bookId)
-        .rating(5)
-        .content("정말 좋은 책이에요!")
-        .build();
+    updateRequest =
+        ReviewUpdateRequest.builder()
+            .userId(userId)
+            .bookId(bookId)
+            .rating(5)
+            .content("정말 좋은 책이에요!")
+            .build();
   }
 
   @Test
   @DisplayName("리뷰 목록 조회 - 커서 페이지네이션")
   void findReviews_Success() {
     // Given
-    CursorPageResponseReviewDto responseDto = CursorPageResponseReviewDto.builder()
-        .reviews(List.of(reviewDto))
-        .nextCursor("next-cursor")
-        .nextAfter(Instant.now())
-        .size(1)
-        .totalElements(10L)
-        .hasNext(true)
-        .build();
+    CursorPageResponseReviewDto responseDto =
+        CursorPageResponseReviewDto.builder()
+            .reviews(List.of(reviewDto))
+            .nextCursor("next-cursor")
+            .nextAfter(Instant.now())
+            .size(1)
+            .totalElements(10L)
+            .hasNext(true)
+            .build();
 
     when(reviewService.findReviews(any(ReviewSearchRequestDto.class))).thenReturn(responseDto);
 
     // When
-    ResponseEntity<CursorPageResponseReviewDto> response = reviewController.getReviews(
-        "키워드", "createdAt", "DESC", userId, bookId, null, null, 10);
+    ResponseEntity<CursorPageResponseReviewDto> response =
+        reviewController.getReviews("키워드", "createdAt", "DESC", userId, bookId, null, null, 10);
 
     // Then
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(responseDto, response.getBody());
-    
+
     // 서비스 호출 시 ReviewSearchRequestDto가 올바르게 생성되었는지 검증
     verify(reviewService).findReviews(any(ReviewSearchRequestDto.class));
   }
@@ -139,7 +141,8 @@ class ReviewControllerTest {
   @DisplayName("리뷰 업데이트")
   void updateReview_Success() {
     // Given
-    when(reviewService.updateReview(eq(reviewId), any(ReviewUpdateRequest.class))).thenReturn(reviewDto);
+    when(reviewService.updateReview(eq(reviewId), any(ReviewUpdateRequest.class)))
+        .thenReturn(reviewDto);
 
     // When
     ResponseEntity<ReviewDto> response = reviewController.updateReview(reviewId, updateRequest);
@@ -177,28 +180,29 @@ class ReviewControllerTest {
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     verify(reviewService).hardDeleteReviewById(reviewId);
   }
-  
+
   @Test
   @DisplayName("리뷰 목록 조회 - 파라미터 없이 기본값 사용")
   void findReviews_WithDefaultParams() {
     // Given
-    CursorPageResponseReviewDto responseDto = CursorPageResponseReviewDto.builder()
-        .reviews(Collections.emptyList())
-        .size(0)
-        .hasNext(false)
-        .build();
+    CursorPageResponseReviewDto responseDto =
+        CursorPageResponseReviewDto.builder()
+            .reviews(Collections.emptyList())
+            .size(0)
+            .hasNext(false)
+            .build();
 
     when(reviewService.findReviews(any(ReviewSearchRequestDto.class))).thenReturn(responseDto);
 
     // When
     Integer limit = null; // 실제 컨트롤러에서는 null이 들어오더라도 Builder 내부에서 기본값이 적용됨
-    ResponseEntity<CursorPageResponseReviewDto> response = reviewController.getReviews(
-        null, null, null, null, null, null, null, limit);
+    ResponseEntity<CursorPageResponseReviewDto> response =
+        reviewController.getReviews(null, null, null, null, null, null, null, limit);
 
     // Then
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(responseDto, response.getBody());
-    
+
     // 서비스 호출 시 파라미터 없이 호출되었는지 검증
     verify(reviewService).findReviews(any(ReviewSearchRequestDto.class));
   }

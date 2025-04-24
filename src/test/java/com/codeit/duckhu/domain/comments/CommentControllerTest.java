@@ -27,11 +27,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(
     controllers = CommentController.class,
-    excludeFilters = @ComponentScan.Filter(
-        type = FilterType.ASSIGNABLE_TYPE,
-        classes = UserAuthenticationFilter.class
-    )
-)
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = UserAuthenticationFilter.class))
 public class CommentControllerTest {
   @Autowired MockMvc mockMvc;
 

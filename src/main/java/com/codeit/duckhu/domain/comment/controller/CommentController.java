@@ -5,6 +5,7 @@ import com.codeit.duckhu.domain.comment.dto.CursorPageResponseCommentDto;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.service.CommentService;
+import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -63,7 +64,7 @@ public class CommentController {
   @GetMapping
   public ResponseEntity<CursorPageResponseCommentDto> getCommentsList(
       @RequestParam UUID reviewId,
-      @RequestParam(defaultValue = "DESC") String direction,
+      @RequestParam(defaultValue = "DESC") Direction direction,
       @RequestParam(required = false) UUID cursorId,
       @RequestParam(required = false) Instant createdAt,
       @RequestParam(defaultValue = "30") int limit) {

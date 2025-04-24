@@ -34,3 +34,5 @@ google:
 
 springdoc:
   swagger-ui:
+    enabled: true
+    path: /swagger-custom-ui.html

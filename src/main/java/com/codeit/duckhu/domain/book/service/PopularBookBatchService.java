@@ -39,7 +39,8 @@ public class PopularBookBatchService {
 
       log.info("[Batch 시작] period={} | from={} ~ to={}", period, from, now);
 
-      List<Book> books = bookRepository.findAll();
+      // 전체 도서를 가져오지 않고 리뷰가 1개 이상인 도서 가져오기
+      List<Book> books = bookRepository.findBooksWithReviews();
 
       // 각 도서에 대해 해당 기간의 리뷰수, 평균 평점, 점수를 계산합니다.
       List<PopularBookScore> popularBookScores = books.stream()

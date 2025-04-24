@@ -37,27 +37,34 @@ public class ReviewController {
 
   @PatchMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> updateReview(
+      @RequestParam("userId") UUID userId,
       @PathVariable("reviewId") UUID reviewId,
       @Valid @RequestBody ReviewUpdateRequest request) {
-    ReviewDto review = reviewService.updateReview(reviewId, request);
+    ReviewDto review = reviewService.updateReview(userId, reviewId, request);
     return ResponseEntity.ok(review);
   }
 
   @DeleteMapping("/{reviewId}")
-  public ResponseEntity<Void> softDeleteReview(@PathVariable UUID reviewId) {
-    reviewService.softDeleteReviewById(reviewId);
+  public ResponseEntity<Void> softDeleteReview(
+      @RequestParam("userId") UUID userId,
+      @PathVariable UUID reviewId) {
+    reviewService.softDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{reviewId}/hard")
-  public ResponseEntity<Void> hardDeleteReview(@PathVariable("reviewId") UUID reviewId) {
-    reviewService.hardDeleteReviewById(reviewId);
+  public ResponseEntity<Void> hardDeleteReview(
+      @RequestParam("userId") UUID userId,
+      @PathVariable("reviewId") UUID reviewId) {
+    reviewService.hardDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/{reviewId}")
-  public ResponseEntity<ReviewDto> getReviewById(@PathVariable("reviewId") UUID reviewId) {
-    ReviewDto review = reviewService.getReviewById(reviewId);
+  public ResponseEntity<ReviewDto> getReviewById(
+      @RequestParam("userId") UUID userId,
+      @PathVariable("reviewId") UUID reviewId) {
+    ReviewDto review = reviewService.getReviewById(userId, reviewId);
     return ResponseEntity.ok(review);
   }
 
@@ -79,7 +86,7 @@ public class ReviewController {
           .userId(userId)
           .bookId(bookId)
           .cursor(cursor)
-          .after(after != null ? Instant.parse(after) : null)
+          .after(after != null ? Instant.parse(after) : null) // 코드레빗 , 예외 처리를 어떻게 할지?
           // limit가 null이면 기본값인 50이 적용됨?
           .limit(limit != null ? limit : 50)
           .build();

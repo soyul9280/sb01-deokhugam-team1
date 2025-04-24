@@ -14,17 +14,17 @@ public interface ReviewService {
 
   ReviewDto createReview(ReviewCreateRequest request);
 
-  ReviewDto getReviewById(UUID id);
+  ReviewDto getReviewById(UUID userId, UUID reviewId);
 
-  void hardDeleteReviewById(UUID id);
+  void hardDeleteReviewById(UUID userId, UUID reviewId);
 
-  ReviewDto updateReview(UUID id, ReviewUpdateRequest request);
+  ReviewDto updateReview(UUID userId, UUID reviewId, ReviewUpdateRequest request);
 
   ReviewLikeDto likeReview(UUID reviewId, UUID userId);
 
   CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto);
 
-  void softDeleteReviewById(UUID reviewId);
+  void softDeleteReviewById(UUID userId, UUID reviewId);
 
   Review findByIdEntityReturn(UUID reviewId);
 }

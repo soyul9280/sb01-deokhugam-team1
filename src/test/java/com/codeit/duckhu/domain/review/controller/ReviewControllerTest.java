@@ -124,58 +124,58 @@ class ReviewControllerTest {
   @DisplayName("ID로 리뷰 조회")
   void getReviewById_Success() {
     // Given
-    when(reviewService.getReviewById(reviewId)).thenReturn(reviewDto);
+    when(reviewService.getReviewById(userId, reviewId)).thenReturn(reviewDto);
 
     // When
-    ResponseEntity<ReviewDto> response = reviewController.getReviewById(reviewId);
+    ResponseEntity<ReviewDto> response = reviewController.getReviewById(userId, reviewId);
 
     // Then
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(reviewDto, response.getBody());
-    verify(reviewService).getReviewById(reviewId);
+    verify(reviewService).getReviewById(userId, reviewId);
   }
 
   @Test
   @DisplayName("리뷰 업데이트")
   void updateReview_Success() {
     // Given
-    when(reviewService.updateReview(eq(reviewId), any(ReviewUpdateRequest.class))).thenReturn(reviewDto);
+    when(reviewService.updateReview(eq(userId), eq(reviewId), any(ReviewUpdateRequest.class))).thenReturn(reviewDto);
 
     // When
-    ResponseEntity<ReviewDto> response = reviewController.updateReview(reviewId, updateRequest);
+    ResponseEntity<ReviewDto> response = reviewController.updateReview(userId, reviewId, updateRequest);
 
     // Then
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(reviewDto, response.getBody());
-    verify(reviewService).updateReview(reviewId, updateRequest);
+    verify(reviewService).updateReview(userId, reviewId, updateRequest);
   }
 
   @Test
   @DisplayName("리뷰 소프트 삭제")
   void softDeleteReview_Success() {
     // Given
-    doNothing().when(reviewService).softDeleteReviewById(reviewId);
+    doNothing().when(reviewService).softDeleteReviewById(userId, reviewId);
 
     // When
-    ResponseEntity<Void> response = reviewController.softDeleteReview(reviewId);
+    ResponseEntity<Void> response = reviewController.softDeleteReview(userId, reviewId);
 
     // Then
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    verify(reviewService).softDeleteReviewById(reviewId);
+    verify(reviewService).softDeleteReviewById(userId, reviewId);
   }
 
   @Test
   @DisplayName("리뷰 하드 삭제")
   void hardDeleteReview_Success() {
     // Given
-    doNothing().when(reviewService).hardDeleteReviewById(reviewId);
+    doNothing().when(reviewService).hardDeleteReviewById(userId, reviewId);
 
     // When
-    ResponseEntity<Void> response = reviewController.hardDeleteReview(reviewId);
+    ResponseEntity<Void> response = reviewController.hardDeleteReview(userId, reviewId);
 
     // Then
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    verify(reviewService).hardDeleteReviewById(reviewId);
+    verify(reviewService).hardDeleteReviewById(userId, reviewId);
   }
   
   @Test

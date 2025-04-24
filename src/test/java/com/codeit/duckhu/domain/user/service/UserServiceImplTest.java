@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
 import com.codeit.duckhu.domain.user.dto.PowerUserDto;
+import com.codeit.duckhu.domain.user.dto.PowerUserStatsDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -254,7 +256,7 @@ class UserServiceImplTest {
   }
 
     @Nested
-    @DisplayName("파워유저 조회 테스트")
+    @DisplayName("파워유저 테스트")
     class PowerUserTest {
       @Test
       @DisplayName("파워 유저 조회 성공")
@@ -304,6 +306,42 @@ class UserServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0)).isEqualTo(dto);
+      }
+
+      @Test
+      @DisplayName("파워 유저 저장 테스트 성공")
+      void savePowerUser_success() {
+        //given
+        PeriodType period = PeriodType.DAILY;
+        Instant now = Instant.now();
+        Instant start = period.toStartInstant(now);
+        Instant end=now;
+
+        UUID userId = UUID.randomUUID();
+        PowerUserStatsDto statsDto = PowerUserStatsDto.builder()
+                .userId(userId)
+                .reviewScoreSum(7.0)
+                .likedCount(5)
+                .commentCount(10)
+                .build();
+
+        List<PowerUserStatsDto> stats = List.of(statsDto);
+        User mockUser = User.builder()
+                .email("testA@example.com")
+                .nickname("testA")
+                .password("testA1!")
+                .build();
+        ReflectionTestUtils.setField(mockUser, "id", userId);
+
+        given(powerUserRepository.findPowerUserStatsBetween(any(), any())).willReturn(stats);
+        given(userRepository.findAllById(any())).willReturn(List.of(mockUser));
+
+        //when
+        sut.savePowerUser(period);
+        //then
+        verify(powerUserRepository,times(1)).deleteByPeriod(period);
+        verify(powerUserRepository,times(1)).saveAll(any());
+
       }
     }
 }

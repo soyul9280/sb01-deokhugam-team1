@@ -1,6 +1,8 @@
 package com.codeit.duckhu.domain.user.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -10,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.codeit.duckhu.domain.user.UserAuthenticationFilter;
+import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
+import com.codeit.duckhu.domain.user.dto.PowerUserDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
@@ -18,8 +22,11 @@ import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.domain.user.service.UserService;
 import com.codeit.duckhu.global.exception.GlobalExceptionHandler;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +38,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @WebMvcTest(UserController.class)
@@ -219,4 +227,58 @@ class UserControllerTest {
         .andExpect(jsonPath("$.error.details").value("USER_403"))
         .andExpect(jsonPath("$.error.message").value("사용자 삭제 권한 없음"));
   }
+
+  @Test
+  @DisplayName("GET api/users/power - 성공")
+  void powerUser_success() throws Exception {
+    // given
+    PeriodType period = PeriodType.DAILY;
+    Direction direction = Direction.ASC;
+    String cursor = null;
+    Instant after = null;
+    int limit = 10;
+
+    PowerUserDto dto = PowerUserDto.builder()
+            .userId(UUID.randomUUID())
+            .nickname("testA")
+            .period("DAILY")
+            .createdAt(Instant.now())
+            .rank(1)
+            .score(5.0)
+            .reviewScoreSum(3.5)
+            .likeCount(2)
+            .commentCount(4)
+            .build();
+
+    CursorPageResponsePowerUserDto responseDto = CursorPageResponsePowerUserDto.builder()
+            .content(List.of(dto))
+            .nextCursor(null)
+            .nextAfter(null)
+            .size(1)
+            .totalElements(1)
+            .hasNext(false)
+            .build();
+
+    given(userService.findPowerUsers(
+            eq(period),
+            eq(direction),
+            isNull(),
+            isNull(),
+            eq(limit)))
+            .willReturn(responseDto);
+
+    // when & then
+    mockMvc.perform(MockMvcRequestBuilders.get("/api/users/power")
+            .param("period", period.name())
+            .param("direction", direction.name())
+            .param("limit", String.valueOf(limit))
+            .contentType(MediaType.APPLICATION_JSON))
+
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].nickname").value("testA"))
+            .andExpect(jsonPath("$.size").value(1))
+            .andExpect(jsonPath("$.hasNext").value(false));
+  }
 }
+
+

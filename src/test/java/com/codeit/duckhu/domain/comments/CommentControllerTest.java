@@ -13,16 +13,25 @@ import com.codeit.duckhu.domain.comment.dto.CommentDto;
 import com.codeit.duckhu.domain.comment.dto.request.CommentCreateRequest;
 import com.codeit.duckhu.domain.comment.dto.request.CommentUpdateRequest;
 import com.codeit.duckhu.domain.comment.service.CommentService;
+import com.codeit.duckhu.domain.user.UserAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(CommentController.class)
+@WebMvcTest(
+    controllers = CommentController.class,
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = UserAuthenticationFilter.class
+    )
+)
 public class CommentControllerTest {
   @Autowired MockMvc mockMvc;
 

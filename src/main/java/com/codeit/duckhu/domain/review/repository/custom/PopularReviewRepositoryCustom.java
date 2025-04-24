@@ -1,18 +1,15 @@
 package com.codeit.duckhu.domain.review.repository.custom;
 
 import com.codeit.duckhu.domain.review.entity.PopularReview;
-import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 public interface PopularReviewRepositoryCustom {
   List<PopularReview> findReviewsWithCursor(
-      String keyword,
-      String orderBy,
-      String direction,
-      UUID userId,
-      UUID bookId,
+      PeriodType period,
+      Direction direction,
       String cursor,
       Instant after,
       int size);

@@ -14,10 +14,6 @@ spring:
     database: postgresql
   transaction:
     default-timeout: 30
-  springdoc:
-    swagger-ui:
-      enabled: true
-      path: /swagger-custom-ui.html
 duckhu:
   storage:
     type: s3

@@ -17,6 +17,7 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -213,7 +214,7 @@ public class ReviewServiceImpl implements ReviewService {
     // 요청 DTO에서 필요한 값 추출
     String keyword = requestDto.getKeyword();
     String orderBy = requestDto.getOrderBy();
-    String direction = requestDto.getDirection();
+    Direction direction = requestDto.getDirection();
     UUID userId = requestDto.getUserId();
     UUID bookId = requestDto.getBookId();
     String cursor = requestDto.getCursor();

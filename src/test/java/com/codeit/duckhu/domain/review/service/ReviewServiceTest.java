@@ -16,7 +16,6 @@ import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
-import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.Review;
@@ -26,6 +25,7 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.type.Direction;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +56,8 @@ class ReviewServiceTest {
   @Mock private ReviewRepository reviewRepository;
 
   @Mock private ReviewMapper reviewMapper;
+
+  @Mock private Direction direction;
 
   @InjectMocks private ReviewServiceImpl reviewService;
 
@@ -306,7 +308,7 @@ class ReviewServiceTest {
 
     // 정확한 파라미터로 stubbing 설정
     when(reviewRepository.findReviewsWithCursor(
-            eq(null), eq("createdAt"), eq("DESC"), eq(null), eq(null), eq(null), eq(null), eq(51)))
+            eq(null), eq("createdAt"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(51)))
         .thenReturn(reviewList);
 
     // When

@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.review.repository.custom.impl;
 import com.codeit.duckhu.domain.review.entity.QReview;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.custom.ReviewRepositoryCustom;
+import com.codeit.duckhu.global.type.Direction;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,7 +24,7 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
   public List<Review> findReviewsWithCursor(
       String keyword,
       String orderBy,
-      String direction,
+      Direction direction,
       UUID userId,
       UUID bookId,
       String cursor,
@@ -66,8 +67,8 @@ public class ReviewRepositoryCustomImpl implements ReviewRepositoryCustom {
         .fetch();
   }
 
-  private boolean isAsc(String direction) {
-    return "ASC".equalsIgnoreCase(direction);
+  private boolean isAsc(Direction direction) {
+    return "ASC".equalsIgnoreCase(String.valueOf(direction));
   }
 
   // 정렬 조건 필드 - createdAt, rating

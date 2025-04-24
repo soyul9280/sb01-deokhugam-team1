@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.review.repository;
 
+import static com.codeit.duckhu.global.type.Direction.DESC;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.codeit.duckhu.domain.book.entity.Book;
@@ -203,7 +204,7 @@ public class ReviewRepositoryTest {
         reviewRepository.findReviewsWithCursor(
             null, // 키워드 없음
             "createdAt", // 생성 시간 기준 정렬
-            "DESC", // 내림차순
+            DESC, // 내림차순
             null, // 사용자 ID 필터 없음
             null, // 책 ID 필터 없음
             null, // 첫 페이지니까 커서 없음
@@ -223,7 +224,7 @@ public class ReviewRepositoryTest {
         reviewRepository.findReviewsWithCursor(
             null, // 키워드 없음
             "createdAt", // 생성 시간 기준 정렬
-            "DESC", // 내림차순
+            DESC, // 내림차순
             null, // 사용자 ID 필터 없음
             null, // 책 ID 필터 없음
             lastReviewOfFirstPage.getId().toString(), // 마지막 리뷰 ID를 커서로 사용
@@ -284,7 +285,7 @@ public class ReviewRepositoryTest {
         reviewRepository.findReviewsWithCursor(
             null, // 키워드 없음
             "rating", // 평점 기준 정렬
-            "DESC", // 내림차순
+            DESC, // 내림차순
             null, // 사용자 ID 필터 없음
             null, // 책 ID 필터 없음
             null, // 첫 페이지니까 커서 없음
@@ -304,7 +305,7 @@ public class ReviewRepositoryTest {
         reviewRepository.findReviewsWithCursor(
             null, // 키워드 없음
             "rating", // 평점 기준 정렬
-            "DESC", // 내림차순
+            DESC, // 내림차순
             null, // 사용자 ID 필터 없음
             null, // 책 ID 필터 없음
             String.valueOf(lastReviewOfFirstPage.getRating()), // 마지막 리뷰 평점을 커서로 사용
@@ -379,7 +380,7 @@ public class ReviewRepositoryTest {
         reviewRepository.findReviewsWithCursor(
             "검색용 키워드", // 검색 키워드
             "createdAt", // 생성 시간 기준 정렬
-            "DESC", // 내림차순
+            DESC, // 내림차순
             null, // 사용자 ID 필터 없음
             null, // 책 ID 필터 없음
             null, // 첫 페이지니까 커서 없음
@@ -460,7 +461,7 @@ public class ReviewRepositoryTest {
         reviewRepository.findReviewsWithCursor(
             null, // 키워드 없음
             "createdAt", // 생성 시간 기준 정렬
-            "DESC", // 내림차순
+            DESC, // 내림차순
             savedUser1.getId(), // 사용자1의 ID로 필터링
             null, // 책 ID 필터 없음
             null, // 첫 페이지니까 커서 없음
@@ -546,7 +547,7 @@ public class ReviewRepositoryTest {
         reviewRepository.findReviewsWithCursor(
             null, // 키워드 없음
             "createdAt", // 생성 시간 기준 정렬
-            "DESC", // 내림차순
+            DESC, // 내림차순
             null, // 사용자 ID 필터 없음
             savedBook1.getId(), // 도서1의 ID로 필터링
             null, // 첫 페이지니까 커서 없음

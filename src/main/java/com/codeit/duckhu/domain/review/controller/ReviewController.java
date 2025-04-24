@@ -11,6 +11,7 @@ import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
+import com.codeit.duckhu.global.type.Direction;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.UUID;
@@ -101,7 +102,7 @@ public class ReviewController {
   public ResponseEntity<CursorPageResponseReviewDto> getReviews(
       @RequestParam(name = "keyword", required = false) String keyword,
       @RequestParam(name = "orderBy", required = false) String orderBy,
-      @RequestParam(name = "direction", required = false) String direction,
+      @RequestParam(name = "direction", required = false, defaultValue = "DESC") Direction direction,
       @RequestParam(name = "userId", required = false) UUID userId,
       @RequestParam(name = "bookId", required = false) UUID bookId,
       @RequestParam(name = "cursor", required = false) String cursor,

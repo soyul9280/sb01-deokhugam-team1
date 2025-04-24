@@ -9,4 +9,6 @@ public interface PopularBookRepository
     extends JpaRepository<PopularBook, UUID>, PopularBookRepositoryCustom {
 
   int countByPeriod(PeriodType period);
+
+  void deleteByPeriod(PeriodType period);
 }

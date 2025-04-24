@@ -62,6 +62,7 @@ public class ReviewController {
     return ResponseEntity.noContent().build();
   }
 
+  // TODO : 코드레빗, 관리자 권한 ? -> security
   @DeleteMapping("/{reviewId}/hard")
   public ResponseEntity<Void> hardDeleteReview(
       @RequestParam("userId") UUID userId,

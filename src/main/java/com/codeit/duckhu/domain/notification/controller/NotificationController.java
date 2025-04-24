@@ -43,7 +43,7 @@ public class NotificationController {
         User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
             log.warn("비인증 사용자 알림 목록 요청 차단");
-            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
+            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
         }
 
         log.info("API 호출: GET /api/notifications, userId={}, direction={}, cursor={}, limit={}",
@@ -75,7 +75,7 @@ public class NotificationController {
         User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
             log.warn("비인증 사용자 알림 읽음 처리 시도 차단");
-            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
+            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
         }
 
         log.info("알림 읽음 요청: notificationId={}, userId={}, confirmed={}",
@@ -98,7 +98,7 @@ public class NotificationController {
         User authenticatedUser = (User) httpServlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
             log.warn("비인증 사용자 전체 알림 읽음 시도 차단");
-            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_DELETE);
+            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
         }
 
         log.info("전체 알림 읽음 요청: userId={}", authenticatedUser.getId());

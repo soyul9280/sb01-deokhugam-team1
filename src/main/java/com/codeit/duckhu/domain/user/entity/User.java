@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.user.entity;
 
+import com.codeit.duckhu.domain.review.entity.LikedUserId;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.global.entity.BaseEntity;
@@ -34,6 +35,7 @@ public class User extends BaseEntity {
 
   @OneToMany(mappedBy = "user")
   private List<Review> review = new ArrayList<>();
+
 
   @Builder
   public User(String email, String nickname, String password) {

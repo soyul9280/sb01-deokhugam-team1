@@ -6,16 +6,25 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
+import com.codeit.duckhu.domain.user.dto.PowerUserDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
+import com.codeit.duckhu.domain.user.entity.PowerUser;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
 import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
 import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
+import com.codeit.duckhu.domain.user.mapper.PowerUserMapper;
 import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.domain.user.repository.poweruser.PowerUserRepository;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +39,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UserServiceImplTest {
   @Mock private UserRepository userRepository;
   @Mock private UserMapper userMapper;
+  @Mock private PowerUserMapper powerUserMapper;
+  @Mock private PowerUserRepository powerUserRepository;
 
   @InjectMocks private UserServiceImpl sut;
 
@@ -241,4 +252,58 @@ class UserServiceImplTest {
       assertThatThrownBy(() -> sut.hardDelete(id)).isInstanceOf(NotFoundUserException.class);
     }
   }
+
+    @Nested
+    @DisplayName("파워유저 조회 테스트")
+    class PowerUserTest {
+      @Test
+      @DisplayName("파워 유저 조회 성공")
+      void powerUser_success() {
+        // given
+        PeriodType period = PeriodType.DAILY;
+        Direction direction = Direction.ASC;
+        String cursor = null;
+        Instant after = null;
+        int limit = 10;
+
+        User mockUser = User.builder()
+                .email("testA@example.com")
+                .nickname("testA")
+                .password("testA1!")
+                .build();
+        PowerUser entity = PowerUser.builder()
+                .user(mockUser)
+                .period(period)
+                .reviewScoreSum(10.0)
+                .likeCount(5)
+                .commentCount(3)
+                .score(8.1)
+                .rank(1)
+                .build();
+
+        PowerUserDto dto = PowerUserDto.builder()
+                .userId(mockUser.getId())
+                .nickname(mockUser.getNickname())
+                .reviewScoreSum(10.0)
+                .likeCount(5)
+                .commentCount(3)
+                .score(8.1)
+                .rank(1)
+                .period(period.name())
+                .build();
+        given(powerUserRepository.searchByPeriodWithCursorPaging(period,direction,cursor,after,limit+1))
+                .willReturn(List.of(entity));
+        given(powerUserMapper.toDto(entity)).willReturn(dto);
+
+
+        // when
+        CursorPageResponsePowerUserDto result =
+            sut.findPowerUsers(period, direction, cursor, after, limit);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0)).isEqualTo(dto);
+      }
+    }
 }

@@ -12,6 +12,8 @@ import com.codeit.duckhu.global.type.PeriodType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,11 +36,14 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
 
   @Override
   public List<PowerUserStatsDto> findPowerUserStatsBetween(Instant start, Instant end) {
-    // 1. 리뷰 인기 점수 총합 (작성자 기준으로 group by)
+    // 리뷰 인기 점수 총합 (작성자 기준으로 group by)
+
+    //review의 필드들이 int 여기에 * double하면 int*int 되는 문제 해결을 위함
+    NumberExpression<Double> doubleScore= Expressions.numberTemplate(Double.class,"({0} * 0.3 + {1} * 0.7)", review.likeCount, review.commentCount);
     List<Tuple> reviewScores = queryFactory
             .select(
                     review.user.id,
-                    review.likeCount.multiply(0.3).add(review.commentCount.multiply(0.7)).sum()
+                    doubleScore.sum()
             )
             .from(review)
             .where(
@@ -78,7 +83,8 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
     return reviewScores.stream()
             .map(tuple -> {
               UUID userId = tuple.get(review.user.id);
-              Double reviewScoreSum = tuple.get(1, Double.class);
+              Number scoreSum = tuple.get(1, Number.class);
+              Double reviewScoreSum = scoreSum!=null?scoreSum.doubleValue():0.0;
 
               Integer likeCount = likedCounts.getOrDefault(userId, 0);
               Integer commCount = commentCounts.getOrDefault(userId, 0);

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.codeit.duckhu.config.QueryDslConfig;
+import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
+import com.codeit.duckhu.domain.user.dto.PowerUserDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
 import com.codeit.duckhu.domain.user.dto.UserLoginRequest;
 import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
@@ -27,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -164,5 +167,37 @@ public class UserTest {
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     boolean exists = userRepository.existsById(targetId);
     assertFalse(exists);
+  }
+
+  @Test
+  @DisplayName("파워유저 조회 - 성공")
+  @Sql("/data.sql")
+  void findPowerUser_success() {
+    //given
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath("/api/users/power")
+            .queryParam("period", "MONTHLY")
+            .queryParam("direction", "ASC")
+            .queryParam("limit", 10);
+
+    HttpEntity<?> entity = new HttpEntity<>(headers);
+
+    //when
+    ResponseEntity<CursorPageResponsePowerUserDto> response = restTemplate.exchange(uriBuilder.toUriString(),
+            HttpMethod.GET,
+            entity,
+            CursorPageResponsePowerUserDto.class);
+
+    //then
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(1, response.getBody().getSize());
+
+    PowerUserDto dto = response.getBody().getContent().get(0);
+    assertEquals("테스트유저", dto.getNickname());
+    assertEquals("MONTHLY", dto.getPeriod());
+    assertEquals(1, dto.getRank());
+    assertEquals(10.5, dto.getScore());
   }
 }

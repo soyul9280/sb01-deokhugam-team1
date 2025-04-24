@@ -10,6 +10,7 @@ import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
+import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -38,8 +39,8 @@ public class CommentService {
   }
 
   public CursorPageResponseCommentDto getList(
-      UUID reviewId, String direction, UUID cursorId, Instant createdAt, int limit) {
-    Slice<Comment> slice = repository.searchAll(reviewId, direction, createdAt, cursorId, limit);
+      UUID reviewId, Direction direction, UUID cursorId, Instant createdAt, int limit) {
+    Slice<Comment> slice = repository.searchAll(reviewId, direction.toString(), createdAt, cursorId, limit);
 
    List<CommentDto> list = slice.getContent().stream().map(commentMapper::toDto).toList();
 

@@ -86,7 +86,11 @@ public class ReviewServiceImpl implements ReviewService {
     // jw
     recalculateBookStats(book);
 
-    return reviewMapper.toDto(savedReview);
+    // jw - 썸네일 이미지를 S3 주소로 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
+
+    // DTO로 변환하여 반환
+    return reviewMapper.toDto(review, thumbnailUrl);
   }
 
   @Override
@@ -101,8 +105,11 @@ public class ReviewServiceImpl implements ReviewService {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
     }
 
+    // jw - 썸네일 이미지를 S3 주소로 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
+
     // DTO로 변환하여 반환
-    return reviewMapper.toDto(review);
+    return reviewMapper.toDto(review, thumbnailUrl);
   }
 
   @Transactional
@@ -176,7 +183,10 @@ public class ReviewServiceImpl implements ReviewService {
     // jw
     recalculateBookStats(updatedReview.getBook());
 
-    return reviewMapper.toDto(updatedReview);
+    // jw - 썸네일을 S3 저장소에서 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(updatedReview.getBook().getThumbnailUrl());
+
+    return reviewMapper.toDto(updatedReview, thumbnailUrl);
   }
 
   @Transactional
@@ -332,7 +342,7 @@ public class ReviewServiceImpl implements ReviewService {
                         .reviewId(review.getId()) // 연관된 Review의 ID
                         .bookId(review.getBook().getId()) // Review를 통해 Book ID 접근
                         .bookTitle(review.getBook().getTitle()) // Review를 통해 Book Title 접근
-                        .bookThumbnailUrl(review.getBook().getThumbnailUrl()) // Review를 통해 Book Thumbnail URL 접근
+                        .bookThumbnailUrl(thumbnailImageStorage.get(review.getBook().getThumbnailUrl())) // Review를 통해 Book Thumbnail URL 접근 -> S3 로직 추가 jw
                         .userId(review.getUser().getId()) // Review를 통해 User ID 접근
                         .userNickname(review.getUser().getNickname()) // Review를 통해 User Nickname 접근
                         .reviewContent(review.getContent())

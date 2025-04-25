@@ -41,8 +41,6 @@ public class PopularReviewBatchService {
   private final PopularReviewRepository popularReviewRepository;
 
   private final JPAQueryFactory queryFactory;
-  private final LikedUserIdRepository likedUserIdRepository;
-  private final CommentRepository commentRepository;
   private final NotificationService notificationService;
 
   /**
@@ -61,7 +59,7 @@ public class PopularReviewBatchService {
 
       try {
         // DB에서 기간 내 활동(좋아요, 댓글)이 있는 리뷰 데이터 조회
-        List<PopularReviewData> scoredReviews = fetchAndScoreReview₩sForPeriod(period, startTime,
+        List<PopularReviewData> scoredReviews = fetchAndScoreReviewsForPeriod(period, startTime,
             now);
 
         // 점수 기준 내림차순 정렬
@@ -119,7 +117,7 @@ public class PopularReviewBatchService {
    * @param now
    * @return
    */
-  private List<PopularReviewData> fetchAndScoreReview₩sForPeriod(PeriodType period,
+  private List<PopularReviewData> fetchAndScoreReviewsForPeriod(PeriodType period,
       Instant startTime, Instant now) {
 
     // JOIN 조건 생성
@@ -139,7 +137,11 @@ public class PopularReviewBatchService {
             comment.id.countDistinct()
         )
         .from(review)
-        .leftJoin(review.likedUserIds, likedUserId).on(likeJoinCondition)
+        .leftJoin(review.likedUserIds, likedUserId)
+               .on(likeJoinCondition)
+               .on(likeJoinCondition != null
+                   ? likeJoinCondition
+                   : likedUserId.isNotNull())
         .leftJoin(review.comments, comment).on(commentJoinCondition)
         .where(review.isDeleted.eq(false))
         .groupBy(review)

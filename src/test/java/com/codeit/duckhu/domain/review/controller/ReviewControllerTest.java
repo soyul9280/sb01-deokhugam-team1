@@ -153,7 +153,7 @@ class ReviewControllerTest {
             .param("userId", userId.toString())
             .param("bookId", bookId.toString())
             .param("limit", "10")
-            .header("X-USER-ID", userId.toString())
+            .header("Deokhugam-Request-User-Id", userId.toString())
             .with(withAuthenticatedUser()))
         .andDo(print())
         .andExpect(status().isOk())

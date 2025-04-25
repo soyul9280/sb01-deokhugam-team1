@@ -19,6 +19,7 @@ import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.exception.ErrorCode;
+import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -30,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,6 +139,47 @@ public class NotificationServiceImpl implements NotificationService {
     return notificationMapper.toDto(notificationRepository.save(saved));
   }
 
+  /**
+   * 사용자가 기간 별 인기 리뷰 10위에 진입하면 알림 생성
+   *
+   * @param reviewId 알림 대상 리뷰 ID
+   * @param receiverId 알림 대상 사용자 ID
+   * @param period 인기 리뷰의 특정 기간
+   * @param rank 인기 리뷰의 랭킹
+   * @return 생성된 알림 객체
+   */
+  @Override
+  @Transactional
+  public NotificationDto createNotifyByPopularReview(UUID reviewId, UUID receiverId, PeriodType period, int rank){
+    log.info("인기 리뷰 알림 생성 시작: reviewId={}, receiverId={}, period={}, rank={}",
+        reviewId, receiverId, period, rank);
+
+    // 1) 리뷰 조회 → reviewTitle 확보
+    Review review = reviewRepository.findById(reviewId)
+        .orElseThrow(() -> {
+          log.warn("리뷰 없음: reviewId={}", reviewId);
+          return new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+        });
+    String reviewTitle = review.getContent();
+
+    // 2) 알림 생성
+    Notification notification = Notification.forPopularReview(reviewId, receiverId, period, rank, reviewTitle);
+    Notification saved = notificationRepository.save(notification);
+
+    log.info("인기 리뷰 알림 생성 완료: notificationId={}", saved.getId());
+    return notificationMapper.toDto(saved);
+  }
+
+
+  /**
+   * 알림 목록 조회
+   *
+   * @param receiverId 알림 대상 사용자 ID
+   * @param direction 목록 정렬 방향
+   * @param cursor 이전에 봤던 마지막 알림
+   * @param limit 알림 목록 최대 개수
+   * @return 생성된 알림 목록
+   */
   @Override
   public CursorPageResponseNotificationDto getNotifications(UUID receiverId, String direction, Instant cursor, int limit) {
     log.info("서비스 시작: getNotifications, receiverId={}, direction={}, cursor={}, limit={}",
@@ -217,8 +260,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     // 3. 요청값이 true인 경우에만 확인 처리 (추후 false 처리 허용 시 확장 가능)
+    // updated_at이 수정되지 않아 삭제가 진행되지 않아 save를 통한 실제 update쿼리를 날린다.
     if (confirmed) {
       notification.markAsConfirmed();
+      notificationRepository.save(notification);
     }
 
     // 4. 업데이트된 알림 정보를 DTO로 변환하여 반환
@@ -233,27 +278,22 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   @Transactional
   public void updateAllConfirmedStatus(UUID receiverId) {
-    // 1. 수신자 ID로 등록된 모든 알림을 조회
-    log.info("전체 알림 읽음 처리 시작: receiverId={}", receiverId);
-    List<Notification> notifications = notificationRepository.findAllByReceiverId(receiverId);
-
-    // 2. 이미 읽지 않은 알림만 선별하여 확인 처리
-    int updatedCount = 0;
-    for (Notification notification : notifications) {
-      if (!notification.isConfirmed()) {
-        notification.markAsConfirmed();
-        updatedCount++;
-      }
-    }
-
-    log.info("읽음 처리된 알림 수: receiverId={}, count={}", receiverId, updatedCount);
-
+    //데이터를 불러오지 않고 DB에 직접 해당 사용자의 알림을 전부 confirmed로 update시킨다.
+    log.info("전체 알림 읽음 처리 시작 (JPQL): receiverId={}", receiverId);
+    Instant now = Instant.now();
+    notificationRepository.bulkMarkAsConfirmed(receiverId, now);
+    log.info("읽음 처리 완료 시각: {}", now);
   }
 
+  /**
+   * 매일 00시 30분에 1주일 지난 confirmed 알림을 삭제
+   */
   @Override
   @Transactional
+  @Scheduled(cron = "0 30 0 * * *", zone = "Asia/Seoul")
   public void deleteConfirmedNotificationsOlderThanAWeek() {
-    Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
+    Instant cutoff = Instant.now().minus(1, ChronoUnit.MINUTES);
+    log.info("Deleting confirmed notifications before {}", cutoff);
     notificationRepository.deleteOldConfirmedNotifications(cutoff);
   }
 }

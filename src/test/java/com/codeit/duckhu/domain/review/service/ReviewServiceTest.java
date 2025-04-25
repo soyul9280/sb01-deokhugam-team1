@@ -129,7 +129,7 @@ class ReviewServiceTest {
         .thenReturn(Optional.empty());
     when(reviewMapper.toEntity(any(), any(), any())).thenReturn(testReview);
     when(reviewRepository.save(any())).thenReturn(testReview);
-    when(reviewMapper.toDto(any())).thenReturn(testReviewDto);
+    when(reviewMapper.toDto(any(Review.class), eq(testUserId))).thenReturn(testReviewDto);
 
     // When
     ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -145,7 +145,7 @@ class ReviewServiceTest {
   void getReviewById_shouldReturnReview() {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-    when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
+    when(reviewMapper.toDto(eq(testReview), eq(testUserId))).thenReturn(testReviewDto);
 
     // When
     ReviewDto result = reviewService.getReviewById(testUserId, testReviewId);
@@ -203,7 +203,7 @@ class ReviewServiceTest {
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(reviewRepository.save(testReview)).thenReturn(testReview);
-    when(reviewMapper.toDto(testReview)).thenReturn(testReviewDto);
+    when(reviewMapper.toDto(eq(testReview), eq(testUserId))).thenReturn(testReviewDto);
     when(testReview.getUser()).thenReturn(testUser);
     when(testUser.getId()).thenReturn(testUserId);
     when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
@@ -305,20 +305,23 @@ class ReviewServiceTest {
   void findReviews_success() {
     // Given
     List<Review> reviewList = new ArrayList<>();
+    UUID currentUserIdForTest = null; // 테스트용 현재 사용자 ID (null 또는 testUserId 등)
 
     // 정확한 파라미터로 stubbing 설정
     when(reviewRepository.findReviewsWithCursor(
-            eq(null), eq("createdAt"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(51)))
+            eq(null), eq("createdAt"), eq(Direction.DESC), // 기본값 가정
+            eq(null), eq(null), eq(null), eq(null), eq(51))) // limit+1
         .thenReturn(reviewList);
+    when(reviewMapper.toDto(any(Review.class), eq(currentUserIdForTest))).thenReturn(testReviewDto); // 예시 DTO 반환
 
     // When
-    ReviewSearchRequestDto requestDto = new ReviewSearchRequestDto();
-    // ReviewSearchRequestDto의 기본 limit은 50이므로 서비스에서는 limit+1인 51을 사용
-    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
+    ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder().build(); // 기본값 사용
+    // 수정: findReviews 호출 시 currentUserId 전달
+    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto, currentUserIdForTest);
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.isHasNext()).isFalse();
-    assertThat(result.getContent()).isEmpty();
+    assertThat(result.isHasNext()).isFalse(); // reviewList가 비어있으므로 hasNext는 false 예상
+    assertThat(result.getContent()).isEmpty(); // reviewList가 비어있으므로 content는 비어있음 예상
   }
 }

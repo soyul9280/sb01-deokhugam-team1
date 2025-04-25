@@ -32,7 +32,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -114,7 +113,8 @@ class ReviewControllerTest {
         .hasNext(true)
         .build();
 
-    when(reviewService.findReviews(any(ReviewSearchRequestDto.class))).thenReturn(responseDto);
+    when(reviewService.findReviews(any(ReviewSearchRequestDto.class), any(UUID.class)))
+        .thenReturn(responseDto);
 
     // When & Then
     mockMvc.perform(get("/api/reviews")
@@ -130,7 +130,7 @@ class ReviewControllerTest {
         .andExpect(jsonPath("$.hasNext").value(true));
     
     // 서비스 호출 검증
-    verify(reviewService).findReviews(any(ReviewSearchRequestDto.class));
+    verify(reviewService).findReviews(any(ReviewSearchRequestDto.class), any(UUID.class));
   }
 
   @Test

@@ -26,7 +26,7 @@ public interface ReviewService {
 
   ReviewLikeDto likeReview(UUID reviewId, UUID userId);
 
-  CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto);
+  CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto, UUID currentUserId);
 
   void softDeleteReviewById(UUID userId, UUID reviewId);
 

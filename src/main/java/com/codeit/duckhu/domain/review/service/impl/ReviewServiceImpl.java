@@ -90,7 +90,7 @@ public class ReviewServiceImpl implements ReviewService {
     String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
 
     // DTO로 변환하여 반환
-    return reviewMapper.toDto(review, thumbnailUrl);
+    return reviewMapper.toDto(review, thumbnailUrl, );
   }
 
   @Override

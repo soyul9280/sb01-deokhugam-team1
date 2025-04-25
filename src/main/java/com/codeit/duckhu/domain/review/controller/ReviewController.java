@@ -77,7 +77,6 @@ public class ReviewController {
     return ResponseEntity.noContent().build();
   }
 
-  // TODO : 코드레빗, 관리자 권한 ? -> security
   @DeleteMapping("/{reviewId}/hard")
   public ResponseEntity<Void> hardDeleteReview(
       @RequestParam("userId") UUID userId,
@@ -102,6 +101,7 @@ public class ReviewController {
 
   @GetMapping
   public ResponseEntity<CursorPageResponseReviewDto> getReviews(
+      HttpServletRequest httpServletRequest,
       @RequestParam(name = "keyword", required = false) String keyword,
       @RequestParam(name = "orderBy", required = false) String orderBy,
       @RequestParam(name = "direction", required = false, defaultValue = "DESC") Direction direction,
@@ -111,18 +111,21 @@ public class ReviewController {
       @RequestParam(name = "after", required = false) Instant after,
       @RequestParam(name = "limit", required = false) Integer limit) {
 
-      ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder()
-          .keyword(keyword)
-          .orderBy(orderBy)
-          .direction(direction)
-          .userId(userId)
-          .bookId(bookId)
-          .cursor(cursor)
-          .after(after)
-          .limit(limit != null ? limit : 50)
-          .build();
+    User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
+    UUID currentUserId = (authenticatedUser != null) ? authenticatedUser.getId() : null;
 
-    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
+    ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder()
+        .keyword(keyword)
+        .orderBy(orderBy)
+        .direction(direction)
+        .userId(userId)
+        .bookId(bookId)
+        .cursor(cursor)
+        .after(after)
+        .limit(limit != null ? limit : 50)
+        .build();
+
+    CursorPageResponseReviewDto result = reviewService.findReviews(requestDto, currentUserId);
     return ResponseEntity.ok(result);
   }
 

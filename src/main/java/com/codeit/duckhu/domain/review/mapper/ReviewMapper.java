@@ -8,6 +8,7 @@ import com.codeit.duckhu.domain.user.entity.User;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ReviewMapper {
 
-  public ReviewDto toDto(Review review) {
+  public ReviewDto toDto(Review review, UUID currentUserId) {
+    // 현재 사용자가 해당 리뷰를 좋아했는지 확인
+    boolean liked = (currentUserId != null) && review.liked(currentUserId);
+
     ReviewDto.ReviewDtoBuilder builder =
         ReviewDto.builder()
             .id(review.getId())
@@ -23,7 +27,7 @@ public class ReviewMapper {
             .rating(review.getRating())
             .likeCount(review.getLikeCount())
             .commentCount(review.getCommentCount())
-            .likedByMe(false); // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
+            .likedByMe(liked); // 계산된 likedByMe 값 사용
 
     // null 체크를 통한 안전한 접근
     if (review.getUser() != null) {
@@ -50,7 +54,10 @@ public class ReviewMapper {
   }
 
   // 썸네일을 별도의 파라미터로 받는 toDto 메서드
-  public ReviewDto toDto(Review review, String thumbnailUrl) {
+  public ReviewDto toDto(Review review, String thumbnailUrl, UUID currentUserId) {
+
+    boolean liked = (currentUserId != null) && review.liked(currentUserId);
+
     ReviewDto.ReviewDtoBuilder builder =
         ReviewDto.builder()
             .id(review.getId())
@@ -58,7 +65,7 @@ public class ReviewMapper {
             .rating(review.getRating())
             .likeCount(review.getLikeCount())
             .commentCount(review.getCommentCount())
-            .likedByMe(false); // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
+            .likedByMe(liked); // 계산된 likedByMe 값 사용
 
     if (review.getUser() != null) {
       builder.userId(review.getUser().getId()).userNickname(review.getUser().getNickname());

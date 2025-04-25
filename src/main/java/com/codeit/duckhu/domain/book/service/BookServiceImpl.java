@@ -183,8 +183,13 @@ public class BookServiceImpl implements BookService {
       books = books.subList(0, limit);
     }
 
-    List<PopularBookDto> content = books.stream().map(popularBook -> popularBookMapper.toDto(popularBook,
-        thumbnailImageStorage.get(popularBook.getBook().getThumbnailUrl()))).toList();
+    List<PopularBookDto> content = books.stream().map(popularBook -> {
+      String thumbnailUrl = popularBook.getBook().getThumbnailUrl() != null
+          ? thumbnailImageStorage.get(popularBook.getBook().getThumbnailUrl())
+          : null;
+      return popularBookMapper.toDto(popularBook, thumbnailUrl);
+    }).toList();
+
 
     String nextCursor = null;
     Instant nextAfter = null;

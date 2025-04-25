@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.review.service.impl;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
+import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
@@ -51,6 +52,9 @@ public class ReviewServiceImpl implements ReviewService {
   private final NotificationService notificationService;
 
   private final ThumbnailImageStorage thumbnailImageStorage;
+  
+  // 코멘트 수 업데이트를 위해 CommentRepository 추가
+  private final CommentRepository commentRepository;
 
   @Override
   @Transactional
@@ -70,18 +74,33 @@ public class ReviewServiceImpl implements ReviewService {
                     .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.BOOK_NOT_FOUND));
 
     // 동일한 도서에 대한 리뷰가 이미 존재하는지 확인
-    reviewRepository
-            .findByUserIdAndBookId(request.getUserId(), request.getBookId())
-            .ifPresent(
-                    existingReview -> {
-                      throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
-                    });
+    Optional<Review> existingReview = reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId());
+    if (existingReview.isPresent()) {
+      if (!existingReview.get().isDeleted()) {
+        throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
+      }
+      // 삭제된 리뷰인 경우 재활용
+      Review review = existingReview.get();
+      review.updateContent(request.getContent());
+      review.updateRating(request.getRating());
+      review.restore(); // 삭제 상태 해제
+      reviewRepository.save(review);
+      
+      // 도서 통계 재계산
+      recalculateBookStats(review.getBook());
+      
+      // 썸네일 이미지를 S3 주소로 가져옵니다.
+      String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
+      
+      // DTO로 변환하여 반환
+      return reviewMapper.toDto(review, thumbnailUrl, request.getUserId());
+    }
 
     // 매퍼를 사용하여 엔티티 생성
     Review review = reviewMapper.toEntity(request, user, book);
-
-    // 저장 및 DTO 반환
-    Review savedReview = reviewRepository.save(review);
+    
+    // 리뷰 저장
+    review = reviewRepository.save(review);
 
     // jw
     recalculateBookStats(book);
@@ -104,6 +123,11 @@ public class ReviewServiceImpl implements ReviewService {
     if (review.isDeleted()) {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
     }
+
+    // 코멘트 수를 DB에서 직접 가져옵니다
+    int commentCount = commentRepository.countByReviewIdAndIsDeletedFalse(reviewId);
+    // 리뷰 엔티티에 코멘트 수 설정
+    review.updateCommentCount(commentCount);
 
     // jw - 썸네일 이미지를 S3 주소로 가져옵니다.
     String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
@@ -140,12 +164,11 @@ public class ReviewServiceImpl implements ReviewService {
             .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
     // 사용자가 권한이 있는지 확인
-    if (review.getUser().getId().equals(userId)) {
-      review.softDelete();
-      reviewRepository.save(review);
-    } else {
+    if (!review.getUser().getId().equals(userId)) {
       throw new ReviewCustomException(ReviewErrorCode.NO_AUTHORITY_USER);
     }
+    review.softDelete();
+    reviewRepository.save(review);
 
     // jw
     recalculateBookStats(review.getBook());
@@ -162,7 +185,7 @@ public class ReviewServiceImpl implements ReviewService {
     // 사용자 찾기
     User user =
         userRepository
-            .findById(request.getUserId())
+            .findById(userId)
             .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
 
     if (review.isDeleted()) {
@@ -274,6 +297,11 @@ public class ReviewServiceImpl implements ReviewService {
           if (book != null && book.getThumbnailUrl() != null) {
             thumbnailUrl = thumbnailImageStorage.get(book.getThumbnailUrl());
           }
+          
+          // 코멘트 수를 DB에서 직접 가져옵니다
+          int commentCount = commentRepository.countByReviewIdAndIsDeletedFalse(review.getId());
+          // 리뷰 엔티티에 코멘트 수 설정
+          review.updateCommentCount(commentCount);
 
           return reviewMapper.toDto(review, thumbnailUrl, currentUserId);
         })

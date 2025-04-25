@@ -54,21 +54,24 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
   }
 
   private boolean isPublicPath(String path) {
-    return path.equals("/")
-        || path.equals("/api/users/login")
-        || path.equals("/api/users")
-        || path.equals("/api/users/power")
-        || path.startsWith("/static")
-        || path.startsWith("/favicon.ico")
-        || path.startsWith("/index.html")
-        || path.endsWith(".js")
-        || path.endsWith(".css")
-        || path.endsWith(".png")
-        || path.endsWith(".jpg")
-        || path.endsWith(".jpeg")
-        || path.endsWith(".svg")
-        || path.endsWith(".ico")
-        || path.endsWith(".map")
-        || path.endsWith(".html");
+    return
+        path.equals("/api/books/popular")
+            || path.equals("/api/reviews/popular")
+            || path.equals("/api/users/power")
+            ||path.equals("/")
+            || path.equals("/api/users/login")
+            || path.equals("/api/users")
+            || path.startsWith("/static")
+            || path.startsWith("/favicon.ico")
+            || path.startsWith("/index.html")
+            || path.endsWith(".js")
+            || path.endsWith(".css")
+            || path.endsWith(".png")
+            || path.endsWith(".jpg")
+            || path.endsWith(".jpeg")
+            || path.endsWith(".svg")
+            || path.endsWith(".ico")
+            || path.endsWith(".map")
+            || path.endsWith(".html");
   }
 }

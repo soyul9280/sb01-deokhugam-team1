@@ -26,4 +26,6 @@ public class ReviewCreateRequest {
   private Integer rating;
 
   @NotBlank private String content;
+
+  private boolean isDeleted;
 }

@@ -5,7 +5,7 @@ import com.codeit.duckhu.domain.notification.dto.NotificationDto;
 import com.codeit.duckhu.domain.notification.dto.NotificationUpdateRequest;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.user.entity.User;
-import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
+import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +42,7 @@ public class NotificationController {
         User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
             log.warn("비인증 사용자 알림 목록 요청 차단");
-            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
+            throw new UserException(ErrorCode.UNAUTHORIZED_USER);
         }
 
         log.info("API 호출: GET /api/notifications, userId={}, direction={}, cursor={}, limit={}",
@@ -75,7 +74,7 @@ public class NotificationController {
         User authenticatedUser = (User) httpservlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
             log.warn("비인증 사용자 알림 읽음 처리 시도 차단");
-            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
+            throw new UserException(ErrorCode.UNAUTHORIZED_USER);
         }
 
         log.info("알림 읽음 요청: notificationId={}, userId={}, confirmed={}",
@@ -98,7 +97,7 @@ public class NotificationController {
         User authenticatedUser = (User) httpServlet.getAttribute("authenticatedUser");
         if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
             log.warn("비인증 사용자 전체 알림 읽음 시도 차단");
-            throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
+            throw new UserException(ErrorCode.UNAUTHORIZED_USER);
         }
 
         log.info("전체 알림 읽음 요청: userId={}", authenticatedUser.getId());

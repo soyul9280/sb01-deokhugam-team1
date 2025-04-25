@@ -31,6 +31,7 @@ public enum ErrorCode {
   LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.", "USER_401"),
   NOT_FOUND_USER(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다.", "USER_404"),
   UNAUTHORIZED_UPDATE(HttpStatus.FORBIDDEN, "사용자 정보 수정 권한 없음", "USER_403"),
+  UNAUTHORIZED_USER(HttpStatus.FORBIDDEN,"사용자 권한 없음","USER_403"),
   UNAUTHORIZED_DELETE(HttpStatus.FORBIDDEN, "사용자 삭제 권한 없음", "USER_403"),
 
   //notification

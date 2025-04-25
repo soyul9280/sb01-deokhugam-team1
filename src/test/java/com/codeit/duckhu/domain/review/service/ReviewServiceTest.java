@@ -66,6 +66,10 @@ class ReviewServiceTest {
   @Mock private ReviewMapper reviewMapper;
 
   @Mock private Direction direction;
+  
+  @Mock private ThumbnailImageStorage thumbnailImageStorage;
+  
+  @Mock private NotificationService notificationService;
 
   @Mock private ThumbnailImageStorage thumbnailImageStorage;
 

@@ -2,23 +2,31 @@ package com.codeit.duckhu.domain.review.service.impl;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
+import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
+import com.codeit.duckhu.domain.review.dto.PopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
+import com.codeit.duckhu.domain.review.entity.PopularReview;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
 import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
+import com.codeit.duckhu.domain.review.repository.PopularReviewRepository;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +38,6 @@ import org.springframework.validation.annotation.Validated;
 /** 리뷰 서비스 구현체 */
 @Slf4j
 @Service
-@Validated
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ReviewServiceImpl implements ReviewService {
@@ -39,8 +46,11 @@ public class ReviewServiceImpl implements ReviewService {
   private final ReviewMapper reviewMapper;
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
+  private final PopularReviewRepository popularRepository;
   // 알림 생성을 위해 DI추가
   private final NotificationService notificationService;
+
+  private final ThumbnailImageStorage thumbnailImageStorage;
 
   @Override
   @Transactional
@@ -76,7 +86,11 @@ public class ReviewServiceImpl implements ReviewService {
     // jw
     recalculateBookStats(book);
 
-    return reviewMapper.toDto(savedReview);
+    // jw - 썸네일 이미지를 S3 주소로 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
+
+    // DTO로 변환하여 반환
+    return reviewMapper.toDto(review, thumbnailUrl);
   }
 
   @Override
@@ -91,8 +105,11 @@ public class ReviewServiceImpl implements ReviewService {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
     }
 
+    // jw - 썸네일 이미지를 S3 주소로 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
+
     // DTO로 변환하여 반환
-    return reviewMapper.toDto(review);
+    return reviewMapper.toDto(review, thumbnailUrl);
   }
 
   @Transactional
@@ -166,7 +183,10 @@ public class ReviewServiceImpl implements ReviewService {
     // jw
     recalculateBookStats(updatedReview.getBook());
 
-    return reviewMapper.toDto(updatedReview);
+    // jw - 썸네일을 S3 저장소에서 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(updatedReview.getBook().getThumbnailUrl());
+
+    return reviewMapper.toDto(updatedReview, thumbnailUrl);
   }
 
   @Transactional
@@ -213,7 +233,7 @@ public class ReviewServiceImpl implements ReviewService {
     // 요청 DTO에서 필요한 값 추출
     String keyword = requestDto.getKeyword();
     String orderBy = requestDto.getOrderBy();
-    String direction = requestDto.getDirection();
+    Direction direction = requestDto.getDirection();
     UUID userId = requestDto.getUserId();
     UUID bookId = requestDto.getBookId();
     String cursor = requestDto.getCursor();
@@ -245,8 +265,19 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // DTO로 변환
-    List<ReviewDto> reviewDtos =
-            responseReviews.stream().map(reviewMapper::toDto).collect(Collectors.toList());
+    // 썸네일 URL을 S3에서 가져오는 로직으로 수정 - jw
+    List<ReviewDto> reviewDtos = responseReviews.stream()
+        .map(review -> {
+          Book book = review.getBook();
+          String thumbnailUrl = null;
+
+          if (book != null && book.getThumbnailUrl() != null) {
+            thumbnailUrl = thumbnailImageStorage.get(book.getThumbnailUrl());
+          }
+
+          return reviewMapper.toDto(review, thumbnailUrl);
+        })
+        .collect(Collectors.toList());
 
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()
@@ -255,6 +286,84 @@ public class ReviewServiceImpl implements ReviewService {
             .nextAfter(nextAfter)
             .hasNext(hasNext)
             .size(responseReviews.size())
+            .build();
+  }
+
+  @Override
+  public CursorPageResponsePopularReviewDto getPopularReviews(
+      PeriodType period,
+      Direction direction,
+      String cursor,
+      Instant after,
+      Integer limit) {
+
+    log.info("인기 리뷰 조회 시작 - 기간 : {}, 방향 : {}", period, direction);
+
+    int size = Optional.ofNullable(limit).orElse(50);
+
+    List<PopularReview> fetched = popularRepository.findReviewsWithCursor(period, direction,
+        cursor, after, size + 1);
+
+    if (fetched.isEmpty()) {
+      log.info("조회딘 인기 리뷰가 없습니다 . - 기간 : {}", period);
+      return CursorPageResponsePopularReviewDto.builder()
+              .content(List.of())
+              .size(0)
+              .totalElements(0L)
+              .hasNext(false)
+              .build();
+    }
+
+
+    boolean hasNext = fetched.size() > size;
+
+    List<PopularReview> responseReviews = hasNext ? fetched.subList(0, size) : fetched;
+
+    String nextCursor = null;
+    Instant nextAfter = null;
+
+    if (hasNext && !responseReviews.isEmpty()) {
+      PopularReview lastReview = responseReviews.get(responseReviews.size() - 1);
+      nextCursor = String.valueOf(lastReview.getRank());
+      nextAfter = lastReview.getCreatedAt();
+    }
+
+    Instant from = period.toStartInstant(Instant.now());
+    long totalElements = popularRepository.countByPeriodSince(period, from);
+
+    log.info("인기 리뷰 조회 안료 - 기간 : {}, 결과 수 : {}, 총 개수: {}",period, responseReviews.size(), totalElements);
+
+    // DTO 변환 로직
+    List<PopularReviewDto> content = responseReviews.stream()
+            .map(popularReview -> {
+                Review review = popularReview.getReview(); // 연관된 Review 엔티티 가져오기
+                return PopularReviewDto.builder()
+                        .id(popularReview.getId())
+                        .reviewId(review.getId()) // 연관된 Review의 ID
+                        .bookId(review.getBook().getId()) // Review를 통해 Book ID 접근
+                        .bookTitle(review.getBook().getTitle()) // Review를 통해 Book Title 접근
+                        .bookThumbnailUrl(thumbnailImageStorage.get(review.getBook().getThumbnailUrl())) // Review를 통해 Book Thumbnail URL 접근 -> S3 로직 추가 jw
+                        .userId(review.getUser().getId()) // Review를 통해 User ID 접근
+                        .userNickname(review.getUser().getNickname()) // Review를 통해 User Nickname 접근
+                        .reviewContent(review.getContent())
+                        .reviewRating(popularReview.getReviewRating()) // PopularReview의 평점
+                        .period(popularReview.getPeriod())
+                        .createdAt(popularReview.getCreatedAt()) // PopularReview의 생성 시간 (점수 계산 시간)
+                        .rank(popularReview.getRank())
+                        .score(popularReview.getScore())
+                        .likeCount(popularReview.getLikeCount())
+                        .commentCount(popularReview.getCommentCount())
+                        .build();
+            }).toList();
+
+    // 빌더 패턴으로 응답 DTO 생성
+    return CursorPageResponsePopularReviewDto.builder()
+            .content(content)
+            .nextCursor(nextCursor)
+            .nextAfter(nextAfter)
+            .size(content.size())
+            .totalElements(totalElements)
+            .hasNext(hasNext)
             .build();
   }
 

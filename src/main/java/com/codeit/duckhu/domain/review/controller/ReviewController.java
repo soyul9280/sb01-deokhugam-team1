@@ -1,5 +1,6 @@
 package com.codeit.duckhu.domain.review.controller;
 
+import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
@@ -10,7 +11,9 @@ import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
 import com.codeit.duckhu.global.exception.ErrorCode;
+import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.servlet.http.HttpServletRequest;
+import com.codeit.duckhu.global.type.Direction;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.UUID;
@@ -101,11 +104,11 @@ public class ReviewController {
   public ResponseEntity<CursorPageResponseReviewDto> getReviews(
       @RequestParam(name = "keyword", required = false) String keyword,
       @RequestParam(name = "orderBy", required = false) String orderBy,
-      @RequestParam(name = "direction", required = false) String direction,
+      @RequestParam(name = "direction", required = false, defaultValue = "DESC") Direction direction,
       @RequestParam(name = "userId", required = false) UUID userId,
       @RequestParam(name = "bookId", required = false) UUID bookId,
       @RequestParam(name = "cursor", required = false) String cursor,
-      @RequestParam(name = "after", required = false) String after,
+      @RequestParam(name = "after", required = false) Instant after,
       @RequestParam(name = "limit", required = false) Integer limit) {
 
       ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder()
@@ -115,12 +118,24 @@ public class ReviewController {
           .userId(userId)
           .bookId(bookId)
           .cursor(cursor)
-          .after(after != null ? Instant.parse(after) : null) // TODO : 코드레빗 , 예외 처리를 어떻게 할지?
-          // limit가 null이면 기본값인 50이 적용됨?
+          .after(after)
           .limit(limit != null ? limit : 50)
           .build();
 
     CursorPageResponseReviewDto result = reviewService.findReviews(requestDto);
+    return ResponseEntity.ok(result);
+  }
+
+  @GetMapping("/popular")
+  public ResponseEntity<CursorPageResponsePopularReviewDto> getPopularReviews(
+      @RequestParam(name = "period") PeriodType period,
+      @RequestParam(name = "direction", required = false, defaultValue = "ASC") Direction direction,
+      @RequestParam(name = "cursor", required = false) String cursor,
+      @RequestParam(name = "after", required = false) Instant after,
+      @RequestParam(name = "limit", required = false) Integer limit) {
+
+    CursorPageResponsePopularReviewDto result =
+        reviewService.getPopularReviews(period, direction, cursor, after, limit);
     return ResponseEntity.ok(result);
   }
 }

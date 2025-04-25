@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 /** 커스텀 예외 클래스. */
 @Getter
 @RequiredArgsConstructor
-public class CustomException extends RuntimeException {
+public class DomainException extends RuntimeException {
 
   private final ErrorCode errorCode;
 

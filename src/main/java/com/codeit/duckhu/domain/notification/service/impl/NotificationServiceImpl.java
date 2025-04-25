@@ -1,6 +1,5 @@
 package com.codeit.duckhu.domain.notification.service.impl;
 
-import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.notification.dto.CursorPageResponseNotificationDto;
 import com.codeit.duckhu.domain.notification.dto.NotificationDto;
@@ -16,7 +15,7 @@ import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
 import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.user.entity.User;
-import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
+import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import java.time.Instant;
@@ -74,7 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
             .orElseThrow(
                 () -> {
                   log.warn("사용자 없음: triggerUserId={}", triggerUserId);
-                  return new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
+                  return new UserException(ErrorCode.NOT_FOUND_USER);
                 });
     String nickname = triggerUser.getNickname();
 
@@ -124,7 +123,7 @@ public class NotificationServiceImpl implements NotificationService {
             .orElseThrow(
                 () -> {
                   log.warn("사용자 없음: triggerUserId={}", triggerUserId);
-                  return new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
+                  return new UserException(ErrorCode.NOT_FOUND_USER);
                 });
     String nickname = triggerUser.getNickname();
 

@@ -10,8 +10,7 @@ import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.entity.PowerUser;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
-import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
-import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
+import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.domain.user.mapper.PowerUserMapper;
 import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
@@ -46,7 +45,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserDto create(UserRegisterRequest request) {
     if (userRepository.existsByEmail(request.getEmail())) {
-      throw new EmailDuplicateException(ErrorCode.EMAIL_DUPLICATION);
+      throw new EmailDuplicateException(request.getEmail());
     }
 
     User user = new User(request.getEmail(), request.getNickname(), request.getPassword());
@@ -64,9 +63,9 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findByEmail(email)
-            .orElseThrow(() -> new InvalidLoginException(ErrorCode.LOGIN_INPUT_INVALID));
+            .orElseThrow(() -> new UserException(ErrorCode.LOGIN_INPUT_INVALID));
     if (!user.getPassword().equals(password)) {
-      throw new InvalidLoginException(ErrorCode.LOGIN_INPUT_INVALID);
+      throw new UserException(ErrorCode.LOGIN_INPUT_INVALID);
     }
     return userMapper.toDto(user);
   }
@@ -77,9 +76,9 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
+            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
     if (user.isDeleted()) {
-      throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
+      throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
     return userMapper.toDto(user);
   }
@@ -89,9 +88,9 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
+            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
     if (user.isDeleted()) {
-      throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
+      throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
     user.update(userUpdateRequest);
     return userMapper.toDto(user);
@@ -101,9 +100,9 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
+            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
     if (user.isDeleted()) {
-      throw new NotFoundUserException(ErrorCode.NOT_FOUND_USER);
+      throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
 
     return user;
@@ -114,7 +113,7 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
+            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
     user.softDelete();
   }
 
@@ -123,7 +122,7 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
+            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
     userRepository.deleteById(user.getId());
   }
 
@@ -148,7 +147,7 @@ public class UserServiceImpl implements UserService {
                       + dto.likedCount() * 0.2
                       + dto.commentCount() * 0.3;
               User user = Optional.ofNullable(userMap.get(dto.userId()))
-                      .orElseThrow(() -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER));
+                      .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
 
               return PowerUser.builder()
                       .user(user)

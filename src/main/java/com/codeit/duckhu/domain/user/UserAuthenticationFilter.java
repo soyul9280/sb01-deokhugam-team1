@@ -1,7 +1,7 @@
 package com.codeit.duckhu.domain.user;
 
 import com.codeit.duckhu.domain.user.entity.User;
-import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
+import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import jakarta.servlet.FilterChain;
@@ -40,7 +40,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
             userRepository
                 .findById(userId)
                 .orElseThrow(
-                    () -> new NotFoundUserException(ErrorCode.NOT_FOUND_USER)); // DB에서 사용자 조회
+                    () -> new UserException(ErrorCode.NOT_FOUND_USER)); // DB에서 사용자 조회
         request.setAttribute("authenticatedUser", user); // 사용자 정보 저장
       } catch (Exception e) {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -16,8 +16,7 @@ import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.entity.PowerUser;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.EmailDuplicateException;
-import com.codeit.duckhu.domain.user.exception.InvalidLoginException;
-import com.codeit.duckhu.domain.user.exception.NotFoundUserException;
+import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.domain.user.mapper.PowerUserMapper;
 import com.codeit.duckhu.domain.user.mapper.UserMapper;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
@@ -120,7 +119,7 @@ class UserServiceImplTest {
 
       // when
       // then
-      assertThatThrownBy(() -> sut.login(request)).isInstanceOf(InvalidLoginException.class);
+      assertThatThrownBy(() -> sut.login(request)).isInstanceOf(UserException.class);
       verify(userRepository, times(1)).findByEmail("testA@example.com");
     }
   }
@@ -139,7 +138,7 @@ class UserServiceImplTest {
 
       // when
       // then
-      assertThatThrownBy(() -> sut.findById(id)).isInstanceOf(NotFoundUserException.class);
+      assertThatThrownBy(() -> sut.findById(id)).isInstanceOf(UserException.class);
       verify(userRepository, times(1)).findById(id);
     }
 
@@ -150,7 +149,7 @@ class UserServiceImplTest {
       UUID id = UUID.randomUUID();
       // when
       // then
-      assertThatThrownBy(() -> sut.findById(id)).isInstanceOf(NotFoundUserException.class);
+      assertThatThrownBy(() -> sut.findById(id)).isInstanceOf(UserException.class);
       verify(userRepository, times(1)).findById(id);
     }
   }
@@ -189,7 +188,7 @@ class UserServiceImplTest {
       // when
       // then
       assertThatThrownBy(() -> sut.update(id, new UserUpdateRequest("updateName")))
-          .isInstanceOf(NotFoundUserException.class)
+          .isInstanceOf(UserException.class)
           .hasMessage("해당 유저가 존재하지 않습니다.");
     }
   }
@@ -220,7 +219,7 @@ class UserServiceImplTest {
       given(userRepository.findById(id)).willReturn(Optional.empty());
       // when
       // then
-      assertThatThrownBy(() -> sut.softDelete(id)).isInstanceOf(NotFoundUserException.class);
+      assertThatThrownBy(() -> sut.softDelete(id)).isInstanceOf(UserException.class);
     }
   }
 
@@ -251,7 +250,7 @@ class UserServiceImplTest {
       given(userRepository.findById(id)).willReturn(Optional.empty());
       // when
       // then
-      assertThatThrownBy(() -> sut.hardDelete(id)).isInstanceOf(NotFoundUserException.class);
+      assertThatThrownBy(() -> sut.hardDelete(id)).isInstanceOf(UserException.class);
     }
   }
 

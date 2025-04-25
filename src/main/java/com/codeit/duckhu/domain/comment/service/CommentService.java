@@ -12,6 +12,7 @@ import com.codeit.duckhu.domain.notification.exception.NotificationException;
 import com.codeit.duckhu.domain.notification.service.impl.NotificationServiceImpl;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.util.List;

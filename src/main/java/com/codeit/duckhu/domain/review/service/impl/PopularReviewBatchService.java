@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.review.service.impl;
 
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
+import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.entity.PopularReview;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.LikedUserIdRepository;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class PopularReviewBatchService {
   private final PopularReviewRepository popularReviewRepository;
   private final LikedUserIdRepository likedUserIdRepository;
   private final CommentRepository commentRepository;
+  private final NotificationService notificationService;
 
   /**
    * 매일 새벽 12시에 실행
@@ -79,12 +82,22 @@ public class PopularReviewBatchService {
             .review(data.getReview())
             .period(period)
             .score(data.getScore())
-            .rank(rank++)
+            .rank(rank)
             .likeCount(data.getLikesInPeriod())
             .commentCount(data.getCommentsInPeriod())
             .reviewRating((double) data.getReview().getRating())
             .build();
         popularReviewsToSave.add(popularReview);
+
+        // 10위 안에 드는 경우 알림 생성
+        if (rank <= 10) {
+          UUID reviewId   = data.getReview().getId();
+          UUID receiverId = data.getReview().getUser().getId();
+          notificationService.createNotifyByPopularReview(
+              reviewId, receiverId, period, rank
+          );
+        }
+        rank++;
       }
 
       if (!popularReviewsToSave.isEmpty()) {

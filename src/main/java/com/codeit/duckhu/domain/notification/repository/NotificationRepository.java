@@ -22,15 +22,16 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   @Query("DELETE FROM Notification n WHERE n.confirmed = true AND n.updatedAt < :cutoff")
   void deleteOldConfirmedNotifications(@Param("cutoff") Instant cutoff);
 
-  // 전체 카운트
-  long countByReceiverId(UUID receiverId);
+  /** 알림에서 모두 읽음을 누르면 모든 알림은 confirmed = true로 변경 */
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE Notification n SET n.confirmed = true, n.updatedAt = :now WHERE n.receiverId = :receiverId AND n.confirmed = false")
+  void bulkMarkAsConfirmed(@Param("receiverId") UUID receiverId, @Param("now") Instant now);
 
   // DESC 정렬, 커서 없을 때
   @Query("""
     SELECT n
       FROM Notification n
      WHERE n.receiverId = :receiverId
-     ORDER BY n.createdAt DESC
     """)
   List<Notification> findDescNoCursor(
       @Param("receiverId") UUID receiverId,
@@ -42,7 +43,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
       FROM Notification n
      WHERE n.receiverId = :receiverId
        AND n.createdAt < :cursor
-     ORDER BY n.createdAt DESC
     """)
   List<Notification> findDescWithCursor(
       @Param("receiverId") UUID receiverId,
@@ -72,4 +72,8 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
       @Param("receiverId") UUID receiverId,
       @Param("cursor") Instant cursor,
       Pageable pageable);
+
+  // 전체 카운트
+  long countByReceiverId(UUID receiverId);
+
 }

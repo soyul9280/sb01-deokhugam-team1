@@ -108,9 +108,11 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
     condition.and(powerUser.period.eq(period));
     condition.and(user.deleted.eq(false));
 
+    //커서 있을경우 조건 추가해서 이후 데이터 조회
     if(cursor != null && after != null) {
       condition.and(getCursorCondition(cursor, after, isAsc(direction)));
     }
+    //정렬기준 생성
     List<OrderSpecifier<?>> orders = getOrderSpecifiers(isAsc(direction));
 
     return queryFactory
@@ -128,7 +130,7 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
 
   private List<OrderSpecifier<?>> getOrderSpecifiers(boolean asc) {
     List<OrderSpecifier<?>> orders = new ArrayList<>();
-    orders.add(asc ? powerUser.score.asc() : powerUser.score.desc());
+    orders.add(asc ? powerUser.rank.asc() : powerUser.rank.desc());
     orders.add(asc ? powerUser.createdAt.asc() : powerUser.createdAt.desc());
     orders.add(asc ? powerUser.user.id.asc() : powerUser.user.id.desc());
     return orders;

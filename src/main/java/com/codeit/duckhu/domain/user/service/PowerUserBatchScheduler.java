@@ -12,24 +12,20 @@ import org.springframework.stereotype.Component;
 public class PowerUserBatchScheduler {
     private final UserService userService;
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void dailySchedule() {
-        log.info("PowerUser DAILY 배치 시작");
-        userService.savePowerUser(PeriodType.DAILY);
-        log.info("PowerUser DAILY 배치 완료");
-    }
+    @Scheduled(cron = "0 0 12 * * *")
+    public void schedule() {
+        executePopularBookBatch(PeriodType.DAILY, "[일간 배치 작업]");
+        executePopularBookBatch(PeriodType.WEEKLY, "[주간 배치 작업]");
+        executePopularBookBatch(PeriodType.MONTHLY, "[월간 배치 작업]");
+        executePopularBookBatch(PeriodType.ALL_TIME, "[역대 배치 작업]");
 
-    @Scheduled(cron = "0 0 0 * * 0")
-    public void weeklySchedule() {
-        log.info("PowerUser Weekly 배치 시작");
-        userService.savePowerUser(PeriodType.WEEKLY);
-        log.info("PowerUser Weekly 배치 완료");
     }
-
-    @Scheduled(cron = "0 0 0 1 * *")
-    public void monthlySchedule() {
-        log.info("PowerUser Monthly 배치 시작");
-        userService.savePowerUser(PeriodType.MONTHLY);
-        log.info("PowerUser Monthly 배치 완료");
+    private void executePopularBookBatch(PeriodType period, String logPrefix) {
+        try {
+            log.info("{} {} 파워 유저를 갱신합니다.", logPrefix, period);
+            userService.savePowerUser(period);
+        } catch (Exception e) {
+            log.warn("{} {} 파워 유저 갱신 중 오류 발생 {}", logPrefix, period, e.getMessage());
+        }
     }
 }

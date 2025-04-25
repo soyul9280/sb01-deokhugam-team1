@@ -49,6 +49,39 @@ public class ReviewMapper {
     return builder.build();
   }
 
+  // 썸네일을 별도의 파라미터로 받는 toDto 메서드
+  public ReviewDto toDto(Review review, String thumbnailUrl) {
+    ReviewDto.ReviewDtoBuilder builder =
+        ReviewDto.builder()
+            .id(review.getId())
+            .content(review.getContent())
+            .rating(review.getRating())
+            .likeCount(review.getLikeCount())
+            .commentCount(review.getCommentCount())
+            .likedByMe(false); // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
+
+    if (review.getUser() != null) {
+      builder.userId(review.getUser().getId()).userNickname(review.getUser().getNickname());
+    }
+
+    if (review.getBook() != null) {
+      builder
+          .bookId(review.getBook().getId())
+          .bookTitle(review.getBook().getTitle())
+          .bookThumbnailUrl(thumbnailUrl); // S3에서 조회한 썸네일 URL을 사용
+    }
+
+    if (review.getCreatedAt() != null) {
+      builder.createdAt(mapInstantToLocalDateTime(review.getCreatedAt()));
+    }
+
+    if (review.getUpdatedAt() != null) {
+      builder.updatedAt(mapInstantToLocalDateTime(review.getUpdatedAt()));
+    }
+
+    return builder.build();
+  }
+
   public Review toEntity(ReviewCreateRequest request, User user, Book book) {
     return Review.builder()
         .user(user)

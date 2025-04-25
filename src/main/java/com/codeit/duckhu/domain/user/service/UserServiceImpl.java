@@ -30,9 +30,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -51,6 +53,7 @@ public class UserServiceImpl implements UserService {
     User user = new User(request.getEmail(), request.getNickname(), request.getPassword());
 
     User savedUser = userRepository.save(user);
+    log.info("[사용자 등록 완료] id: {}, nickname : {}", savedUser.getId(), savedUser.getNickname());
 
     return userMapper.toDto(savedUser);
   }
@@ -63,10 +66,15 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findByEmail(email)
-            .orElseThrow(() -> new UserException(ErrorCode.LOGIN_INPUT_INVALID));
+            .orElseGet(() -> {
+              log.info("[로그인 실패] 존재하지 않는 이메일: {}", email);
+              throw new UserException(ErrorCode.LOGIN_INPUT_INVALID);
+            });
     if (!user.getPassword().equals(password)) {
+      log.info("[로그인 실패] 일치하지 않는 비밀번호: {}", password);
       throw new UserException(ErrorCode.LOGIN_INPUT_INVALID);
     }
+    log.info("[로그인 완료] 사용자 ID: {}, 이메일: {}", user.getId(), email);
     return userMapper.toDto(user);
   }
 
@@ -76,9 +84,13 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
+            .orElseGet(() ->{
+              log.info("[사용자 조회 실패] id: {}", id);
+              throw new UserException(ErrorCode.NOT_FOUND_USER);
+            });
     if (user.isDeleted()) {
-      throw new UserException(ErrorCode.NOT_FOUND_USER);
+      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
+      throw new UserException(ErrorCode.NOT_FOUND_USER));
     }
     return userMapper.toDto(user);
   }
@@ -88,8 +100,13 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
+            .orElseGet(() -> {
+              log.info("[사용자 조회 실패] id: {}", id);
+              throw new UserException(ErrorCode.NOT_FOUND_USER);
+            });
+
     if (user.isDeleted()) {
+      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
       throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
     user.update(userUpdateRequest);
@@ -100,8 +117,13 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
+            .orElseGet(() -> {
+              log.info("[사용자 조회 실패] id: {}", id);
+              throw new UserException(ErrorCode.NOT_FOUND_USER);
+            });
+
     if (user.isDeleted()) {
+      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
       throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
 
@@ -113,8 +135,13 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
+                .orElseGet(() -> {
+                  log.info("[사용자 조회 실패] id: {}", id);
+                  throw new UserException(ErrorCode.NOT_FOUND_USER);
+                });
+
     user.softDelete();
+    log.info("[사용자 논리 삭제 완료] id: {}", id);
   }
 
   @Override
@@ -122,53 +149,71 @@ public class UserServiceImpl implements UserService {
     User user =
         userRepository
             .findById(id)
-            .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
+                .orElseGet(() -> {
+                  log.info("[사용자 조회 실패] id: {}", id);
+                  throw new UserException(ErrorCode.NOT_FOUND_USER);
+                });
+
     userRepository.deleteById(user.getId());
+    log.warn("[사용자 물리 삭제 완료] id: {}", id); //정상적이지만 주의가 필요한 행동(복구 불가능한 행위)이니까 warn
   }
 
   @Override
   public void savePowerUser(PeriodType period) {
-    Instant now = Instant.now();
-    Instant start = period.toStartInstant(now);
-    Instant end = now;
+   try {
+     Instant now = Instant.now();
+     Instant start = period.toStartInstant(now);
+     Instant end = now;
 
-    // 계산에 필요한 요소들 갖고오기
-    List<PowerUserStatsDto> stats = powerUserRepository.findPowerUserStatsBetween(start, end);
+     log.info("[Batch 시작] period={} | from={} ~ to={}", period, start, now);
 
-    //유저목록가져오기
-    Set<UUID> userIds = stats.stream().map(PowerUserStatsDto::userId).collect(Collectors.toSet());
-    Map<UUID, User> userMap = userRepository.findAllById(userIds).stream()
-            .collect(Collectors.toMap(User::getId, Function.identity()));
+     // 계산에 필요한 요소들 갖고오기
+     List<PowerUserStatsDto> stats = powerUserRepository.findPowerUserStatsBetween(start, end);
 
-    //활동점수 계산
-    List<PowerUser> powerUsers = stats.stream()
-            .map(dto -> {
-              Double score = dto.reviewScoreSum() * 0.5
-                      + dto.likedCount() * 0.2
-                      + dto.commentCount() * 0.3;
-              User user = Optional.ofNullable(userMap.get(dto.userId()))
-                      .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
+     //유저목록가져오기
+     Set<UUID> userIds = stats.stream().map(PowerUserStatsDto::userId).collect(Collectors.toSet());
+     Map<UUID, User> userMap = userRepository.findAllById(userIds).stream()
+             .collect(Collectors.toMap(User::getId, Function.identity()));
 
-              return PowerUser.builder()
-                      .user(user)
-                      .reviewScoreSum(dto.reviewScoreSum())
-                      .likeCount(dto.likedCount())
-                      .commentCount(dto.commentCount())
-                      .score(score)
-                      .period(period)
-                      .build();
-            })
-            .sorted(Comparator.comparingDouble(PowerUser::getScore).reversed())
-            .toList();
+     //활동점수 계산
+     List<PowerUser> powerUsers = stats.stream()
+             .map(dto -> {
+               Double score = dto.reviewScoreSum() * 0.5
+                       + dto.likedCount() * 0.2
+                       + dto.commentCount() * 0.3;
+               User user = Optional.ofNullable(userMap.get(dto.userId()))
+                       .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER));
 
-    //순위 부여-동시성제어
-    AtomicInteger rankCount = new AtomicInteger(1);
-    //순위 설정
-    powerUsers.forEach(powerUser -> powerUser.setRank(rankCount.getAndIncrement()));
-    //기존 데이터 삭제(for 배치)
-    powerUserRepository.deleteByPeriod(period);
-    //PowerUser에 저장
-    powerUserRepository.saveAll(powerUsers);
+               log.info("파워유저: {} | 활동 점수: {} | 리뷰 점수 합: {} | 좋아요 수: {} | 댓글 수: {}",
+                       user.getNickname(),score,dto.reviewScoreSum(),dto.likedCount(),dto.commentCount());
+
+               return PowerUser.builder()
+                       .user(user)
+                       .reviewScoreSum(dto.reviewScoreSum())
+                       .likeCount(dto.likedCount())
+                       .commentCount(dto.commentCount())
+                       .score(score)
+                       .period(period)
+                       .build();
+             })
+             .sorted(Comparator.comparingDouble(PowerUser::getScore).reversed())
+             .toList();
+
+     //순위 부여-동시성제어
+     AtomicInteger rankCount = new AtomicInteger(1);
+     //순위 설정
+     powerUsers.forEach(powerUser -> powerUser.setRank(rankCount.getAndIncrement()));
+
+     //기존 데이터 삭제(for 배치)
+     powerUserRepository.deleteByPeriod(period);
+     log.info("[삭제 완료] 기존 PowerUser 삭제 - period={}", period);
+
+     //PowerUser에 저장
+     powerUserRepository.saveAll(powerUsers);
+     log.info("[PowerUser 저장 완료] 대상 수: {}, period={}", powerUsers.size(), period);
+   }catch (Exception e) {
+     log.warn("[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage()); //배치작업 오류 그냥 넘어가면 안되니까
+   }
   }
 
   @Override
@@ -179,6 +224,7 @@ public class UserServiceImpl implements UserService {
     List<PowerUser> powerUsers = powerUserRepository.searchByPeriodWithCursorPaging(
             period, direction, cursor, after, limit + 1
     );
+
     boolean hasNext = powerUsers.size() > limit;
 
     //저장된 PowerUser 커서페이지로 갖고오기

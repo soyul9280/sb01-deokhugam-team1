@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.review.service.impl;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
@@ -49,6 +50,8 @@ public class ReviewServiceImpl implements ReviewService {
   // 알림 생성을 위해 DI추가
   private final NotificationService notificationService;
 
+  private final ThumbnailImageStorage thumbnailImageStorage;
+
   @Override
   @Transactional
   public ReviewDto createReview(ReviewCreateRequest request) {
@@ -83,7 +86,11 @@ public class ReviewServiceImpl implements ReviewService {
     // jw
     recalculateBookStats(book);
 
-    return reviewMapper.toDto(savedReview);
+    // jw - 썸네일 이미지를 S3 주소로 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
+
+    // DTO로 변환하여 반환
+    return reviewMapper.toDto(review, thumbnailUrl);
   }
 
   @Override
@@ -98,8 +105,11 @@ public class ReviewServiceImpl implements ReviewService {
       throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
     }
 
+    // jw - 썸네일 이미지를 S3 주소로 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
+
     // DTO로 변환하여 반환
-    return reviewMapper.toDto(review);
+    return reviewMapper.toDto(review, thumbnailUrl);
   }
 
   @Transactional
@@ -173,7 +183,10 @@ public class ReviewServiceImpl implements ReviewService {
     // jw
     recalculateBookStats(updatedReview.getBook());
 
-    return reviewMapper.toDto(updatedReview);
+    // jw - 썸네일을 S3 저장소에서 가져옵니다.
+    String thumbnailUrl = thumbnailImageStorage.get(updatedReview.getBook().getThumbnailUrl());
+
+    return reviewMapper.toDto(updatedReview, thumbnailUrl);
   }
 
   @Transactional
@@ -252,8 +265,19 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // DTO로 변환
-    List<ReviewDto> reviewDtos =
-            responseReviews.stream().map(reviewMapper::toDto).collect(Collectors.toList());
+    // 썸네일 URL을 S3에서 가져오는 로직으로 수정 - jw
+    List<ReviewDto> reviewDtos = responseReviews.stream()
+        .map(review -> {
+          Book book = review.getBook();
+          String thumbnailUrl = null;
+
+          if (book != null && book.getThumbnailUrl() != null) {
+            thumbnailUrl = thumbnailImageStorage.get(book.getThumbnailUrl());
+          }
+
+          return reviewMapper.toDto(review, thumbnailUrl);
+        })
+        .collect(Collectors.toList());
 
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()
@@ -318,7 +342,7 @@ public class ReviewServiceImpl implements ReviewService {
                         .reviewId(review.getId()) // 연관된 Review의 ID
                         .bookId(review.getBook().getId()) // Review를 통해 Book ID 접근
                         .bookTitle(review.getBook().getTitle()) // Review를 통해 Book Title 접근
-                        .bookThumbnailUrl(review.getBook().getThumbnailUrl()) // Review를 통해 Book Thumbnail URL 접근
+                        .bookThumbnailUrl(thumbnailImageStorage.get(review.getBook().getThumbnailUrl())) // Review를 통해 Book Thumbnail URL 접근 -> S3 로직 추가 jw
                         .userId(review.getUser().getId()) // Review를 통해 User ID 접근
                         .userNickname(review.getUser().getNickname()) // Review를 통해 User Nickname 접근
                         .reviewContent(review.getContent())

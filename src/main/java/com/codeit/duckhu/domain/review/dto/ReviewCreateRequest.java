@@ -27,5 +27,4 @@ public class ReviewCreateRequest {
 
   @NotBlank private String content;
 
-  private boolean isDeleted;
 }

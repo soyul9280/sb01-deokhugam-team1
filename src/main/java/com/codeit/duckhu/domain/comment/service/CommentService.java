@@ -64,7 +64,7 @@ public class CommentService {
       response.setNextAfter(lastComment.getCreatedAt());
     }
 
-    // 삭제되지 않은 댓글 수를 조회합니다
+    // 삭제되지 않은 댓글 수를 조회합니다 TODO: 성능 이슈 리팩토링
     response.setTotalElements((long) repository.findByReview_IdAndIsDeletedFalse(reviewId).size());
 
     return response;

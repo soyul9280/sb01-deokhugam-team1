@@ -76,7 +76,7 @@ public class ReviewServiceImpl implements ReviewService {
     Optional<Review> existingReview = reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId());
     if (existingReview.isPresent()) {
       if (!existingReview.get().isDeleted()) {
-        throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
+        throw new DomainException(ErrorCode.REVIEW_ALREADY_EXISTS);
 
       }
       // 삭제된 리뷰인 경우 재활용
@@ -209,7 +209,7 @@ public class ReviewServiceImpl implements ReviewService {
     // jw - 썸네일을 S3 저장소에서 가져옵니다.
     String thumbnailUrl = thumbnailImageStorage.get(updatedReview.getBook().getThumbnailUrl());
 
-    return reviewMapper.toDto(updatedReview, thumbnailUrl, request.getUserId());
+    return reviewMapper.toDto(updatedReview, thumbnailUrl, userId);
   }
 
   @Transactional

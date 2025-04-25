@@ -56,7 +56,7 @@ class ReviewControllerTest {
   
   @Mock
   private User mockUser;
-  
+
   private ReviewController reviewController;
 
   private UUID reviewId;
@@ -71,18 +71,18 @@ class ReviewControllerTest {
   void setUp() {
     // 실제 컨트롤러 생성
     reviewController = new ReviewController(reviewService);
-    
+
     // MockMvc 설정
     mockMvc = MockMvcBuilders.standaloneSetup(reviewController)
         .addFilter(new CharacterEncodingFilter("UTF-8", true))
         .build();
-    
+
     objectMapper = new ObjectMapper();
     
     reviewId = UUID.randomUUID();
     userId = UUID.randomUUID();
     bookId = UUID.randomUUID();
-    
+
     // Mock User 설정
     when(mockUser.getId()).thenReturn(userId);
 

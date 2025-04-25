@@ -54,7 +54,10 @@ public class ReviewMapper {
   }
 
   // 썸네일을 별도의 파라미터로 받는 toDto 메서드
-  public ReviewDto toDto(Review review, String thumbnailUrl) {
+  public ReviewDto toDto(Review review, String thumbnailUrl, UUID currentUserId) {
+
+    boolean liked = (currentUserId != null) && review.liked(currentUserId);
+
     ReviewDto.ReviewDtoBuilder builder =
         ReviewDto.builder()
             .id(review.getId())
@@ -62,7 +65,7 @@ public class ReviewMapper {
             .rating(review.getRating())
             .likeCount(review.getLikeCount())
             .commentCount(review.getCommentCount())
-            .likedByMe(false); // 현재는 좋아요 기능이 구현되지 않았으므로 기본값 사용
+            .likedByMe(liked); // 계산된 likedByMe 값 사용
 
     if (review.getUser() != null) {
       builder.userId(review.getUser().getId()).userNickname(review.getUser().getNickname());

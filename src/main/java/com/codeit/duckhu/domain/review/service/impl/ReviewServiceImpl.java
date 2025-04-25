@@ -2,6 +2,7 @@ package com.codeit.duckhu.domain.review.service.impl;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
@@ -48,6 +49,8 @@ public class ReviewServiceImpl implements ReviewService {
   private final PopularReviewRepository popularRepository;
   // 알림 생성을 위해 DI추가
   private final NotificationService notificationService;
+
+  private final ThumbnailImageStorage thumbnailImageStorage;
 
   @Override
   @Transactional
@@ -252,8 +255,19 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     // DTO로 변환
-    List<ReviewDto> reviewDtos =
-            responseReviews.stream().map(reviewMapper::toDto).collect(Collectors.toList());
+    // 썸네일 URL을 S3에서 가져오는 로직으로 수정 - jw
+    List<ReviewDto> reviewDtos = responseReviews.stream()
+        .map(review -> {
+          Book book = review.getBook();
+          String thumbnailUrl = null;
+
+          if (book != null && book.getThumbnailUrl() != null) {
+            thumbnailUrl = thumbnailImageStorage.get(book.getThumbnailUrl());
+          }
+
+          return reviewMapper.toDto(review, thumbnailUrl);
+        })
+        .collect(Collectors.toList());
 
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()

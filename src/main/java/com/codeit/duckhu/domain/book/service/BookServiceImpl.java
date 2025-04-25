@@ -58,7 +58,7 @@ public class BookServiceImpl implements BookService {
   /**
    * 도서 등록
    *
-   * @param bookData 도서 생성 요청 DTO
+   * @param bookData       도서 생성 요청 DTO
    * @param thumbnailImage 썸네일 이미지 : 선택적
    * @return 도서 DTO
    */
@@ -110,12 +110,12 @@ public class BookServiceImpl implements BookService {
   /**
    * 도서 목록 조회
    *
-   * @param keyword 도서 제목, 저자, ISBN의 키워드를 통해 조회
-   * @param orderBy 정렬 기준 title, publishedDate, rating, reviewCount
+   * @param keyword   도서 제목, 저자, ISBN의 키워드를 통해 조회
+   * @param orderBy   정렬 기준 title, publishedDate, rating, reviewCount
    * @param direction 정렬 방향 DESC (기본값), ASC
-   * @param cursor 커서 페이지네이션 커서
-   * @param after 보조 커서 (createdAt)
-   * @param limit 페이지 크기 (50)
+   * @param cursor    커서 페이지네이션 커서
+   * @param after     보조 커서 (createdAt)
+   * @param limit     페이지 크기 (50)
    * @return 도서 페이지 응답 DTO
    */
   @Override
@@ -183,7 +183,8 @@ public class BookServiceImpl implements BookService {
       books = books.subList(0, limit);
     }
 
-    List<PopularBookDto> content = books.stream().map(popularBookMapper::toDto).toList();
+    List<PopularBookDto> content = books.stream().map(popularBook -> popularBookMapper.toDto(popularBook,
+        thumbnailImageStorage.get(popularBook.getBook().getThumbnailUrl()))).toList();
 
     String nextCursor = null;
     Instant nextAfter = null;

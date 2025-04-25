@@ -1,9 +1,12 @@
 package com.codeit.duckhu.domain.book.controller;
 
+import com.codeit.duckhu.domain.user.UserAuthenticationFilter;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -32,7 +35,12 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(BookController.class)
+@WebMvcTest(
+    controllers = BookController.class,
+    excludeFilters =
+    @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = UserAuthenticationFilter.class))
 class BookControllerTest {
 
   @Autowired private MockMvc mockMvc;

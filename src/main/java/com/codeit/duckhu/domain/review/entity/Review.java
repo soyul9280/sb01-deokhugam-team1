@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.review.entity;
 
 import com.codeit.duckhu.domain.book.entity.Book;
+import com.codeit.duckhu.domain.comment.domain.Comment;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.global.entity.BaseUpdatableEntity;
 import jakarta.persistence.CascadeType;
@@ -67,6 +68,11 @@ public class Review extends BaseUpdatableEntity {
   @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   private List<LikedUserId> likedUserIds = new ArrayList<>();
+
+  @OneToMany(mappedBy = "review", cascade = CascadeType.REMOVE, orphanRemoval = true)
+  @Builder.Default
+  private List<Comment> comments = new ArrayList<>();
+
 
  // @Version private Long version;
 

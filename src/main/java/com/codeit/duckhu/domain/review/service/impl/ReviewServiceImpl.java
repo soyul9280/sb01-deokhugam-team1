@@ -90,7 +90,7 @@ public class ReviewServiceImpl implements ReviewService {
     String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
 
     // DTO로 변환하여 반환
-    return reviewMapper.toDto(review, thumbnailUrl, );
+    return reviewMapper.toDto(review, thumbnailUrl, request.getUserId());
   }
 
   @Override
@@ -109,7 +109,7 @@ public class ReviewServiceImpl implements ReviewService {
     String thumbnailUrl = thumbnailImageStorage.get(review.getBook().getThumbnailUrl());
 
     // DTO로 변환하여 반환
-    return reviewMapper.toDto(review, thumbnailUrl);
+    return reviewMapper.toDto(review, thumbnailUrl, userId);
   }
 
   @Transactional
@@ -186,7 +186,7 @@ public class ReviewServiceImpl implements ReviewService {
     // jw - 썸네일을 S3 저장소에서 가져옵니다.
     String thumbnailUrl = thumbnailImageStorage.get(updatedReview.getBook().getThumbnailUrl());
 
-    return reviewMapper.toDto(updatedReview, thumbnailUrl);
+    return reviewMapper.toDto(updatedReview, thumbnailUrl, request.getUserId());
   }
 
   @Transactional
@@ -229,7 +229,7 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto) {
+  public CursorPageResponseReviewDto findReviews(ReviewSearchRequestDto requestDto, UUID currentUserId) {
     // 요청 DTO에서 필요한 값 추출
     String keyword = requestDto.getKeyword();
     String orderBy = requestDto.getOrderBy();
@@ -275,7 +275,7 @@ public class ReviewServiceImpl implements ReviewService {
             thumbnailUrl = thumbnailImageStorage.get(book.getThumbnailUrl());
           }
 
-          return reviewMapper.toDto(review, thumbnailUrl);
+          return reviewMapper.toDto(review, thumbnailUrl, currentUserId);
         })
         .collect(Collectors.toList());
 

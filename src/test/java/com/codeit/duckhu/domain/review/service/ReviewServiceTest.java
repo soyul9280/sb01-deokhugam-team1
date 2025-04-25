@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.doReturn;
@@ -26,6 +27,8 @@ import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
+import com.codeit.duckhu.domain.notification.service.NotificationService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import static org.mockito.Mockito.doNothing;
+import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 
 /** 리뷰 서비스 테스트 클래스 TDD 방식으로 구현 예정 */
 
@@ -47,6 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * TODO : 실패 케이스 작성 (FORBIDDEN, NOT_FOUND ...)
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ReviewServiceTest {
 
   @Mock private UserRepository userRepository;
@@ -58,6 +66,10 @@ class ReviewServiceTest {
   @Mock private ReviewMapper reviewMapper;
 
   @Mock private Direction direction;
+  
+  @Mock private ThumbnailImageStorage thumbnailImageStorage;
+  
+  @Mock private NotificationService notificationService;
 
   @InjectMocks private ReviewServiceImpl reviewService;
 
@@ -70,6 +82,7 @@ class ReviewServiceTest {
   private UUID testUserId;
   private UUID testBookId;
   private ReviewUpdateRequest testreviewUpdateRequest;
+  private final String TEST_THUMBNAIL_URL = "http://example.com/test.jpg";
 
   @BeforeEach
   void setUp() {
@@ -129,7 +142,17 @@ class ReviewServiceTest {
         .thenReturn(Optional.empty());
     when(reviewMapper.toEntity(any(), any(), any())).thenReturn(testReview);
     when(reviewRepository.save(any())).thenReturn(testReview);
-    when(reviewMapper.toDto(any(Review.class), eq(testUserId))).thenReturn(testReviewDto);
+    when(testReview.getUser()).thenReturn(testUser);
+    when(testUser.getId()).thenReturn(testUserId);
+    when(testUser.getNickname()).thenReturn("테스터");
+    when(testReview.getBook()).thenReturn(testBook);
+    when(testBook.getId()).thenReturn(testBookId);
+    when(testBook.getTitle()).thenReturn("테스트 도서");
+    when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
+    // thumbnailImageStorage.get() 모킹 추가
+    when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
+    // 3개 인자를 받는 toDto 메소드 모킹
+    when(reviewMapper.toDto(any(Review.class), anyString(), eq(testUserId))).thenReturn(testReviewDto);
 
     // When
     ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -145,7 +168,15 @@ class ReviewServiceTest {
   void getReviewById_shouldReturnReview() {
     // Given
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-    when(reviewMapper.toDto(eq(testReview), eq(testUserId))).thenReturn(testReviewDto);
+    when(testReview.getUser()).thenReturn(testUser);
+    when(testUser.getId()).thenReturn(testUserId);
+    when(testUser.getNickname()).thenReturn("테스터");
+    when(testReview.getBook()).thenReturn(testBook);
+    when(testBook.getId()).thenReturn(testBookId);
+    when(testBook.getTitle()).thenReturn("테스트 도서");
+    when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
+    when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
+    when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId))).thenReturn(testReviewDto);
 
     // When
     ReviewDto result = reviewService.getReviewById(testUserId, testReviewId);
@@ -203,10 +234,15 @@ class ReviewServiceTest {
     when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(reviewRepository.save(testReview)).thenReturn(testReview);
-    when(reviewMapper.toDto(eq(testReview), eq(testUserId))).thenReturn(testReviewDto);
     when(testReview.getUser()).thenReturn(testUser);
     when(testUser.getId()).thenReturn(testUserId);
-    when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
+    when(testUser.getNickname()).thenReturn("테스터");
+    when(testReview.getBook()).thenReturn(testBook);
+    when(testBook.getId()).thenReturn(testBookId);
+    when(testBook.getTitle()).thenReturn("테스트 도서");
+    when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
+    when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
+    when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId))).thenReturn(testReviewDto);
 
     // When
     ReviewDto result = reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest);
@@ -234,9 +270,6 @@ class ReviewServiceTest {
   @DisplayName("리뷰 좋아요 테스트")
   class LikeReview {
 
-    /**
-     * TODO : Notification NPE
-     *
     @Test
     @DisplayName("좋아요가 없는 상태에서 좋아요 누르면 likeCount 증가 및 liked=true 반환")
     void likeReview_firstTime_likeCountIncreased() {
@@ -247,8 +280,7 @@ class ReviewServiceTest {
       when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
       when(reviewRepository.save(testReview)).thenReturn(testReview);
       when(testReview.getBook()).thenReturn(testBook);
-      when(testReview.getId()).thenReturn(testBookId);
-
+      when(testReview.getId()).thenReturn(testReviewId);
 
       // When
       ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
@@ -268,6 +300,7 @@ class ReviewServiceTest {
       when(userRepository.existsById(testUserId)).thenReturn(true); // 존재하는 userId 설정
       when(testReview.liked(testUserId)).thenReturn(true).thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
       when(testReview.getId()).thenReturn(testReviewId);
+      when(testReview.getUser()).thenReturn(testUser);
 
       // When
       ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
@@ -278,26 +311,6 @@ class ReviewServiceTest {
       assertThat(result.getReviewId()).isEqualTo(testReviewId);
       assertThat(result.getUserId()).isEqualTo(testUserId);
     }
-
-    @Test
-    @DisplayName("존재하지 않는 유저 ID로도 좋아요 처리가 가능함")
-    void likeReview_nonexistentUser_stillProcessed() {
-      // Given
-      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-      when(userRepository.existsById(testUserId)).thenReturn(false); // 존재하지 않는 userId 설정
-      when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
-      when(testReview.getId()).thenReturn(testReviewId);
-
-      // When
-      ReviewLikeDto result = reviewService.likeReview(testReviewId, testUserId);
-
-      // Then - 예외가 발생하지 않고 결과가 반환됨
-      assertThat(result).isNotNull();
-      assertThat(result.isLiked()).isTrue();
-      assertThat(result.getReviewId()).isEqualTo(testReviewId);
-      assertThat(result.getUserId()).isEqualTo(testUserId);
-    }
-     */
   }
 
   @Test
@@ -312,7 +325,8 @@ class ReviewServiceTest {
             eq(null), eq("createdAt"), eq(Direction.DESC), // 기본값 가정
             eq(null), eq(null), eq(null), eq(null), eq(51))) // limit+1
         .thenReturn(reviewList);
-    when(reviewMapper.toDto(any(Review.class), eq(currentUserIdForTest))).thenReturn(testReviewDto); // 예시 DTO 반환
+    when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
+    when(reviewMapper.toDto(any(Review.class), anyString(), eq(currentUserIdForTest))).thenReturn(testReviewDto); // 예시 DTO 반환
 
     // When
     ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder().build(); // 기본값 사용

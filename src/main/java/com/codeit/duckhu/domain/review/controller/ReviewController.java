@@ -9,7 +9,7 @@ import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
-import com.codeit.duckhu.domain.user.exception.ForbiddenUpdateException;
+import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,7 +54,7 @@ public class ReviewController {
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
       log.warn("비인증 사용자 리뷰 좋아요 요청 차단");
-      throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
+      throw new UserException(ErrorCode.UNAUTHORIZED_USER);
     }
     ReviewLikeDto result = reviewService.likeReview(reviewId, authenticatedUser.getId());
     return ResponseEntity.ok(result);
@@ -93,7 +93,7 @@ public class ReviewController {
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
       log.warn("비인증 사용자 리뷰 상세 조회 요청 차단");
-      throw new ForbiddenUpdateException(ErrorCode.UNAUTHORIZED_UPDATE);
+      throw new UserException(ErrorCode.UNAUTHORIZED_USER);
     }
 
     ReviewDto review = reviewService.getReviewById(authenticatedUser.getId(), reviewId);

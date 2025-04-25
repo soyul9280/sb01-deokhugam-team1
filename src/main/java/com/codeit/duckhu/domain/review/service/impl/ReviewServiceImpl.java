@@ -15,14 +15,14 @@ import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.PopularReview;
 import com.codeit.duckhu.domain.review.entity.Review;
-import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
-import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.PopularReviewRepository;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.exception.DomainException;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 /** 리뷰 서비스 구현체 */
 @Slf4j
@@ -65,19 +64,20 @@ public class ReviewServiceImpl implements ReviewService {
     User user =
             userRepository
                     .findById(request.getUserId())
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new DomainException(ErrorCode.NOT_FOUND));
 
     // 도서 찾기
     Book book =
             bookRepository
                     .findById(request.getBookId())
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.BOOK_NOT_FOUND));
+                    .orElseThrow(() -> new DomainException(ErrorCode.BOOK_NOT_FOUND));
 
     // 동일한 도서에 대한 리뷰가 이미 존재하는지 확인
     Optional<Review> existingReview = reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId());
     if (existingReview.isPresent()) {
       if (!existingReview.get().isDeleted()) {
-        throw new ReviewCustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
+        throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
+
       }
       // 삭제된 리뷰인 경우 재활용
       Review review = existingReview.get();
@@ -118,10 +118,10 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 리뷰 조회
     Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
     if (review.isDeleted()) {
-      throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
     }
 
     // 코멘트 수를 DB에서 직접 가져옵니다
@@ -142,13 +142,13 @@ public class ReviewServiceImpl implements ReviewService {
     Review review =
         reviewRepository
             .findById(reviewId)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
     // 사용자가 권한이 있는지 확인
     if (review.getUser().getId().equals(userId)) {
       reviewRepository.delete(review);
     } else {
-      throw new ReviewCustomException(ReviewErrorCode.NO_AUTHORITY_USER);
+      throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
 
     // jw
@@ -161,11 +161,11 @@ public class ReviewServiceImpl implements ReviewService {
     Review review =
         reviewRepository
             .findById(reviewId)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
     // 사용자가 권한이 있는지 확인
     if (!review.getUser().getId().equals(userId)) {
-      throw new ReviewCustomException(ReviewErrorCode.NO_AUTHORITY_USER);
+      throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
     review.softDelete();
     reviewRepository.save(review);
@@ -180,21 +180,21 @@ public class ReviewServiceImpl implements ReviewService {
     Review review =
         reviewRepository
             .findById(reviewId)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
     // 사용자 찾기
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new DomainException(ErrorCode.NOT_FOUND));
 
     if (review.isDeleted()) {
-      throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
     }
 
     // 사용자가 권한이 있는지 확인
     if (!user.getId().equals(review.getUser().getId())) {
-      throw new ReviewCustomException(ReviewErrorCode.NO_AUTHORITY_USER);
+      throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
 
     review.updateContent(request.getContent());
@@ -218,16 +218,16 @@ public class ReviewServiceImpl implements ReviewService {
     Review review =
             reviewRepository
                     .findById(reviewId)
-                    .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+                    .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
     if (review.isDeleted()) {
-      throw new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
     }
 
     // 사용자 찾기
     var isExistUser = userRepository.existsById(userId);
     if(!isExistUser) {
-      throw new ReviewCustomException(ReviewErrorCode.USER_NOT_FOUND);
+      throw new DomainException(ErrorCode.NOT_FOUND);
     }
 
     boolean likedBefore = review.liked(userId);
@@ -399,7 +399,7 @@ public class ReviewServiceImpl implements ReviewService {
   public Review findByIdEntityReturn(UUID reviewId) {
     return reviewRepository
             .findById(reviewId)
-            .orElseThrow(() -> new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
   }
 
   // 도서에 관련된 집계 필드 업데이트 - jw

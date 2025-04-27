@@ -41,15 +41,19 @@ public class UserController implements UserApi {
   @Override
   @PostMapping
   public ResponseEntity<UserDto> create(
-      @Valid @RequestBody UserRegisterRequest userRegisterRequest) {
+          HttpServletRequest request,@Valid @RequestBody UserRegisterRequest userRegisterRequest) {
     UserDto result = userService.create(userRegisterRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    request.getSession(true).setAttribute("userId", result.getId());
+    return ResponseEntity.status(HttpStatus.CREATED)
+            .header("Deokhugam-Request-User-Id", result.getId().toString())
+            .body(result);
   }
 
   @Override
   @PostMapping("/login")
-  public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginRequest userLoginRequest) {
+  public ResponseEntity<UserDto> login(HttpServletRequest request,@Valid @RequestBody UserLoginRequest userLoginRequest) {
     UserDto result = userService.login(userLoginRequest);
+    request.getSession(true).setAttribute("userId", result.getId());
     return ResponseEntity.ok()
         .header("Deokhugam-Request-User-Id", result.getId().toString())
         .body(result);
@@ -59,7 +63,9 @@ public class UserController implements UserApi {
   @GetMapping("/{userId}")
   public ResponseEntity<UserDto> findById(@PathVariable UUID userId) {
     UserDto result = userService.findById(userId);
-    return ResponseEntity.status(HttpStatus.OK).body(result);
+    return ResponseEntity.status(HttpStatus.OK)
+            .header("Deokhugam-Request-User-Id", result.getId().toString())
+            .body(result);
   }
 
   @Override

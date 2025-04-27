@@ -53,7 +53,7 @@ public interface UserApi {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   @PostMapping(value = "/api/users/")
-  ResponseEntity<UserDto> create(@RequestBody UserRegisterRequest userRegisterRequest);
+  ResponseEntity<UserDto> create(HttpServletRequest request,@RequestBody UserRegisterRequest userRegisterRequest);
 
   @Operation(summary = "로그인", description = "사용자 로그인을 처리합니다.")
   @ApiResponses({
@@ -75,7 +75,7 @@ public interface UserApi {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   @PostMapping("/api/users/login")
-  ResponseEntity<UserDto> login(@RequestBody UserLoginRequest userLoginRequest);
+  ResponseEntity<UserDto> login(HttpServletRequest request,@RequestBody UserLoginRequest userLoginRequest);
 
   @Operation(summary = "사용자 정보 조회", description = "사용자 ID로 상세 정보를 조회합니다.")
   @ApiResponses({

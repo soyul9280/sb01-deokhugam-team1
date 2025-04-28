@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -28,36 +29,38 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String headerId = request.getHeader("Deokhugam-Request-User-Id");
     String path = request.getRequestURI();
     if (isPublicPath(path)) {
-      log.info("User {} is public", headerId);
       filterChain.doFilter(request, response);
       return;
     }
 
     try {
-      UUID userId = (UUID) request.getSession(false).getAttribute("userId"); // 헤더에서 UUID파싱
-      if(userId != null) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+          log.warn("세션 없음 - 인증 실패");
+          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+          return;
+        }
+
+        UUID userId = (UUID) session.getAttribute("userId");
+        if (userId == null) {
+          log.warn("세션에 userId 없음 - 인증 실패");
+          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+          return;
+        }
         User user =
                 userRepository
                         .findById(userId)
                         .orElseThrow(
                                 () -> new UserException(ErrorCode.NOT_FOUND_USER)); // DB에서 사용자 조회
         request.setAttribute("authenticatedUser", user); // 사용자 정보 저장
-      }else {
-        log.warn("세션에 userId 없음 - 인증 실패");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        return;
-      }
-
+      log.info("권한설정 작용 : 사용자 ID = {}", user.getId());
       } catch (Exception e) {
         log.warn("세션 인증 오류: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         return;
       }
-
-    log.info("권한설정 작용 : {}", headerId);
     filterChain.doFilter(request, response);
   }
 

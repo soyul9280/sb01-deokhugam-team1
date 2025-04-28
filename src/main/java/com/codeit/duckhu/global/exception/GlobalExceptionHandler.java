@@ -1,5 +1,6 @@
 package com.codeit.duckhu.global.exception;
 
+import com.codeit.duckhu.domain.comment.exception.NoHeaderException;
 import com.codeit.duckhu.global.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -69,6 +71,16 @@ public class GlobalExceptionHandler {
 
     return ResponseEntity.status(ErrorCode.INVALID_INPUT_VALUE.getStatus()) // 400
         .body(response);
+  }
+
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
+    log.error("Missing request header: {}", ex.getHeaderName());
+
+    DomainException customException = new NoHeaderException(ErrorCode.NO_USER_IN_HEADER);
+
+    return ResponseEntity.status(customException.getErrorCode().getStatus())
+        .body(ErrorResponse.of(customException));
   }
 
   /**

@@ -38,10 +38,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 @WebMvcTest(controllers = NotificationController.class)
-@Import({ GlobalExceptionHandler.class, UserAuthenticationFilter.class })
-@AutoConfigureMockMvc(addFilters = true)
+@Import({GlobalExceptionHandler.class})
+@AutoConfigureMockMvc(addFilters = false)
 public class NotificationControllerTest {
 
     @Autowired
@@ -53,10 +52,9 @@ public class NotificationControllerTest {
     @MockitoBean
     private NotificationService notificationService;
 
-    //인증 필터
+    // 인증 필터
     @MockitoBean
     private UserRepository userRepository;
-
 
     @Nested
     @DisplayName("GET /api/notifications")
@@ -70,41 +68,52 @@ public class NotificationControllerTest {
             Instant now = Instant.now();
 
             // 1) 필터를 통과시키기 위해 userRepository.findById(userId) stub
-            User mockUser = new User(/* email= */"a@b.com", /* nickname= */"test", /* password= */"pw");
+            User mockUser =
+                new User("a@b.com", "test", "pw");
             // 엔티티에 ID 세팅이 필요하다면 리플렉션 등으로 setId() 해 주시고,
             // 혹은 생성자에서 ID를 받도록 바꿔주세요.
             ReflectionTestUtils.setField(mockUser, "id", userId);
 
-            given(userRepository.findById(userId))
-                .willReturn(Optional.of(mockUser));
+            given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
 
-            // 2) notificationService.getNotifications(...) stub
-            NotificationDto dto1 = new NotificationDto(
-                UUID.randomUUID(), userId, UUID.randomUUID(),
-                "리뷰 A", "Alice님이 좋아합니다.", false,
-                now.minusSeconds(60), now.minusSeconds(60)
-            );
-            NotificationDto dto2 = new NotificationDto(
-                UUID.randomUUID(), userId, UUID.randomUUID(),
-                "리뷰 B", "Bob님이 댓글을 남겼습니다.", false,
-                now.minusSeconds(30), now.minusSeconds(30)
-            );
+            // 서비스 레이어 stub
+            NotificationDto dto1 =
+                new NotificationDto(
+                    UUID.randomUUID(),
+                    userId,
+                    UUID.randomUUID(),
+                    "리뷰 A",
+                    "Alice님이 좋아합니다.",
+                    false,
+                    now.minusSeconds(60),
+                    now.minusSeconds(60));
+            NotificationDto dto2 =
+                new NotificationDto(
+                    UUID.randomUUID(),
+                    userId,
+                    UUID.randomUUID(),
+                    "리뷰 B",
+                    "Bob님이 댓글을 남겼습니다.",
+                    false,
+                    now.minusSeconds(30),
+                    now.minusSeconds(30));
             List<NotificationDto> content = List.of(dto1, dto2);
-            CursorPageResponseNotificationDto page = new CursorPageResponseNotificationDto(
-                content, null, null,
-                content.size(), content.size(), false
-            );
-            given(notificationService.getNotifications(
-                eq(userId), eq("DESC"), any(Instant.class), eq(2))
-            ).willReturn(page);
+            CursorPageResponseNotificationDto page =
+                new CursorPageResponseNotificationDto(
+                    content, null, null, content.size(), content.size(), false);
+            given(notificationService.getNotifications(eq(userId), eq("DESC"), any(Instant.class),
+                eq(2)))
+                .willReturn(page);
 
-            // ── when & then ────────────────────────────────────────
-            mockMvc.perform(get("/api/notifications")
-                    .param("userId", userId.toString())
-                    .param("direction", "DESC")
-                    .param("cursor", now.toString())
-                    .param("limit", "2")
-                    .sessionAttr("userId", userId)                // ← 여기
+            // when, then
+            mockMvc
+                .perform(
+                    get("/api/notifications")
+                        .param("userId", userId.toString())
+                        .param("direction", "DESC")
+                        .param("cursor", now.toString())
+                        .param("limit", "2")
+                        .requestAttr("authenticatedUser", mockUser)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
@@ -117,12 +126,11 @@ public class NotificationControllerTest {
         }
 
         @Test
-        @DisplayName("실패 – 인증되지 않은 사용자는 401")
+        @DisplayName("실패 – 인증되지 않은 사용자는 403")
         void getNotifications_unauthenticated() throws Exception {
-            mockMvc.perform(get("/api/notifications")
-                    .param("userId", UUID.randomUUID().toString())
-                )
-                .andExpect(status().isUnauthorized());
+            mockMvc
+                .perform(get("/api/notifications").param("userId", UUID.randomUUID().toString()))
+                .andExpect(status().isForbidden());
         }
     }
 
@@ -137,59 +145,66 @@ public class NotificationControllerTest {
             UUID notificationId = UUID.randomUUID();
             Instant now = Instant.now();
 
-            // 1) 인증 필터 통과용 stub
-            User mockUser = new User("a@b.com","nick","pw");
+            // mockUser 준비
+            User mockUser = new User("a@b.com", "nick", "pw");
             ReflectionTestUtils.setField(mockUser, "id", userId);
-            given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
 
             // 2) 서비스 레이어 stub
-            NotificationDto updatedDto = new NotificationDto(
-                notificationId, userId, UUID.randomUUID(),
-                "리뷰 X", "[Tester]님이 좋아합니다.", true,
-                now.minusSeconds(5), now
-            );
+            NotificationDto updatedDto =
+                new NotificationDto(
+                    notificationId,
+                    userId,
+                    UUID.randomUUID(),
+                    "리뷰 X",
+                    "[Tester]님이 좋아합니다.",
+                    true,
+                    now.minusSeconds(5),
+                    now);
             given(notificationService.updateConfirmedStatus(notificationId, userId, true))
                 .willReturn(updatedDto);
 
             // 3) 수행 & 검증
             NotificationUpdateRequest req = new NotificationUpdateRequest(true);
-            mockMvc.perform(patch("/api/notifications/{id}", notificationId)
-                    .sessionAttr("userId", userId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(req))
-                )
+            mockMvc
+                .perform(
+                    patch("/api/notifications/{id}", notificationId)
+                        .requestAttr("authenticatedUser", mockUser)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(notificationId.toString()))
                 .andExpect(jsonPath("$.confirmed").value(true));
 
-            then(notificationService)
-                .should().updateConfirmedStatus(notificationId, userId, true);
+            then(notificationService).should().updateConfirmedStatus(notificationId, userId, true);
         }
 
         @Test
-        @DisplayName("실패 – 인증되지 않으면 401")
+        @DisplayName("실패 – 인증되지 않으면 403")
         void updateConfirmedStatus_unauthenticated() throws Exception {
-            mockMvc.perform(patch("/api/notifications/{id}", UUID.randomUUID())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"confirmed\":true}")
-                )
-                .andExpect(status().isUnauthorized());
+            mockMvc
+                .perform(
+                    patch("/api/notifications/{id}", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"confirmed\":true}"))
+                .andExpect(status().isForbidden());
         }
 
         @Test
-        @DisplayName("실패 – 잘못된 바디 형식으로 400")
+        @DisplayName("실패 – 잘못된 바디 형식으로 500")
         void updateConfirmedStatus_badRequest() throws Exception {
             UUID userId = UUID.randomUUID();
-            User mockUser = new User("a@b.com","nick","pw");
-            ReflectionTestUtils.setField(mockUser, "id", userId);
-            given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
 
-            // boolean으로 변환할 수 없는 값 전달 → 400 Bad Request
-            mockMvc.perform(patch("/api/notifications/{id}", UUID.randomUUID())
-                    .sessionAttr("userId", userId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"confirmed\":\"notABoolean\"}")
-                )
+            // mockUser 준비 (인증 통과용)
+            User mockUser = new User("a@b.com", "nick", "pw");
+            ReflectionTestUtils.setField(mockUser, "id", userId);
+
+            // 500 Internal ServerError
+            mockMvc
+                .perform(
+                    patch("/api/notifications/{id}", UUID.randomUUID())
+                        .requestAttr("authenticatedUser", mockUser)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"confirmed\":\"notABoolean\"}"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"));
         }
@@ -203,25 +218,24 @@ public class NotificationControllerTest {
         @DisplayName("성공 – 모든 알림 일괄 읽음 처리")
         void updateAllConfirmedStatus_success() throws Exception {
             UUID userId = UUID.randomUUID();
-            User mockUser = new User("a@b.com","nick","pw");
+            // mockUser 준비
+            User mockUser = new User("a@b.com", "nick", "pw");
             ReflectionTestUtils.setField(mockUser, "id", userId);
-            given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
-
             willDoNothing().given(notificationService).updateAllConfirmedStatus(userId);
 
-            mockMvc.perform(patch("/api/notifications/read-all")
-                    .sessionAttr("userId", userId)
-                )
+            mockMvc
+                .perform(
+                    patch("/api/notifications/read-all").requestAttr("authenticatedUser", mockUser))
                 .andExpect(status().isNoContent());
 
             then(notificationService).should().updateAllConfirmedStatus(userId);
         }
 
         @Test
-        @DisplayName("실패 – 인증되지 않으면 401")
+        @DisplayName("실패 – 인증되지 않으면 403")
         void updateAllConfirmedStatus_unauthenticated() throws Exception {
             mockMvc.perform(patch("/api/notifications/read-all"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
         }
     }
 }

@@ -14,11 +14,14 @@ import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
+import com.codeit.duckhu.domain.review.dto.PopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
+import com.codeit.duckhu.domain.review.entity.PopularReview;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
@@ -65,6 +68,8 @@ class ReviewServiceTest {
 
   @Mock private ReviewMapper reviewMapper;
 
+  @Mock private CommentRepository commentRepository;
+
   @Mock private Direction direction;
   
   @Mock private ThumbnailImageStorage thumbnailImageStorage;
@@ -79,6 +84,8 @@ class ReviewServiceTest {
   private ReviewDto testReviewDto;
   private ReviewCreateRequest testCreateRequest;
   private UUID testReviewId;
+  private PopularReview popularReview;
+  private PopularReviewDto popularReviewDto;
   private UUID testUserId;
   private UUID testBookId;
   private ReviewUpdateRequest testreviewUpdateRequest;

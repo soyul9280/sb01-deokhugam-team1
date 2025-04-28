@@ -44,7 +44,7 @@ public record ErrorResponse(
               .code(errorCode.name())
               .message(errorCode.getMessage())
               .details(details)
-              .exceptionType(e.getClass().getSimpleName())
+              .exceptionType(e.getClass().getSuperclass().getSimpleName())
               .status(errorCode.getStatus().value())
               .build();
   }

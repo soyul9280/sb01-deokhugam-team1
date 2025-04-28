@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
             });
     if (user.isDeleted()) {
       log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
-      throw new UserException(ErrorCode.NOT_FOUND_USER));
+      throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
     return userMapper.toDto(user);
   }

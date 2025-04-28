@@ -12,6 +12,7 @@ import com.codeit.duckhu.global.type.PeriodType;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,6 +38,7 @@ public class PopularReviewBatchService {
 
   private final JPAQueryFactory queryFactory;
   private final NotificationService notificationService;
+  private final MeterRegistry meterRegistry;
 
   /**
    * 매일 새벽 12시에 실행
@@ -94,11 +96,18 @@ public class PopularReviewBatchService {
           }
           popularReviewRepository.saveAll(popularReviewsToSave);
           log.info("{} 기간 인기 리뷰 {}개 저장 완료", period, popularReviewsToSave.size());
+
+
+          meterRegistry.counter("batch.powerReview.complete", "period", period.name()).increment();
         } else {
           log.info("{} 기간 처리 대상 리뷰 없음", period);
+
+          meterRegistry.counter("batch.powerReview.noReviewInPeriod", "period", period.name()).increment();
         }
       } catch (Exception e) {
         log.debug("{} 인기 리뷰 기간 계산 오류 발생", period, e);
+
+        meterRegistry.counter("batch.powerReview.failure", "period", period.name()).increment();
       }
     }
     log.info("인기 리뷰 업데이트 완료");

@@ -18,6 +18,8 @@ import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.type.PeriodType;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -51,6 +53,9 @@ public class NotificationServiceTest {
   @Mock private ReviewRepository reviewRepository;
 
   @Mock private UserRepository userRepository;
+
+  @Mock
+  private MeterRegistry meterRegistry;
 
   @InjectMocks private NotificationServiceImpl notificationService;
 
@@ -388,10 +393,14 @@ public class NotificationServiceTest {
     @Test
     @DisplayName("매일 00:30 기준 1분 지난 확인된 알림 삭제")
     void deleteConfirmedNotificationsOlderThanOneMinute() {
+      // given
+      Counter counter = mock(Counter.class);
+      given(meterRegistry.counter(anyString())).willReturn(counter);
+
       // when
       notificationService.deleteConfirmedNotificationsOlderThanAWeek();
 
-      // then: 서비스 내부에서 Instant.now().minus(1, ChronoUnit.MINUTES) 사용
+      // then
       then(notificationRepository).should(times(1))
           .deleteOldConfirmedNotifications(argThat(cutoff ->
               Duration.between(cutoff, Instant.now()).toMinutes() >= 1

@@ -18,6 +18,7 @@ import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.exception.DomainException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.PeriodType;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -43,6 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
   private final ReviewRepository reviewRepository;
   private final UserRepository userRepository;
   private final CommentRepository commentRepository;
+  private final MeterRegistry meterRegistry;
 
   /**
    * 내가 작성한 리뷰에 다른 사용자가 좋아요를 누르면 알림을 생성한다.
@@ -290,8 +292,15 @@ public class NotificationServiceImpl implements NotificationService {
   @Transactional
   @Scheduled(cron = "0 30 0 * * *", zone = "Asia/Seoul")
   public void deleteConfirmedNotificationsOlderThanAWeek() {
-    Instant cutoff = Instant.now().minus(1, ChronoUnit.MINUTES);
-    log.info("Deleting confirmed notifications before {}", cutoff);
-    notificationRepository.deleteOldConfirmedNotifications(cutoff);
+    try{
+      Instant cutoff = Instant.now().minus(1, ChronoUnit.MINUTES);
+      log.info("Deleting confirmed notifications before {}", cutoff);
+      notificationRepository.deleteOldConfirmedNotifications(cutoff);
+
+      meterRegistry.counter("batch.notification.delete.success").increment();
+    } catch (Exception e){
+      meterRegistry.counter("batch.notification.delete.failure").increment();
+    }
+
   }
 }

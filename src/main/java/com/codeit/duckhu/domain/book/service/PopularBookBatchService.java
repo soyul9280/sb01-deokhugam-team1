@@ -7,6 +7,7 @@ import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepository;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.global.type.PeriodType;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,6 +25,7 @@ public class PopularBookBatchService {
   private final BookRepository bookRepository;
   private final ReviewRepository reviewRepository;
   private final PopularBookRepository popularBookRepository;
+  private final MeterRegistry meterRegistry;
 
   /**
    * 인기 도서 랭킹을 지정하는 배치 메서드
@@ -84,8 +86,12 @@ public class PopularBookBatchService {
 
       popularBookRepository.saveAll(popularBooks);
       log.info("[저장 완료] PopularBook {}건 저장 완료", popularBooks.size());
+
+      meterRegistry.counter("batch.book.popularBook.success","period",period.name()).increment();
     } catch (Exception e) {
       log.info("[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage());
+
+      meterRegistry.counter("batch.book.popularBook.failure","period",period.name()).increment();
     }
   }
 }

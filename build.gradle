@@ -69,6 +69,9 @@ dependencies {
     // OCR 기능을 위한 Tesseract 라이브러리, Google vision 라이브러리
     implementation 'net.sourceforge.tess4j:tess4j:5.4.0'
     implementation 'com.google.cloud:google-cloud-vision:3.30.0'
+
+    //spring actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 spotless {

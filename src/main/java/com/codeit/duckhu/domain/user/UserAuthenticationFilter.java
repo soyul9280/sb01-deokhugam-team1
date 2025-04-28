@@ -36,20 +36,20 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-      try {
-        UUID userId = (UUID) request.getSession(false).getAttribute("userId"); // 헤더에서 UUID파싱
-        if(userId != null) {
-          User user =
-                  userRepository
-                          .findById(userId)
-                          .orElseThrow(
-                                  () -> new UserException(ErrorCode.NOT_FOUND_USER)); // DB에서 사용자 조회
-          request.setAttribute("authenticatedUser", user); // 사용자 정보 저장
-        }else {
-          log.warn("세션에 userId 없음 - 인증 실패");
-          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-          return;
-        }
+    try {
+      UUID userId = (UUID) request.getSession(false).getAttribute("userId"); // 헤더에서 UUID파싱
+      if(userId != null) {
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(
+                                () -> new UserException(ErrorCode.NOT_FOUND_USER)); // DB에서 사용자 조회
+        request.setAttribute("authenticatedUser", user); // 사용자 정보 저장
+      }else {
+        log.warn("세션에 userId 없음 - 인증 실패");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
+      }
 
       } catch (Exception e) {
         log.warn("세션 인증 오류: {}", e.getMessage());

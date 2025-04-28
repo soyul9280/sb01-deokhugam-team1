@@ -8,6 +8,12 @@ plugins {
 group = 'com.codeit'
 version = '0.0.1-SNAPSHOT'
 
+//스프링 부트에서 bootJar가 jar파일 생성
+tasks.named('bootJar'){
+    archiveBaseName.set("duckhu")
+    archiveVersion.set("1.2-M8")
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)

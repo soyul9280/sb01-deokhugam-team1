@@ -11,12 +11,11 @@ import com.codeit.duckhu.domain.notification.mapper.NotificationMapper;
 import com.codeit.duckhu.domain.notification.repository.NotificationRepository;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.entity.Review;
-import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
-import com.codeit.duckhu.domain.review.exception.ReviewErrorCode;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.exception.DomainException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
@@ -112,7 +111,7 @@ public class NotificationServiceImpl implements NotificationService {
             .findById(reviewId)
             .orElseThrow(() -> {
               log.warn("리뷰 없음: reviewId={}", reviewId);
-              return new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+              return new DomainException(ErrorCode.REVIEW_NOT_FOUND);
             });
 
     // 2. 수신자 ID = 리뷰 작성자의 ID
@@ -157,7 +156,7 @@ public class NotificationServiceImpl implements NotificationService {
     Review review = reviewRepository.findById(reviewId)
         .orElseThrow(() -> {
           log.warn("리뷰 없음: reviewId={}", reviewId);
-          return new ReviewCustomException(ReviewErrorCode.REVIEW_NOT_FOUND);
+          return new DomainException(ErrorCode.REVIEW_NOT_FOUND);
         });
     String reviewTitle = review.getContent();
 

@@ -13,9 +13,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
 
   List<Comment> findByReview_Id(UUID reviewId);
 
-
-
-
+  // 삭제되지 않은 댓글만 조회
+  List<Comment> findByReview_IdAndIsDeletedFalse(UUID reviewId);
 
   /**
    * 특정 리뷰에 대해 특정 기간 동안 작성된 (삭제되지 않은) 댓글 수를 계산

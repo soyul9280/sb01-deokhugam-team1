@@ -62,8 +62,8 @@ public class ReviewController {
 
   @PatchMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> updateReview(
-      @RequestParam("userId") UUID userId,
-      @PathVariable("reviewId") UUID reviewId,
+      @PathVariable UUID reviewId,
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId,
       @Valid @RequestBody ReviewUpdateRequest request) {
     ReviewDto review = reviewService.updateReview(userId, reviewId, request);
     return ResponseEntity.ok(review);
@@ -71,16 +71,16 @@ public class ReviewController {
 
   @DeleteMapping("/{reviewId}")
   public ResponseEntity<Void> softDeleteReview(
-      @RequestParam("userId") UUID userId,
-      @PathVariable UUID reviewId) {
+      @PathVariable("reviewId") UUID reviewId,
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
     reviewService.softDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{reviewId}/hard")
   public ResponseEntity<Void> hardDeleteReview(
-      @RequestParam("userId") UUID userId,
-      @PathVariable("reviewId") UUID reviewId) {
+      @PathVariable("reviewId") UUID reviewId,
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId) {
     reviewService.hardDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }

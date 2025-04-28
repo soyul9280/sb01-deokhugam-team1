@@ -48,7 +48,10 @@ public class CommentService {
       UUID reviewId, Direction direction, UUID cursorId, Instant createdAt, int limit) {
     Slice<Comment> slice = repository.searchAll(reviewId, direction.toString(), createdAt, cursorId, limit);
 
-   List<CommentDto> list = slice.getContent().stream().map(commentMapper::toDto).toList();
+    // 삭제되지 않은 댓글만 필터링
+    List<CommentDto> list = slice.getContent().stream()
+        .filter(comment -> !comment.getIsDeleted())  // 삭제되지 않은 댓글만 포함
+        .map(commentMapper::toDto).toList();
 
     CursorPageResponseCommentDto response = new CursorPageResponseCommentDto();
     response.setContent(list);
@@ -61,7 +64,8 @@ public class CommentService {
       response.setNextAfter(lastComment.getCreatedAt());
     }
 
-    response.setTotalElements((long) repository.findByReview_Id(reviewId).size());
+    // 삭제되지 않은 댓글 수를 조회합니다 TODO: 성능 이슈 리팩토링
+    response.setTotalElements((long) repository.findByReview_IdAndIsDeletedFalse(reviewId).size());
 
     return response;
   }
@@ -75,6 +79,9 @@ public class CommentService {
             .isDeleted(false)
             .build();
 
+    // 리뷰의 댓글 수 증가
+    comment.getReview().increaseCommentCount();
+    
     repository.save(comment);
 
     // 알림 생성 로직 이 과정에서 comment의 저장은 영향이 가지 않도록 try catch문으로 잡는다
@@ -98,6 +105,9 @@ public class CommentService {
             .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
     if (comment.getUser().getId().equals(userId)) {
+      // 리뷰의 댓글 수 감소
+      comment.getReview().decreaseCommentCount();
+      
       repository.deleteById(id);
     } else {
       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);
@@ -111,6 +121,11 @@ public class CommentService {
             .orElseThrow(() -> new NoCommentException(ErrorCode.NOT_FOUND_COMMENT));
 
     if (comment.getUser().getId().equals(userId)) {
+      // 이미 삭제된 상태가 아닐 때만 리뷰의 댓글 수 감소
+      if (!comment.getIsDeleted()) {
+        comment.getReview().decreaseCommentCount();
+      }
+      
       comment.markAsDeleted(true);
     } else {
       throw new NoAuthorityException(ErrorCode.NO_AUTHORITY_USER);

@@ -20,12 +20,12 @@ import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.Review;
-import com.codeit.duckhu.domain.review.exception.ReviewCustomException;
 import com.codeit.duckhu.domain.review.mapper.ReviewMapper;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.exception.DomainException;
 import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.domain.notification.service.NotificationService;
@@ -262,7 +262,7 @@ class ReviewServiceTest {
         .thenReturn(Optional.of(testReview));
 
     // When & Then
-    assertThrows(ReviewCustomException.class, () -> reviewService.createReview(testCreateRequest));
+    assertThrows(DomainException.class, () -> reviewService.createReview(testCreateRequest));
     verify(reviewRepository, never()).save(any());
   }
 

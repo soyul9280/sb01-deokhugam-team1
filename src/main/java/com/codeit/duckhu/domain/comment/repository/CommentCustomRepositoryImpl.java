@@ -25,7 +25,9 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
     QComment comment = QComment.comment;
 
     BooleanExpression condition =
-        comment.review.id.eq(reviewId).and(cursorCondition(comment, direction, after, cursorId));
+        comment.review.id.eq(reviewId)
+            .and(comment.isDeleted.eq(false))
+            .and(cursorCondition(comment, direction, after, cursorId));
 
     List<Comment> result =
         jpaQueryFactory

@@ -124,4 +124,24 @@ public class Review extends BaseUpdatableEntity {
       this.isDeleted = true;
     }
   }
+
+  public void restore() {
+    if (this.isDeleted) {
+      this.isDeleted = false;
+    }
+  }
+
+  public void increaseCommentCount() {
+    this.commentCount++;
+  }
+
+  public void decreaseCommentCount() {
+    if (this.commentCount > 0) {
+      this.commentCount--;
+    }
+  }
+
+  public void updateCommentCount(int count) {
+    this.commentCount = Math.max(0, count);
+  }
 }

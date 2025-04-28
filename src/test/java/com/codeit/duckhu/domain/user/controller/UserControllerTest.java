@@ -5,13 +5,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.codeit.duckhu.domain.user.UserAuthenticationFilter;
 import com.codeit.duckhu.domain.user.dto.CursorPageResponsePowerUserDto;
 import com.codeit.duckhu.domain.user.dto.PowerUserDto;
 import com.codeit.duckhu.domain.user.dto.UserDto;
@@ -29,7 +29,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @WebMvcTest(UserController.class)
 @Import(GlobalExceptionHandler.class)
@@ -49,17 +46,6 @@ class UserControllerTest {
   @MockitoBean private UserService userService;
 
   @MockitoBean private UserRepository userRepository;
-
-  @BeforeEach
-  void setUp() {
-    UserAuthenticationFilter filter = new UserAuthenticationFilter(userRepository);
-    UserController controller = new UserController(userService);
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(controller)
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .addFilters(filter)
-            .build();
-  }
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -124,7 +110,7 @@ class UserControllerTest {
   }
 
   @Test
-  @DisplayName("POST /api/users/login-실패")
+  @DisplayName("POST /api/users/login-실패(유효성검사)")
   void login_fail() throws Exception {
     // given
     UserLoginRequest request = new UserLoginRequest(null, "testA1!!!!");
@@ -140,6 +126,39 @@ class UserControllerTest {
   }
 
   @Test
+  @DisplayName("GET /api/users/{userId} - 성공")
+  void findById_success() throws Exception {
+    // given
+    UUID userId = UUID.randomUUID();
+    User user = new User("testA@example.com", "testA", "testa1234!");
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+    UserDto userDto = new UserDto(userId, "testA@example.com", "testA", Instant.now());
+    given(userService.findById(userId)).willReturn(userDto);
+
+    // when & then
+    mockMvc.perform(get("/api/users/{userId}", userId)
+                    .sessionAttr("userId", userId)
+                    .header("Deokhugam-Request-User-Id", userId)
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.email").value("testA@example.com"))
+            .andExpect(jsonPath("$.nickname").value("testA"));
+  }
+
+  @Test
+  @DisplayName("GET /api/users/{userId} - 비로그인 401 실패")
+  void findById_unauthorized_fail() throws Exception {
+    UUID targetId = UUID.randomUUID();
+
+    mockMvc.perform(get("/api/users/{userId}", targetId)
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+  }
+
+
+  @Test
   @DisplayName("PATCH /api/users/{userId} - 입력값 검증 실패")
   void update_fail() throws Exception {
     // given
@@ -152,7 +171,8 @@ class UserControllerTest {
     mockMvc
             .perform(
                     patch("/api/users/{userId}", loginId)
-                            .header("Deokhugam-Request-User-ID", loginId)
+                            .sessionAttr("userId", loginId)
+                            .header("Deokhugam-Request-User-Id", loginId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
@@ -173,14 +193,32 @@ class UserControllerTest {
     // when
     // then
     mockMvc
-        .perform(
-            patch("/api/users/{userId}", targetId)
-                .header("Deokhugam-Request-User-ID", loginId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.details").value(""))
-        .andExpect(jsonPath("$.message").value("사용자 정보 수정 권한 없음"));
+            .perform(
+                    patch("/api/users/{userId}", targetId)
+                            .sessionAttr("userId", loginId)
+                            .header("Deokhugam-Request-User-Id", loginId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.details").value(""))
+            .andExpect(jsonPath("$.message").value("사용자 정보 수정 권한 없음"));
+  }
+
+  @Test
+  @DisplayName("PATCH /api/users/{userId} - 비로그인 (401 실패)")
+  void update_userUnauthorized_fail() throws Exception {
+    // given
+    UUID targetId = UUID.randomUUID();
+    UserUpdateRequest request = new UserUpdateRequest("newName");
+
+    // when
+    // then
+    mockMvc
+            .perform(
+                    patch("/api/users/{userId}", targetId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -195,14 +233,26 @@ class UserControllerTest {
     // when
     // then
     mockMvc
-        .perform(
-            delete("/api/users/{userId}", targetId)
-                .header("Deokhugam-Request-User-ID", loginId)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.details").value(""))
-        .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
+            .perform(
+                    delete("/api/users/{userId}", targetId)
+                            .sessionAttr("userId", loginId)
+                            .header("Deokhugam-Request-User-Id", loginId)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.details").value(""))
+            .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
   }
+
+  @Test
+  @DisplayName("DELETE /api/users/{userId} - 비로그인 401 실패")
+  void softDelete_unauthorized_fail() throws Exception {
+    UUID targetId = UUID.randomUUID();
+
+    mockMvc.perform(delete("/api/users/{userId}", targetId)
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+  }
+
 
   @Test
   @DisplayName("DELETE /api/users/{userId}/hard - 권한없음 (실패)")
@@ -216,14 +266,26 @@ class UserControllerTest {
     // when
     // then
     mockMvc
-        .perform(
-            delete("/api/users/{userId}/hard", targetId)
-                .header("Deokhugam-Request-User-ID", loginId)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.details").value(""))
-        .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
+            .perform(
+                    delete("/api/users/{userId}/hard", targetId)
+                            .sessionAttr("userId", loginId)
+                            .header("Deokhugam-Request-User-Id", loginId)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.details").value(""))
+            .andExpect(jsonPath("$.message").value("사용자 삭제 권한 없음"));
   }
+
+  @Test
+  @DisplayName("DELETE /api/users/{userId}/hard - 비로그인 401 실패")
+  void hardDelete_unauthorized_fail() throws Exception {
+    UUID targetId = UUID.randomUUID();
+
+    mockMvc.perform(delete("/api/users/{userId}/hard", targetId)
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+  }
+
 
   @Test
   @DisplayName("GET api/users/power - 성공")
@@ -265,7 +327,7 @@ class UserControllerTest {
             .willReturn(responseDto);
 
     // when & then
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/users/power")
+    mockMvc.perform(get("/api/users/power")
             .param("period", period.name())
             .param("direction", direction.name())
             .param("limit", String.valueOf(limit))

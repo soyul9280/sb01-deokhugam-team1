@@ -10,8 +10,10 @@ spring:
       enabled: true
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     database: postgresql
+    properties:
+      hibernate.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
   transaction:
     default-timeout: 30
 duckhu:

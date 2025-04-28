@@ -87,11 +87,11 @@ public class PopularBookBatchService {
       popularBookRepository.saveAll(popularBooks);
       log.info("[저장 완료] PopularBook {}건 저장 완료", popularBooks.size());
 
-      meterRegistry.counter("book.popularBook.success","period",period.name());
+      meterRegistry.counter("batch.book.popularBook.success","period",period.name()).increment();
     } catch (Exception e) {
       log.info("[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage());
 
-      meterRegistry.counter("book.popularBook.failure","period",period.name());
+      meterRegistry.counter("batch.book.popularBook.failure","period",period.name()).increment();
     }
   }
 }

@@ -297,9 +297,9 @@ public class NotificationServiceImpl implements NotificationService {
       log.info("Deleting confirmed notifications before {}", cutoff);
       notificationRepository.deleteOldConfirmedNotifications(cutoff);
 
-      meterRegistry.counter("notification.delete.success");
+      meterRegistry.counter("batch.notification.delete.success").increment();
     } catch (Exception e){
-      meterRegistry.counter("notification.delete.failure");
+      meterRegistry.counter("notification.delete.failure").increment();
     }
 
   }

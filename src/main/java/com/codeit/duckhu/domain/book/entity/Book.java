@@ -31,7 +31,7 @@ public class Book extends BaseUpdatableEntity {
   @Column(nullable = false)
   private String author;
 
-  @Lob @Column private String description;
+  @Column(columnDefinition = "TEXT") private String description;
 
   @Column(nullable = false)
   private String publisher;

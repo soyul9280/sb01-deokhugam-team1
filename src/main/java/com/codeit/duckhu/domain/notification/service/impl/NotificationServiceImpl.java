@@ -299,7 +299,7 @@ public class NotificationServiceImpl implements NotificationService {
 
       meterRegistry.counter("batch.notification.delete.success").increment();
     } catch (Exception e){
-      meterRegistry.counter("notification.delete.failure").increment();
+      meterRegistry.counter("batch.notification.delete.failure").increment();
     }
 
   }

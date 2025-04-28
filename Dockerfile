@@ -21,11 +21,18 @@ COPY src ./src
 RUN ./gradlew clean build -x test --no-daemon
 
 #Jar파일 이미지에 저장하는 부분
-FROM amazoncorretto:17-alpine
+FROM eclipse-temurin:17-jdk-jammy
 
 ENV PROJECT_NAME=duckhu
 ENV PROJECT_VERSION=1.2-M8
 ENV JVM_OPTS=""
+
+# Tess4j 를 위한 필수 패키지 설치 (OCR 라이브러리)
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    libtesseract-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 

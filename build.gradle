@@ -98,6 +98,7 @@ jacoco {
 
 tasks.named('test') {
     useJUnitPlatform()
+    //현재 실패 테스트 케이스들이 많아 일시적으로 ignore설정 실패 테스트들 성공시 해당 코드 제거
     ignoreFailures = true
     finalizedBy 'jacocoTestReport'
 }
@@ -113,7 +114,7 @@ tasks.named('jacocoTestReport', JacocoReport).configure { report ->
         html.required.set(true)
     }
 
-    // 커버리지 계산에서 제외할 패턴
+    // 커버리지 계산에서 제외할 패턴 Todo 현재 설정 고려중
     def excludes = [
             // DTO, Entity 같은 순수 데이터 구조
             "**/com/codeit/**/dto/**",

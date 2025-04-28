@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.diffplug.spotless' version '6.25.0' // 빌드 시 코드 컨벤션 적용
+    id 'jacoco'
 }
 
 group = 'com.codeit'
@@ -91,9 +92,35 @@ tasks.named('build') {
     dependsOn 'spotlessApply'  // ✅ build 전에 코드 포맷 자동 적용
 }
 
+jacoco {
+    toolVersion = "0.8.10" // ➡️ 최신 버전 사용
+}
+
 tasks.named('test') {
     useJUnitPlatform()
+//    ignoreFailures = true
+    finalizedBy 'jacocoTestReport'
 }
 clean {
     delete file('src/main/generated')
+}
+
+tasks.named('jacocoTestReport', JacocoReport).configure { report ->
+    dependsOn test
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    // classDirectories 재설정: controller, service, repository 패키지만 포함
+    classDirectories.setFrom(
+            classDirectories.files.collect { File f ->
+                fileTree(dir: f, include: [
+                        'com/codeit/duckhu/domain/**/controller/**',
+                        'com/codeit/duckhu/domain/**/service/**',
+                        'com/codeit/duckhu/domain/**/repository/**'
+                ])
+            }
+    )
 }

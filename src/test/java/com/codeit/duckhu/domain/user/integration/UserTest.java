@@ -46,15 +46,6 @@ public class UserTest {
   @Autowired private ObjectMapper objectMapper;
   @Autowired private UserRepository userRepository;
 
-  @Autowired private RestTemplateBuilder builder;
-
-  private TestRestTemplate templateWithSession;
-
-  @BeforeEach
-  void setUp() {
-    this.templateWithSession=restTemplate;
-  }
-
   private HttpHeaders getSessionHeader() throws Exception {
     UserLoginRequest loginRequest = new UserLoginRequest("test@example.com", "test1234!");
     HttpHeaders headers = new HttpHeaders();

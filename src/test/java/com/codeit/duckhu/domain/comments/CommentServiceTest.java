@@ -20,6 +20,7 @@ import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.comment.service.CommentMapper;
 import com.codeit.duckhu.domain.comment.service.CommentService;
+import com.codeit.duckhu.domain.notification.service.impl.NotificationServiceImpl;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
@@ -53,6 +54,8 @@ class CommentServiceTest {
   @Mock private UserServiceImpl userService;
 
   @Mock private ReviewServiceImpl reviewService;
+
+  @Mock private NotificationServiceImpl notificationService;
 
   @Mock private CommentMapper commentMapper;
 
@@ -156,8 +159,9 @@ class CommentServiceTest {
 
     when(mockComment.getUser()).thenReturn(mockUser);
     when(mockUser.getId()).thenReturn(userId);
-
     given(commentRepository.findById(any(UUID.class))).willReturn(Optional.of(mockComment));
+    given(mockComment.getReview()).willReturn(review);
+
     commentService.delete(commentId, userId);
 
     verify(commentRepository).deleteById(any(UUID.class));
@@ -221,8 +225,7 @@ class CommentServiceTest {
   void getList() {
     UUID reviewId = UUID.randomUUID();
 
-    Comment comment = new Comment();
-    comment.setContent("test comment");
+    Comment comment = mock(Comment.class);
 
     CommentDto dto = new CommentDto();
     dto.setId(UUID.randomUUID());
@@ -235,12 +238,12 @@ class CommentServiceTest {
     given(commentRepository.searchAll(eq(reviewId), eq("ASC"), any(), any(), eq(10)))
         .willReturn(slice);
     given(commentMapper.toDto(comment)).willReturn(dto);
-    given(commentRepository.findByReview_Id(reviewId)).willReturn(comments);
 
     CursorPageResponseCommentDto responseCommentDto = commentService.getList(reviewId, Direction.ASC, null, Instant.now(), 10);
 
     assertThat(responseCommentDto.getContent()).hasSize(1);
     assertThat(responseCommentDto.getContent().get(0).getContent()).isEqualTo("test comment");
   }
+
 
 }

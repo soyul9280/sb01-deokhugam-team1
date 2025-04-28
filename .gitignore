@@ -56,3 +56,6 @@ src/main/resources/vision-key.json
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
+
+# log
+logs/

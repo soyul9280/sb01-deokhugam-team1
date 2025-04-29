@@ -38,9 +38,10 @@ jobs:
       - name: 환경 결정
         id: set-env
         run: |
-          echo "environment=dev" >> $GITHUB_OUTPUT
           if [[ "${{ github.base_ref }}" == "master" ]]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
           fi
 
   build_spring_app:

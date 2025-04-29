@@ -1,0 +1,17 @@
+{
+	"ulid": "01JT0PCNT88C4GVA1M28S2TZ18",
+	"minTime": 1745916882833,
+	"maxTime": 1745920800000,
+	"stats": {
+		"numSamples": 40499,
+		"numSeries": 233,
+		"numChunks": 246
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01JT0PCNT88C4GVA1M28S2TZ18"
+		]
+	},
+	"version": 1
+}

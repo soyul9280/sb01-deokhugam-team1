@@ -1,0 +1,68 @@
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: duckhu-prod-server
+    networks:
+      - monitoring-network
+    ports:
+      - "8081:80"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - JVM_OPTS=${JVM_OPTS}
+      - AWS_S3_ACCESS_KEY=${AWS_S3_ACCESS_KEY}
+      - AWS_S3_SECRET_KEY=${AWS_S3_SECRET_KEY}
+      - AWS_S3_REGION=${AWS_S3_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_S3_PRESIGNED_URL_EXPIRATION=${AWS_S3_PRESIGNED_URL_EXPIRATION}
+      - STORAGE_TYPE=${STORAGE_TYPE}
+    volumes:
+      - app-storage:/app/duckhuFile
+    depends_on:
+      - my-db-prod
+      - prometheus
+      - grafana
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    networks:
+      - monitoring-network
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    networks:
+      - monitoring-network
+    user: "$UID:$GID"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+networks:
+  monitoring-network:
+    driver: bridge
+
+
+volumes:
+  db-data:
+  app-storage:
+  grafana-data:

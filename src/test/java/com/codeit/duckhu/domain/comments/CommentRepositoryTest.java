@@ -5,12 +5,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.comment.domain.Comment;
+import com.codeit.duckhu.domain.comment.dto.CommentDto;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -101,4 +104,20 @@ class CommentRepositoryTest {
     assertThat(list.get(0).getContent()).isEqualTo("test comment");
     assertThat(list.get(0).getReview().getId()).isEqualTo(savedReview.getId());
   }
+
+  @Test
+  void searchAll() {
+    Comment saved = commentRepository.save(comment);
+
+    Slice<Comment> slice = commentRepository.searchAll(
+        savedReview.getId(),
+        Direction.ASC.toString(),
+        Instant.EPOCH,
+        null,
+        10
+    );
+
+    assertThat(slice.getContent()).contains(saved);
+  }
+
 }

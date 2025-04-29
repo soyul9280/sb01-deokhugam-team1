@@ -6,6 +6,27 @@ on:
     branches: [dev, master]
 
 jobs:
+  run_tests:
+    name: 🧪 테스트 실행 (테스트 제외)
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: JDK 설치
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Gradle 빌드 (테스트 제외)
+        run: |
+          ./gradlew clean build -x test
+
+      - name: 테스트 실행 스킵 알림
+        run: |
+          echo "::notice::테스트 코드는 실행하지 않았지만, 빌드는 정상적으로 완료했습니다."
   build_spring_app:
     name: 🛠️ Spring Boot 빌드
     if: github.event.action == 'opened' || github.event.action == 'synchronize'
@@ -71,7 +92,7 @@ jobs:
   build_and_push_docker_image:
     name: 🐳 Docker 이미지 빌드 및 ECR 푸시
     runs-on: ubuntu-latest
-    needs: [set_environment]
+    needs: [set_environment, build_spring_app]
     permissions:
       id-token: write
       contents: read

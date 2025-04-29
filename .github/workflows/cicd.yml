@@ -156,7 +156,7 @@ jobs:
     name: 📝 릴리즈 PR 생성
     if: needs.set_environment.outputs.environment == 'dev'
     runs-on: ubuntu-latest
-    needs: [set_environment, build_and_push_docker_image]
+    needs: [set_environment, build_and_push_docker_image, ecs_deploy]
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4

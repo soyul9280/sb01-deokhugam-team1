@@ -75,11 +75,8 @@ public class UserController implements UserApi {
       @PathVariable("userId") UUID targetId,
       @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
     User authenticatedUser = (User) request.getAttribute("authenticatedUser");
-    if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
-      throw new UserException(ErrorCode.UNAUTHORIZED_USER);
-    }
     if (!targetId.equals(authenticatedUser.getId())) { // 로그인은 했지만 권한이 없을때 403 던지기
-      throw new UserException(ErrorCode.UNAUTHORIZED_USER);
+      throw new UserException(ErrorCode.UNAUTHORIZED_UPDATE);
     }
     UserDto result = userService.update(targetId, userUpdateRequest);
     return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -90,11 +87,8 @@ public class UserController implements UserApi {
   public ResponseEntity<Void> softDelete(
       HttpServletRequest request, @PathVariable("userId") UUID targetId) {
     User authenticatedUser = (User) request.getAttribute("authenticatedUser");
-    if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
-      throw new UserException(ErrorCode.UNAUTHORIZED_USER);
-    }
     if (!targetId.equals(authenticatedUser.getId())) { // 로그인은 했지만 권한이 없을때 403 던지기
-      throw new UserException(ErrorCode.UNAUTHORIZED_USER);
+      throw new UserException(ErrorCode.UNAUTHORIZED_DELETE);
     }
     userService.softDelete(targetId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -105,9 +99,6 @@ public class UserController implements UserApi {
   public ResponseEntity<Void> hardDelete(
       HttpServletRequest request, @PathVariable("userId") UUID targetId) {
     User authenticatedUser = (User) request.getAttribute("authenticatedUser");
-    if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
-      throw new UserException(ErrorCode.UNAUTHORIZED_DELETE);
-    }
     if (!targetId.equals(authenticatedUser.getId())) { // 로그인은 했지만 권한이 없을때 403 던지기
       throw new UserException(ErrorCode.UNAUTHORIZED_DELETE);
     }

@@ -13,13 +13,17 @@ import com.codeit.duckhu.domain.user.dto.UserRegisterRequest;
 import com.codeit.duckhu.domain.user.dto.UserUpdateRequest;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +45,21 @@ public class UserTest {
 
   @Autowired private ObjectMapper objectMapper;
   @Autowired private UserRepository userRepository;
+
+  private HttpHeaders getSessionHeader() throws Exception {
+    UserLoginRequest loginRequest = new UserLoginRequest("test@example.com", "test1234!");
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(loginRequest), headers);
+    ResponseEntity<UserDto> response = restTemplate.postForEntity("/api/users/login", entity, UserDto.class);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    HttpHeaders responseHeaders = response.getHeaders();
+    String cookie = responseHeaders.getFirst(HttpHeaders.SET_COOKIE);
+    HttpHeaders sessionHeaders = new HttpHeaders();
+    sessionHeaders.set(HttpHeaders.COOKIE, cookie);
+    return sessionHeaders;
+  }
 
   @Test
   @DisplayName("사용자 생성-성공")
@@ -90,12 +109,12 @@ public class UserTest {
   @Test
   @DisplayName("사용자 상세 조회- 성공")
   @Sql("/data.sql")
-  void find_success() {
+  void find_success()throws Exception {
     // given
+    HttpHeaders sessionHeader = getSessionHeader();
     UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Deokhugam-Request-User-ID", id.toString());
-    HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+    HttpEntity<Void> requestEntity = new HttpEntity<>(sessionHeader);
     // when
     ResponseEntity<UserDto> response =
         restTemplate.exchange("/api/users/" + id, HttpMethod.GET, requestEntity, UserDto.class);
@@ -111,13 +130,15 @@ public class UserTest {
   @Sql("/data.sql")
   void update_success() throws Exception {
     // given
+    HttpHeaders sessionHeader = getSessionHeader();
+    sessionHeader.setContentType(MediaType.APPLICATION_JSON);
+    sessionHeader.setAccept(List.of(MediaType.APPLICATION_JSON));
     UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
     UserUpdateRequest request =new UserUpdateRequest("newName");
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("Deokhugam-Request-User-ID", targetId.toString());
+
+    sessionHeader.set("Deokhugam-Request-User-ID", targetId.toString());
     HttpEntity<String> httpEntity =
-        new HttpEntity<>(objectMapper.writeValueAsString(request), headers);
+        new HttpEntity<>(objectMapper.writeValueAsString(request), sessionHeader);
 
     // when
     ResponseEntity<UserDto> response =
@@ -132,13 +153,13 @@ public class UserTest {
   @Test
   @DisplayName("사용자 논리삭제 - 성공")
   @Sql("/data.sql")
-  void softDelete_success() {
+  void softDelete_success() throws Exception {
     // given
+    HttpHeaders sessionHeader = getSessionHeader();
     UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("Deokhugam-Request-User-ID", targetId.toString());
-    HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+
+    sessionHeader.set("Deokhugam-Request-User-ID", targetId.toString());
+    HttpEntity<String> httpEntity = new HttpEntity<>(sessionHeader);
 
     // when
     ResponseEntity<Void> response =
@@ -151,13 +172,13 @@ public class UserTest {
   @Test
   @DisplayName("사용자 물리삭제 - 성공")
   @Sql("/data.sql")
-  void hardDelete_success() {
+  void hardDelete_success() throws Exception {
     // given
+    HttpHeaders sessionHeader = getSessionHeader();
     UUID targetId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("Deokhugam-Request-User-ID", targetId.toString());
-    HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+
+    sessionHeader.set("Deokhugam-Request-User-ID", targetId.toString());
+    HttpEntity<String> httpEntity = new HttpEntity<>(sessionHeader);
 
     // when
     ResponseEntity<Void> response =

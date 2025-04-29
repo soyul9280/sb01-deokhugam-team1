@@ -34,9 +34,11 @@ public class BookRepositoryImplTest {
 
   private Book book1, book2, book3;
 
+  /**
+   * 테스트 시작 전, 3권의 기본 도서를 저장합니다.
+   */
   @BeforeEach
   void setUp() {
-    // 기본 테스트용 데이터 3개 저장
     book1 = Book.builder()
         .title("Effective Java")
         .author("Joshua Bloch")
@@ -72,10 +74,18 @@ public class BookRepositoryImplTest {
     em.clear();
   }
 
+  /**
+   * 도서 검색 기능을 검증합니다.
+   * - 키워드로 검색 (제목, 저자, ISBN)
+   * - 정렬 기준(제목 ASC/DESC)에 따라 올바른 순서로 정렬되는지 확인합니다.
+   */
   @Nested
   @DisplayName("도서 검색")
   class SearchBooks {
 
+    /**
+     * 제목에 키워드를 포함하여 검색했을 때 정확히 조회되는지 검증합니다.
+     */
     @Test
     @DisplayName("키워드 검색 - 제목으로 검색 성공")
     void searchByTitle() {
@@ -94,6 +104,9 @@ public class BookRepositoryImplTest {
       assertThat(result.get(0).getTitle()).isEqualTo("Effective Java");
     }
 
+    /**
+     * 저자명으로 검색했을 때 정확히 조회되는지 검증합니다.
+     */
     @Test
     @DisplayName("키워드 검색 - 저자로 검색 성공")
     void searchByAuthor() {
@@ -112,6 +125,9 @@ public class BookRepositoryImplTest {
       assertThat(result.get(0).getAuthor()).isEqualTo("Robert C. Martin");
     }
 
+    /**
+     * ISBN으로 검색했을 때 정확히 조회되는지 검증합니다.
+     */
     @Test
     @DisplayName("키워드 검색 - ISBN으로 검색 성공")
     void searchByIsbn() {
@@ -130,6 +146,9 @@ public class BookRepositoryImplTest {
       assertThat(result.get(0).getTitle()).isEqualTo("Spring in Action");
     }
 
+    /**
+     * 제목(title) 기준 오름차순 정렬이 정상적으로 동작하는지 검증합니다.
+     */
     @Test
     @DisplayName("정렬 테스트 - 제목 오름차순 정렬")
     void sortByTitleAsc() {
@@ -150,6 +169,9 @@ public class BookRepositoryImplTest {
       assertThat(result.get(2).getTitle()).isEqualTo("Spring in Action");
     }
 
+    /**
+     * 제목(title) 기준 내림차순 정렬이 정상적으로 동작하는지 검증합니다.
+     */
     @Test
     @DisplayName("정렬 테스트 - 제목 내림차순 정렬")
     void sortByTitleDesc() {

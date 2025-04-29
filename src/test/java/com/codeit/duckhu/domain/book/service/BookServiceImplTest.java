@@ -29,7 +29,6 @@ import com.codeit.duckhu.domain.book.naver.NaverBookClient;
 import com.codeit.duckhu.domain.book.ocr.OcrExtractor;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
-import com.codeit.duckhu.domain.review.repository.ReviewRepository;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
@@ -70,6 +69,11 @@ public class BookServiceImplTest {
   @InjectMocks
   private BookServiceImpl bookService;
 
+  /**
+   * 도서를 등록하는 메서드를 검증하였습니다.
+   * - 썸네일 이미지 유무에 따라 저장 로직이 다르게 동작합니다.
+   * - ISBN 중복 여부, ISBN 형식 검증을 포함합니다.
+   */
   @Nested
   @DisplayName("도서 저장")
   class SaveBookTest {
@@ -77,7 +81,7 @@ public class BookServiceImplTest {
     @Test
     @DisplayName("도서 등록 성공 - 썸네일 있음")
     void registerBook_withThumbnail() {
-      // given
+      // given : 썸네일 이미지가 포함된 도서 등록 요청 세팅
       BookCreateRequest request = new BookCreateRequest(
           "Effective Java", "Joshua Bloch", "Best practices", "Addison-Wesley",
           LocalDate.of(2018, 1, 1), "9780134685991"
@@ -108,10 +112,10 @@ public class BookServiceImplTest {
       given(bookRepository.save(any(Book.class))).willReturn(savedBook);
       given(bookMapper.toDto(any(Book.class), any())).willReturn(expectedDto);
 
-      // when
+      // when : 도서 등록 서비스 호출
       BookDto result = bookService.registerBook(request, Optional.of(file));
 
-      // then
+      // then : 정상적으로 저장 및 변환되었는지 호출
       assertThat(result).isEqualTo(expectedDto);
       verify(bookRepository).save(any(Book.class));
       verify(thumbnailImageStorage).upload(file);
@@ -120,7 +124,7 @@ public class BookServiceImplTest {
     @Test
     @DisplayName("도서 등록 성공 - 썸네일 없음")
     void registerBook_withoutThumbnail_success() {
-      // given
+      // given : 썸네일이 없는 도서 등록 요청 준비
       BookCreateRequest request = new BookCreateRequest(
           "Clean Code", "Robert C. Martin", "Clean coding principles", "Prentice Hall",
           LocalDate.of(2008, 8, 1), "9780132350884"
@@ -149,7 +153,7 @@ public class BookServiceImplTest {
       // when
       BookDto result = bookService.registerBook(request, Optional.empty());
 
-      // then
+      // then -> 썸네일 이미지 저장 메서드가 실행되지 않음을 검증
       assertThat(result).isEqualTo(expectedDto);
       verify(bookRepository).save(any(Book.class));
       verify(thumbnailImageStorage, never()).upload(any());
@@ -158,14 +162,14 @@ public class BookServiceImplTest {
     @Test
     @DisplayName("ISBN 중복 시 예외 발생")
     void registerBook_duplicateIsbn_exceptionThrown() {
-      // given
+      // given : 중복된 iSBN을 입력
       BookCreateRequest request =
           new BookCreateRequest(
               "토비 스프링", "토비", "스프링의 교과서", "Test", LocalDate.of(2003, 8, 30), "9780321125217");
 
       given(bookRepository.existsByIsbn(request.isbn())).willReturn(true);
 
-      // when & then
+      // when & then -> 예외가 발생하며 도서 레포지토리 저장 메서드가 실행되지 않음을 검증
       assertThatThrownBy(() -> bookService.registerBook(request, Optional.empty()))
           .isInstanceOf(BookException.class);
 
@@ -175,7 +179,7 @@ public class BookServiceImplTest {
     @Test
     @DisplayName("ISBN 형식에 맞지 않으면 예외 발생")
     void registerBook_invalidIsbn_exceptionThrown() {
-      // given
+      // given : ISBN 형식에 맞지 않는 도서 등록
       BookCreateRequest request =
           new BookCreateRequest(
               "Invalid Book",
@@ -185,7 +189,7 @@ public class BookServiceImplTest {
               LocalDate.of(2020, 1, 1),
               "INVALID_ISBN");
 
-      // when & then
+      // when & then -> 예외가 터지며 도서 레포지토리에 저장 메서드가 실행되지 않음
       assertThatThrownBy(() -> bookService.registerBook(request, Optional.empty()))
           .isInstanceOf(BookException.class);
 
@@ -193,6 +197,11 @@ public class BookServiceImplTest {
     }
   }
 
+  /**
+   * 도서를 검색하는 메서드를 검증하였습니다.
+   * - 키워드 검색, 정렬 기준에 따라 도서를 조회할 수 있습니다.
+   * - 인기 도서(기간별) 검색 기능을 포함합니다.
+   */
   @Nested
   @DisplayName("도서 조회")
   class GetBookTest {
@@ -281,6 +290,11 @@ public class BookServiceImplTest {
     }
   }
 
+  /**
+   * 도서를 ID로 단건 조회하는 메서드를 검증하였습니다.
+   * - ID가 존재하는 경우 BookDto를 반환합니다.
+   * - 존재하지 않는 ID 입력 시 예외를 발생시킵니다.
+   */
   @Nested
   @DisplayName("도서 단건 조회")
   class GetBookByIdTest {
@@ -332,6 +346,10 @@ public class BookServiceImplTest {
     }
   }
 
+  /**
+   * ISBN을 이용하여 외부 API(Naver Book API)로 도서 정보를 조회하는 기능을 검증하였습니다.
+   * - 정상 ISBN 입력 시 정보를 가져오고, 잘못된 형식이면 예외를 발생시킵니다.
+   */
   @Nested
   @DisplayName("도서 ISBN 조회")
   class GetBookByIsbnTest {
@@ -370,6 +388,12 @@ public class BookServiceImplTest {
     }
   }
 
+  /**
+   * 도서 정보를 수정하는 기능을 검증하였습니다.
+   * - 제목, 저자, 설명, 출판사, 출판일 등의 필드를 수정할 수 있습니다.
+   * - 썸네일 이미지 변경도 가능합니다.
+   * - 존재하지 않거나 논리 삭제된 도서에 대해서는 예외를 발생시킵니다.
+   */
   @Nested
   @DisplayName("도서 업데이트")
   class UpdateBookTest {
@@ -463,6 +487,10 @@ public class BookServiceImplTest {
     }
   }
 
+  /**
+   * 이미지 파일에서 ISBN을 추출하는 기능을 검증하였습니다.
+   * - 정상 이미지 파일이면 ISBN을 추출하고, 이미지가 아닐 경우 예외를 발생시킵니다.
+   */
   @Nested
   @DisplayName("이미지에서 ISBN 추출")
   class ExtractIsbnFromImageTest {
@@ -503,7 +531,12 @@ public class BookServiceImplTest {
     }
   }
 
-
+  /**
+   * 도서를 삭제하는 기능을 검증하였습니다.
+   * - 논리 삭제: isDeleted를 true로 변경합니다.
+   * - 물리 삭제: DB에서 도서를 제거하며, 썸네일 이미지도 함께 삭제합니다.
+   * - 존재하지 않는 도서에 대해서는 예외를 발생시킵니다.
+   */
   @Nested
   @DisplayName("도서 삭제")
   class DeleteBookTest {

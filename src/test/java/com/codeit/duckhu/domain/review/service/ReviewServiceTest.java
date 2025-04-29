@@ -389,6 +389,22 @@ class ReviewServiceTest {
           () -> reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NO_AUTHORITY_USER);
     }
+
+    @Test
+    @DisplayName("논리 삭제된 리뷰 업데이트시 에러")
+    void updateReview_shouldThrowException_whenIsDeleted() {
+      // Given
+      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+      when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+      when(testReview.getUser()).thenReturn(testUser);
+      when(testUser.getId()).thenReturn(testUserId);
+      when(testReview.isDeleted()).thenReturn(true); // 리뷰가 논리 삭제된 상태
+
+      // When & Then
+      DomainException exception = assertThrows(DomainException.class,
+          () -> reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest));
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+    }
   }
 
   @Nested
@@ -435,6 +451,31 @@ class ReviewServiceTest {
       assertThat(result.isLiked()).isFalse();
       assertThat(result.getReviewId()).isEqualTo(testReviewId);
       assertThat(result.getUserId()).isEqualTo(testUserId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 리뷰에 좋아요 요청 시 예외")
+    void likeReview_reviewNotFound() {
+      // Given
+      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.empty());
+
+      // When & Then
+      DomainException exception = assertThrows(DomainException.class,
+          () -> reviewService.likeReview(testReviewId, testUserId));
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 유저가 좋아요 요청 시 예외")
+    void likeReview_userNotFount() {
+      // Given
+      when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
+      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+
+      // When & Then
+      DomainException exception = assertThrows(DomainException.class,
+          () -> reviewService.likeReview(testReviewId, testUserId));
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND);
     }
   }
 

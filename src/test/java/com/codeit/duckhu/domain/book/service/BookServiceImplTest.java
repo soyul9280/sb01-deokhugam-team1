@@ -2,7 +2,9 @@ package com.codeit.duckhu.domain.book.service;
 
 import com.codeit.duckhu.domain.book.dto.BookDto;
 import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.dto.NaverBookDto;
 import com.codeit.duckhu.domain.book.entity.PopularBook;
+import com.codeit.duckhu.domain.book.exception.OCRException;
 import com.codeit.duckhu.domain.book.mapper.PopularBookMapper;
 import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepository;
 import com.codeit.duckhu.global.type.Direction;
@@ -49,10 +51,15 @@ public class BookServiceImplTest {
   private BookRepository bookRepository;
 
   @Mock
+  private NaverBookClient naverBookClient;
+
+  @Mock
   private BookMapper bookMapper;
 
   @Mock
   private PopularBookMapper popularBookMapper;
+
+  @Mock OcrExtractor ocrExtractor;
 
   @Mock
   private ThumbnailImageStorage thumbnailImageStorage;
@@ -279,7 +286,7 @@ public class BookServiceImplTest {
   class GetBookByIdTest {
 
     @Test
-    @DisplayName("도서 조회 성공")
+    @DisplayName("도서 ID를 통해 조회 성공")
     void getBookById_success() {
       // Given
       UUID id = UUID.randomUUID();
@@ -313,7 +320,7 @@ public class BookServiceImplTest {
     }
 
     @Test
-    @DisplayName("도서 조회 실패 - 존재하지 않는 ID")
+    @DisplayName("도서 ID를 통해 조회 실패 - 존재하지 않는 ID")
     void getBookById_notFound_throwsException() {
       // Given
       UUID bookId = UUID.randomUUID();
@@ -322,6 +329,44 @@ public class BookServiceImplTest {
       // When & Then
       assertThatThrownBy(() -> bookService.getBookById(bookId))
           .isInstanceOf(BookException.class);
+    }
+  }
+
+  @Nested
+  @DisplayName("도서 ISBN 조회")
+  class GetBookByIsbnTest {
+
+    @Test
+    @DisplayName("ISBN으로 도서 조회 성공")
+    void getBookByIsbn_success() {
+      // Given
+      String validIsbn = "9780134685991";
+      NaverBookDto naverBookDto = new NaverBookDto(
+          "Effective Java", "Joshua Bloch", "Best practices", "Addison-Wesley", LocalDate.now(),
+          validIsbn, "https://image.url"
+      );
+
+      given(naverBookClient.searchByIsbn(validIsbn)).willReturn(naverBookDto);
+
+      // When
+      NaverBookDto result = bookService.getBookByIsbn(validIsbn);
+
+      // Then
+      assertThat(result).isEqualTo(naverBookDto);
+    }
+
+    @Test
+    @DisplayName("잘못된 ISBN으로 조회 시 예외 발생")
+    void getBookByIsbn_invalidIsbn_throwsException() {
+      // Given
+      String invalidIsbn = "INVALID_ISBN";
+
+      // When & Then
+      assertThatThrownBy(() -> bookService.getBookByIsbn(invalidIsbn))
+          .isInstanceOf(BookException.class)
+          .hasMessageContaining("ISBN 형식");
+
+      verify(naverBookClient, never()).searchByIsbn(any());
     }
   }
 
@@ -419,6 +464,47 @@ public class BookServiceImplTest {
   }
 
   @Nested
+  @DisplayName("이미지에서 ISBN 추출")
+  class ExtractIsbnFromImageTest {
+
+    @Test
+    @DisplayName("정상 이미지 파일로 ISBN 추출 성공")
+    void extractIsbnFromImage_success() {
+      // Given
+      MultipartFile image = new MockMultipartFile(
+          "file", "book.jpg", "image/jpeg", "fake image content".getBytes()
+      );
+
+      String extractedIsbn = "9780134685991";
+
+      given(ocrExtractor.extractOCR(image)).willReturn(extractedIsbn);
+
+      // When
+      String result = bookService.extractIsbnFromImage(image);
+
+      // Then
+      assertThat(result).isEqualTo(extractedIsbn);
+      verify(ocrExtractor).extractOCR(image); // OCR 호출했는지 검증
+    }
+
+    @Test
+    @DisplayName("이미지 파일이 아닐 경우 예외 발생")
+    void extractIsbnFromImage_invalidFile_throwsException() {
+      // Given
+      MultipartFile invalidFile = new MockMultipartFile(
+          "file", "text.txt", "text/plain", "this is not an image".getBytes()
+      );
+
+      // When & Then
+      assertThatThrownBy(() -> bookService.extractIsbnFromImage(invalidFile))
+          .isInstanceOf(OCRException.class);
+
+      verify(ocrExtractor, never()).extractOCR(any()); // OCRExtractor는 호출되면 안됨
+    }
+  }
+
+
+  @Nested
   @DisplayName("도서 삭제")
   class DeleteBookTest {
 
@@ -460,26 +546,30 @@ public class BookServiceImplTest {
     }
 
     @Test
-    @DisplayName("도서 물리 삭제 성공")
-    void deleteBookPhysically_success() {
+    @DisplayName("도서 물리 삭제 성공 - 썸네일 삭제도 성공")
+    void deleteBookPhysically_success_withThumbnail() {
       // Given
       UUID bookId = UUID.randomUUID();
-      Book bookToDelete =
-          Book.builder()
-              .title("물리삭제 책")
-              .author("작가")
-              .description("설명")
-              .publisher("출판사")
-              .publishedDate(LocalDate.of(2020, 1, 1))
-              .build();
+      String thumbnailKey = "s3-thumbnail-key.jpg";
+
+      Book bookToDelete = Book.builder()
+          .title("물리삭제 책")
+          .author("작가")
+          .description("설명")
+          .publisher("출판사")
+          .publishedDate(LocalDate.of(2020, 1, 1))
+          .thumbnailUrl(thumbnailKey)  // 썸네일 키 설정
+          .build();
 
       ReflectionTestUtils.setField(bookToDelete, "id", bookId);
+
       given(bookRepository.findById(bookId)).willReturn(Optional.of(bookToDelete));
 
       // When
       bookService.deleteBookPhysically(bookId);
 
       // Then
+      verify(thumbnailImageStorage).delete(thumbnailKey); // 썸네일 삭제 검증 추가
       verify(bookRepository).delete(bookToDelete);
     }
 

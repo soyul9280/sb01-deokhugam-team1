@@ -98,7 +98,7 @@ jacoco {
 
 tasks.named('test') {
     useJUnitPlatform()
-   ignoreFailures = true
+//    ignoreFailures = true
     finalizedBy 'jacocoTestReport'
 }
 clean {
@@ -111,7 +111,6 @@ tasks.named('jacocoTestReport', JacocoReport).configure { report ->
     reports {
         xml.required.set(true)
         html.required.set(true)
-        csv.required = false
     }
 
     // classDirectories 재설정: controller, service, repository 패키지만 포함

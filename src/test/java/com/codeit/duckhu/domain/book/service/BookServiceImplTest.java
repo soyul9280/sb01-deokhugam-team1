@@ -1,10 +1,18 @@
 package com.codeit.duckhu.domain.book.service;
 
 import com.codeit.duckhu.domain.book.dto.BookDto;
+import com.codeit.duckhu.domain.book.dto.CursorPageResponseBookDto;
+import com.codeit.duckhu.domain.book.entity.PopularBook;
+import com.codeit.duckhu.domain.book.mapper.PopularBookMapper;
+import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepository;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import java.time.Instant;
+import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -37,98 +45,108 @@ import org.springframework.web.multipart.MultipartFile;
 @ExtendWith(MockitoExtension.class)
 public class BookServiceImplTest {
 
-  @Mock private BookRepository bookRepository;
+  @Mock
+  private BookRepository bookRepository;
 
-  @Mock private BookMapper bookMapper;
+  @Mock
+  private BookMapper bookMapper;
 
-  @Mock private ThumbnailImageStorage thumbnailImageStorage;
+  @Mock
+  private PopularBookMapper popularBookMapper;
 
-  @InjectMocks private BookServiceImpl bookService;
+  @Mock
+  private ThumbnailImageStorage thumbnailImageStorage;
+
+  @Mock
+  private PopularBookRepository popularBookRepository;
+
+  @InjectMocks
+  private BookServiceImpl bookService;
 
   @Nested
   @DisplayName("도서 저장")
   class SaveBookTest {
 
-        @Test
-        @DisplayName("도서 등록 성공 - 썸네일 있음")
-        void registerBook_withThumbnail() {
-          // given
-          BookCreateRequest request = new BookCreateRequest(
-              "Effective Java", "Joshua Bloch", "Best practices", "Addison-Wesley",
-              LocalDate.of(2018, 1, 1), "9780134685991"
-          );
+    @Test
+    @DisplayName("도서 등록 성공 - 썸네일 있음")
+    void registerBook_withThumbnail() {
+      // given
+      BookCreateRequest request = new BookCreateRequest(
+          "Effective Java", "Joshua Bloch", "Best practices", "Addison-Wesley",
+          LocalDate.of(2018, 1, 1), "9780134685991"
+      );
 
-          MultipartFile file = new MockMultipartFile("file", "image.jpg", "image/jpeg",
-              "image-content".getBytes());
-          String thumbnailUrl = "https://s3.com/image.jpg";
+      MultipartFile file = new MockMultipartFile("file", "image.jpg", "image/jpeg",
+          "image-content".getBytes());
+      String thumbnailUrl = "https://s3.com/image.jpg";
 
-          Book savedBook = Book.builder()
-              .title(request.title())
-              .author(request.author())
-              .description(request.description())
-              .publisher(request.publisher())
-              .publishedDate(request.publishedDate())
-              .isbn(request.isbn())
-              .thumbnailUrl(thumbnailUrl)
-              .build();
+      Book savedBook = Book.builder()
+          .title(request.title())
+          .author(request.author())
+          .description(request.description())
+          .publisher(request.publisher())
+          .publishedDate(request.publishedDate())
+          .isbn(request.isbn())
+          .thumbnailUrl(thumbnailUrl)
+          .build();
 
-          BookDto expectedDto = new BookDto(
-              UUID.randomUUID(), request.title(), request.author(), request.description(),
-              request.publisher(), request.publishedDate(), request.isbn(),
-              thumbnailUrl, 0, 0.0, Instant.now(), Instant.now()
-          );
+      BookDto expectedDto = new BookDto(
+          UUID.randomUUID(), request.title(), request.author(), request.description(),
+          request.publisher(), request.publishedDate(), request.isbn(),
+          thumbnailUrl, 0, 0.0, Instant.now(), Instant.now()
+      );
 
-          given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
-          given(thumbnailImageStorage.upload(file)).willReturn(thumbnailUrl);
-          given(bookRepository.save(any(Book.class))).willReturn(savedBook);
-          given(bookMapper.toDto(any(Book.class), any())).willReturn(expectedDto);
+      given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
+      given(thumbnailImageStorage.upload(file)).willReturn(thumbnailUrl);
+      given(bookRepository.save(any(Book.class))).willReturn(savedBook);
+      given(bookMapper.toDto(any(Book.class), any())).willReturn(expectedDto);
 
-          // when
-          BookDto result = bookService.registerBook(request, Optional.of(file));
+      // when
+      BookDto result = bookService.registerBook(request, Optional.of(file));
 
-          // then
-          assertThat(result).isEqualTo(expectedDto);
-          verify(bookRepository).save(any(Book.class));
-          verify(thumbnailImageStorage).upload(file);
-        }
+      // then
+      assertThat(result).isEqualTo(expectedDto);
+      verify(bookRepository).save(any(Book.class));
+      verify(thumbnailImageStorage).upload(file);
+    }
 
-        @Test
-        @DisplayName("도서 등록 성공 - 썸네일 없음")
-        void registerBook_withoutThumbnail_success() {
-          // given
-          BookCreateRequest request = new BookCreateRequest(
-              "Clean Code", "Robert C. Martin", "Clean coding principles", "Prentice Hall",
-              LocalDate.of(2008, 8, 1), "9780132350884"
-          );
+    @Test
+    @DisplayName("도서 등록 성공 - 썸네일 없음")
+    void registerBook_withoutThumbnail_success() {
+      // given
+      BookCreateRequest request = new BookCreateRequest(
+          "Clean Code", "Robert C. Martin", "Clean coding principles", "Prentice Hall",
+          LocalDate.of(2008, 8, 1), "9780132350884"
+      );
 
-          Book savedBook = Book.builder()
-              .title(request.title())
-              .author(request.author())
-              .description(request.description())
-              .publisher(request.publisher())
-              .publishedDate(request.publishedDate())
-              .isbn(request.isbn())
-              .thumbnailUrl(null)
-              .build();
+      Book savedBook = Book.builder()
+          .title(request.title())
+          .author(request.author())
+          .description(request.description())
+          .publisher(request.publisher())
+          .publishedDate(request.publishedDate())
+          .isbn(request.isbn())
+          .thumbnailUrl(null)
+          .build();
 
-          BookDto expectedDto = new BookDto(
-              UUID.randomUUID(), request.title(), request.author(), request.description(),
-              request.publisher(), request.publishedDate(), request.isbn(),
-              null, 0, 0.0, Instant.now(), Instant.now()
-          );
+      BookDto expectedDto = new BookDto(
+          UUID.randomUUID(), request.title(), request.author(), request.description(),
+          request.publisher(), request.publishedDate(), request.isbn(),
+          null, 0, 0.0, Instant.now(), Instant.now()
+      );
 
-          given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
-          given(bookRepository.save(any(Book.class))).willReturn(savedBook);
-          given(bookMapper.toDto(any(Book.class), any())).willReturn(expectedDto);
+      given(bookRepository.existsByIsbn(request.isbn())).willReturn(false);
+      given(bookRepository.save(any(Book.class))).willReturn(savedBook);
+      given(bookMapper.toDto(any(Book.class), any())).willReturn(expectedDto);
 
-          // when
-          BookDto result = bookService.registerBook(request, Optional.empty());
+      // when
+      BookDto result = bookService.registerBook(request, Optional.empty());
 
-          // then
-          assertThat(result).isEqualTo(expectedDto);
-          verify(bookRepository).save(any(Book.class));
-          verify(thumbnailImageStorage, never()).upload(any());
-        }
+      // then
+      assertThat(result).isEqualTo(expectedDto);
+      verify(bookRepository).save(any(Book.class));
+      verify(thumbnailImageStorage, never()).upload(any());
+    }
 
     @Test
     @DisplayName("ISBN 중복 시 예외 발생")
@@ -170,55 +188,190 @@ public class BookServiceImplTest {
 
   @Nested
   @DisplayName("도서 조회")
-  class GetBookTest {}
+  class GetBookTest {
+
+    @Test
+    @DisplayName("도서 목록 검색 성공")
+    void searchBooks_success() {
+      // Given
+      UUID id = UUID.randomUUID();
+      Book book = Book.builder()
+          .title("테스트 도서")
+          .author("작가")
+          .publishedDate(LocalDate.of(2024, 1, 1))
+          .rating(4.5)
+          .reviewCount(10)
+          .build();
+
+      ReflectionTestUtils.setField(book, "id", id);
+      ReflectionTestUtils.setField(book, "createdAt", Instant.now());
+      ReflectionTestUtils.setField(book, "updatedAt", Instant.now());
+
+      BookDto bookDto = new BookDto(
+          book.getId(), book.getTitle(), book.getAuthor(), null, null,
+          null, null, null, 10, 4.5, book.getCreatedAt(), book.getUpdatedAt()
+      );
+
+      given(bookRepository.searchBooks(any(), any(), any(), any(), any(), anyInt()))
+          .willReturn(List.of(book));
+      given(bookMapper.toDto(any(Book.class), any())).willReturn(bookDto);
+
+      // When
+      CursorPageResponseBookDto result = bookService.searchBooks("테스트", "title", Direction.DESC,
+          null, Instant.now(), 10);
+
+      // Then
+      assertThat(result.content().size()).isEqualTo(1);
+      assertThat(result.content().get(0).title()).isEqualTo("테스트 도서");
+      assertThat(result.hasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("인기 도서 목록 검색 성공")
+    void searchPopularBooks_success() {
+      // Given
+      UUID id = UUID.randomUUID();
+      Book book = Book.builder()
+          .title("인기 도서")
+          .author("인기 작가")
+          .publishedDate(LocalDate.of(2024, 2, 1))
+          .rating(4.8)
+          .reviewCount(100)
+          .build();
+      ReflectionTestUtils.setField(book, "id", id);
+      ReflectionTestUtils.setField(book, "createdAt", Instant.now());
+      ReflectionTestUtils.setField(book, "updatedAt", Instant.now());
+
+      PopularBook popularBook = PopularBook.builder()
+          .book(book)
+          .rank(1)
+          .period(com.codeit.duckhu.global.type.PeriodType.MONTHLY)
+          .score(4.5)
+          .build();
+      ReflectionTestUtils.setField(popularBook, "id", id);
+      ReflectionTestUtils.setField(popularBook, "createdAt", Instant.now());
+
+      given(popularBookRepository.searchByPeriodWithCursorPaging(any(), any(), any(), any(),
+          anyInt()))
+          .willReturn(List.of(popularBook));
+      given(popularBookRepository.countByPeriod(any())).willReturn(1);
+      given(popularBookMapper.toDto(any(), any()))
+          .willReturn(new com.codeit.duckhu.domain.book.dto.PopularBookDto(
+              popularBook.getId(), book.getId(), book.getTitle(), book.getAuthor(), null,
+              PeriodType.MONTHLY.toString(), popularBook.getRank(), popularBook.getScore(),
+              book.getReviewCount(), book.getRating(), book.getCreatedAt()
+          ));
+
+      // When
+      var result = bookService.searchPopularBooks(com.codeit.duckhu.global.type.PeriodType.MONTHLY,
+          Direction.DESC, null, Instant.now(), 10);
+
+      // Then
+      assertThat(result.content().size()).isEqualTo(1);
+      assertThat(result.content().get(0).rank()).isEqualTo(1);
+      assertThat(result.totalElements()).isEqualTo(1);
+      assertThat(result.hasNext()).isFalse();
+    }
+  }
+
+  @Nested
+  @DisplayName("도서 단건 조회")
+  class GetBookByIdTest {
+
+    @Test
+    @DisplayName("도서 조회 성공")
+    void getBookById_success() {
+      // Given
+      UUID id = UUID.randomUUID();
+      Book book = Book.builder()
+          .title("인기 도서")
+          .author("인기 작가")
+          .publishedDate(LocalDate.of(2024, 2, 1))
+          .rating(4.8)
+          .reviewCount(100)
+          .thumbnailUrl("thumbnail-key")
+          .build();
+      ReflectionTestUtils.setField(book, "id", id);
+      ReflectionTestUtils.setField(book, "createdAt", Instant.now());
+      ReflectionTestUtils.setField(book, "updatedAt", Instant.now());
+
+      BookDto expectedDto = new BookDto(
+          book.getId(), book.getTitle(), book.getAuthor(), null, null,
+          null, null, "https://s3.com/thumbnail.jpg", 20, 4.5,
+          book.getCreatedAt(), book.getCreatedAt()
+      );
+
+      given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
+      given(thumbnailImageStorage.get("thumbnail-key")).willReturn("https://s3.com/thumbnail.jpg");
+      given(bookMapper.toDto(book, "https://s3.com/thumbnail.jpg")).willReturn(expectedDto);
+
+      // When
+      BookDto result = bookService.getBookById(book.getId());
+
+      // Then
+      assertThat(result).isEqualTo(expectedDto);
+    }
+
+    @Test
+    @DisplayName("도서 조회 실패 - 존재하지 않는 ID")
+    void getBookById_notFound_throwsException() {
+      // Given
+      UUID bookId = UUID.randomUUID();
+      given(bookRepository.findById(bookId)).willReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> bookService.getBookById(bookId))
+          .isInstanceOf(BookException.class);
+    }
+  }
 
   @Nested
   @DisplayName("도서 업데이트")
   class UpdateBookTest {
 
-        @Test
-        @DisplayName("도서 정보와 썸네일을 수정하면 BookDto가 반환된다.")
-        void updateBook_withThumbnailImage_success() {
-          // Given
-          UUID bookId = UUID.randomUUID();
-          Book originalBook = Book.builder()
-              .title("Old Title")
-              .author("Old Author")
-              .description("Old Desc")
-              .publisher("Old Publisher")
-              .publishedDate(LocalDate.of(2000, 1, 1))
-              .isDeleted(false)
-              .build();
-          ReflectionTestUtils.setField(originalBook, "id", bookId);
+    @Test
+    @DisplayName("도서 정보와 썸네일을 수정하면 BookDto가 반환된다.")
+    void updateBook_withThumbnailImage_success() {
+      // Given
+      UUID bookId = UUID.randomUUID();
+      Book originalBook = Book.builder()
+          .title("Old Title")
+          .author("Old Author")
+          .description("Old Desc")
+          .publisher("Old Publisher")
+          .publishedDate(LocalDate.of(2000, 1, 1))
+          .isDeleted(false)
+          .build();
+      ReflectionTestUtils.setField(originalBook, "id", bookId);
 
-          BookUpdateRequest request = new BookUpdateRequest(
-              "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
-          );
+      BookUpdateRequest request = new BookUpdateRequest(
+          "New Title", "New Author", "New Desc", "New Publisher", LocalDate.of(2020, 5, 5)
+      );
 
-          MultipartFile thumbnail = new MockMultipartFile("thumbnail", "thumbnail.jpg",
-     "image/jpeg",
-              "fake".getBytes());
-          String uploadedUrl = "https://s3.bucket/thumbnail.jpg";
+      MultipartFile thumbnail = new MockMultipartFile("thumbnail", "thumbnail.jpg",
+          "image/jpeg",
+          "fake".getBytes());
+      String uploadedUrl = "https://s3.bucket/thumbnail.jpg";
 
-          int reviewCount = 5;
-          double rating = 4.2;
-          BookDto expectedDto = new BookDto(bookId, "New Title", "New Author", "New Desc",
-              "New Publisher",
-              LocalDate.now(), null, uploadedUrl, reviewCount, rating, Instant.now(),
-     Instant.now());
+      int reviewCount = 5;
+      double rating = 4.2;
+      BookDto expectedDto = new BookDto(bookId, "New Title", "New Author", "New Desc",
+          "New Publisher",
+          LocalDate.now(), null, uploadedUrl, reviewCount, rating, Instant.now(),
+          Instant.now());
 
-          given(bookRepository.findById(bookId)).willReturn(Optional.of(originalBook));
-          given(thumbnailImageStorage.upload(thumbnail)).willReturn(uploadedUrl);
-          given(bookMapper.toDto(eq(originalBook), any())).willReturn(expectedDto);
+      given(bookRepository.findById(bookId)).willReturn(Optional.of(originalBook));
+      given(thumbnailImageStorage.upload(thumbnail)).willReturn(uploadedUrl);
+      given(bookMapper.toDto(eq(originalBook), any())).willReturn(expectedDto);
 
-          // When
-          BookDto result = bookService.updateBook(bookId, request, Optional.of(thumbnail));
+      // When
+      BookDto result = bookService.updateBook(bookId, request, Optional.of(thumbnail));
 
-          // Then
-          assertThat(result).isEqualTo(expectedDto);
-          assertThat(originalBook.getTitle()).isEqualTo("New Title");
-          assertThat(originalBook.getThumbnailUrl()).isEqualTo(uploadedUrl);
-        }
+      // Then
+      assertThat(result).isEqualTo(expectedDto);
+      assertThat(originalBook.getTitle()).isEqualTo("New Title");
+      assertThat(originalBook.getThumbnailUrl()).isEqualTo(uploadedUrl);
+    }
 
     @Test
     @DisplayName("도서 수정 실패 - 존재하지 않는 도서")
@@ -268,6 +421,7 @@ public class BookServiceImplTest {
   @Nested
   @DisplayName("도서 삭제")
   class DeleteBookTest {
+
     @Test
     @DisplayName("도서 논리 삭제 성공")
     void deleteBookLogically_success() {

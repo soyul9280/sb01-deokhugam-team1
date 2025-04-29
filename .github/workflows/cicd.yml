@@ -47,7 +47,6 @@ jobs:
 
       - name: Gradle 빌드 (테스트 제외)
         run: |
-          cd my-app
           ./gradlew build -x test || (echo "::error::Gradle 빌드 실패!" && exit 1)
 
       - name: 테스트 실행 스킵 알림

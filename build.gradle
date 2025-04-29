@@ -83,6 +83,15 @@ dependencies {
 
     // session 통합테스트를 위한 HttpClient라이브러리
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
+
+    // Spring Batch Core
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    // Spring Batch + JPA 연동
+    implementation 'org.springframework.batch:spring-batch-infrastructure'
+
+    // Spring Batch JPA Reader
+    implementation 'org.springframework.batch:spring-batch-core'
 }
 
 spotless {

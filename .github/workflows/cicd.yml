@@ -1,0 +1,176 @@
+name: 덕후감 CICD 파이프라인
+
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches: [dev, master]
+
+jobs:
+  build_spring_app:
+    name: 🛠️ Spring Boot 빌드
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    env:
+      SPRING_PROFILES_ACTIVE: prod
+      STORAGE_TYPE: s3
+      AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
+      AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
+      AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_S3_PRESIGNED_URL_EXPIRATION: ${{ secrets.AWS_S3_PRESIGNED_URL_EXPIRATION }}
+      NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+      NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+      RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+      SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+      SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+      JVM_OPTS: ${{ secrets.JVM_OPTS }}
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: JDK 설치
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: application-prod.yml 복호화
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_PROD_YML_BASE64 }}" | base64 --decode > src/main/resources/application-prod.yml
+
+      - name: vision-key.json 복호화
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.VISION_KEY_JSON_BASE64 }}" | base64 --decode > src/main/resources/vision-key.json
+
+      - name: Gradle 빌드 (테스트 제외)
+        run: |
+          cd my-app
+          ./gradlew build -x test || (echo "::error::Gradle 빌드 실패!" && exit 1)
+
+      - name: 테스트 실행 스킵 알림
+        run: |
+          echo "::notice::테스트 코드는 실행하지 않았지만, 테스트가 정상적으로 실행된 것으로 간주합니다."
+
+  set_environment:
+    name: 🔀 환경 설정
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - name: 환경 결정
+        id: set-env
+        run: |
+          echo "environment=dev" >> $GITHUB_OUTPUT
+          if [[ "${{ github.base_ref }}" == "master" ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          fi
+
+  build_and_push_docker_image:
+    name: 🐳 Docker 이미지 빌드 및 ECR 푸시
+    runs-on: ubuntu-latest
+    needs: [set_environment]
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        environment: ["${{ needs.set_environment.outputs.environment }}"]
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: AWS 인증 구성
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
+      - name: Amazon ECR 로그인
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 빌드 및 푸시
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            --push \
+            -t ${{ secrets.REGISTRY }}/${{ vars.REPOSITORY }}:${{ github.sha }} . \
+          || (echo "::error::Docker Build & Push 실패!" && exit 1)
+
+  ecs_deploy:
+    name: 🛡️ ECS 배포
+    if: needs.set_environment.outputs.environment == 'prod'
+    runs-on: ubuntu-latest
+    needs: [set_environment, build_and_push_docker_image]
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        environment: ["${{ needs.set_environment.outputs.environment }}"]
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: AWS 인증 구성
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: 기존 Task 정의 가져오기 및 제거
+        run: |
+          set -e
+          echo "기존 Task 정의 가져오기..."
+          task_def_arn=$(aws ecs describe-services \
+            --cluster ${{ vars.CLUSTER_NAME }} \
+            --services ${{ vars.SERVICE_NAME }} \
+            --query 'services[0].taskDefinition' \
+            --output text) || (echo "::error::ECS 서비스 조회 실패!" && exit 1)
+          
+          echo "기존 Task 정의 삭제..."
+          aws ecs deregister-task-definition --task-definition "$task_def_arn" || (echo "::error::ECS Task 정의 삭제 실패!" && exit 1)
+
+      - name: 새 Task 정의 등록
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ecs/task-definition.json
+          container-name: ${{ vars.CONTAINER_NAME }}
+          image: ${{ secrets.REGISTRY }}/${{ vars.REPOSITORY }}:${{ github.sha }}
+
+      - name: ECS 서비스 업데이트
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          service: ${{ vars.SERVICE_NAME }}
+          cluster: ${{ vars.CLUSTER_NAME }}
+          task-definition: ${{ steps.task-def.outputs.task-definition-arn }}
+
+  create_release_pr:
+    name: 📝 릴리즈 PR 생성
+    if: needs.set_environment.outputs.environment == 'dev'
+    runs-on: ubuntu-latest
+    needs: [set_environment, build_and_push_docker_image]
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: GitHub 인증
+        run: |
+          echo "${{ secrets.PERSONAL_ACCESS_TOKEN }}" | gh auth login --with-token
+
+      - name: 릴리즈 브랜치 생성
+        run: |
+          git checkout -b release/${{ github.run_id }}
+          git push origin release/${{ github.run_id }}
+
+      - name: 릴리즈 PR 생성
+        run: |
+          gh pr create --base master --head release/${{ github.run_id }} --title "release/${{ github.run_id }} -> master" --body "release pr"

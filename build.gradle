@@ -51,6 +51,7 @@ dependencies {
     //lombok - test
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     // postgreSQL, H2 Database
     runtimeOnly 'org.postgresql:postgresql'

@@ -3,6 +3,7 @@ package com.codeit.duckhu.domain.review.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,13 +12,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
+import com.codeit.duckhu.domain.review.dto.PopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
+import com.codeit.duckhu.global.exception.DomainException;
+import com.codeit.duckhu.global.exception.ErrorCode;
+import com.codeit.duckhu.global.exception.GlobalExceptionHandler;
+import com.codeit.duckhu.global.type.Direction;
+import com.codeit.duckhu.global.type.PeriodType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -31,13 +39,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.RequestBuilder;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -48,12 +51,12 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 class ReviewControllerTest {
 
   private MockMvc mockMvc;
-  
+
   private ObjectMapper objectMapper;
 
   @Mock
   private ReviewService reviewService;
-  
+
   @Mock
   private User mockUser;
 
@@ -72,13 +75,14 @@ class ReviewControllerTest {
     // 실제 컨트롤러 생성
     reviewController = new ReviewController(reviewService);
 
-    // MockMvc 설정
+    // MockMvc 설정 - GlobalExceptionHandler 추가
     mockMvc = MockMvcBuilders.standaloneSetup(reviewController)
+        .setControllerAdvice(new GlobalExceptionHandler())
         .addFilter(new CharacterEncodingFilter("UTF-8", true))
         .build();
 
     objectMapper = new ObjectMapper();
-    
+
     reviewId = UUID.randomUUID();
     userId = UUID.randomUUID();
     bookId = UUID.randomUUID();
@@ -116,10 +120,10 @@ class ReviewControllerTest {
         .build();
 
     reviewLikeDto = ReviewLikeDto.builder()
-               .reviewId(reviewId)
-               .userId(userId)
-               .liked(true)
-               .build();
+        .reviewId(reviewId)
+        .userId(userId)
+        .liked(true)
+        .build();
   }
 
   // 인증된 사용자 정보를 요청에 추가하는 헬퍼 메소드
@@ -182,8 +186,7 @@ class ReviewControllerTest {
 
     // 요청에 인증 사용자 정보 추가
     mockMvc.perform(get("/api/reviews/{reviewId}", reviewId)
-            .header("X-USER-ID", userId.toString())
-            .with(withAuthenticatedUser())) // 이 부분이 핵심입니다
+            .with(withAuthenticatedUser()))
         .andDo(print())
         .andExpect(status().isOk());
   }
@@ -196,7 +199,7 @@ class ReviewControllerTest {
 
     // When & Then
     mockMvc.perform(patch("/api/reviews/{reviewId}", reviewId)
-            .param("userId", userId.toString())
+            .header("Deokhugam-Request-User-ID", userId.toString())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(updateRequest)))
         .andDo(print())
@@ -211,7 +214,7 @@ class ReviewControllerTest {
 
     // When & Then
     mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId)
-            .param("userId", userId.toString()))
+            .header("Deokhugam-Request-User-ID", userId.toString()))
         .andDo(print())
         .andExpect(status().isNoContent());
   }
@@ -224,8 +227,122 @@ class ReviewControllerTest {
 
     // When & Then
     mockMvc.perform(delete("/api/reviews/{reviewId}/hard", reviewId)
-            .param("userId", userId.toString()))
+            .header("Deokhugam-Request-User-ID", userId.toString()))
         .andDo(print())
         .andExpect(status().isNoContent());
+  }
+
+  @Test
+  @DisplayName("인기 리뷰 조회 테스트")
+  void getPopularReviews_Success() throws Exception {
+    // Given
+    PopularReviewDto popularReviewDto = PopularReviewDto.builder()
+        .id(reviewId)
+        .userId(userId)
+        .bookId(bookId)
+        .userNickname("인기유저")
+        .bookTitle("인기도서")
+        .bookThumbnailUrl("http://example.com/popular.jpg")
+        .likeCount(100)
+        .commentCount(20)
+        .rank(1)
+        .build();
+
+    CursorPageResponsePopularReviewDto responseDto = CursorPageResponsePopularReviewDto.builder()
+        .content(List.of(popularReviewDto))
+        .nextCursor("next-cursor")
+        .nextAfter(Instant.now())
+        .size(1)
+        .hasNext(true)
+        .build();
+
+    when(reviewService.getPopularReviews(
+        any(PeriodType.class),
+        any(Direction.class),
+        any(),
+        any(),
+        any()
+    )).thenReturn(responseDto);
+
+    // When & Then
+    mockMvc.perform(get("/api/reviews/popular")
+            .param("period", "WEEKLY")
+            .param("direction", "DESC")
+            .param("limit", "10"))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.size").exists())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].rank").value(1))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].likeCount").value(100));
+  }
+
+  @Test
+  @DisplayName("리뷰 좋아요 테스트")
+  void likeReview_Success() throws Exception {
+    // Given
+    when(reviewService.likeReview(eq(reviewId), eq(userId))).thenReturn(reviewLikeDto);
+
+    // When & Then
+    mockMvc.perform(post("/api/reviews/{reviewId}/like", reviewId)
+            .with(withAuthenticatedUser()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.reviewId").value(reviewId.toString()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.liked").value(true));
+  }
+
+  @Test
+  @DisplayName("인증되지 않은 사용자의 리뷰 좋아요 시도 - 401 오류")
+  void likeReview_Unauthorized() throws Exception {
+    // Given - controller 에서 인증되지 않은 사용자 처리 로직 (MockMvc에 예외 처리기 추가)
+
+    // When & Then
+    mockMvc.perform(post("/api/reviews/{reviewId}/like", reviewId))
+        .andDo(print())
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("리뷰 조회 시 인증되지 않은 사용자 - 401 오류")
+  void getReviewById_Unauthorized() throws Exception {
+    // Given - controller 에서 인증되지 않은 사용자 처리 로직 (MockMvc에 예외 처리기 추가)
+
+    // When & Then
+    mockMvc.perform(get("/api/reviews/{reviewId}", reviewId))
+        .andDo(print())
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 리뷰 업데이트 시도 - 404 오류")
+  void updateReview_NotFound() throws Exception {
+    // Given
+    when(reviewService.updateReview(eq(userId), eq(reviewId), any(ReviewUpdateRequest.class)))
+        .thenThrow(new DomainException(ErrorCode.REVIEW_NOT_FOUND));
+
+    // When & Then
+    mockMvc.perform(patch("/api/reviews/{reviewId}", reviewId)
+            .header("Deokhugam-Request-User-ID", userId.toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(updateRequest)))
+        .andDo(print())
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("다른 사용자의 리뷰 업데이트 시도 - 403 오류")
+  void updateReview_Forbidden() throws Exception {
+    // Given
+    UUID otherUserId = UUID.randomUUID();
+    when(reviewService.updateReview(eq(otherUserId), eq(reviewId), any(ReviewUpdateRequest.class)))
+        .thenThrow(new DomainException(ErrorCode.NO_AUTHORITY_USER));
+
+    // When & Then
+    mockMvc.perform(patch("/api/reviews/{reviewId}", reviewId)
+            .header("Deokhugam-Request-User-ID", otherUserId.toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(updateRequest)))
+        .andDo(print())
+        .andExpect(status().isForbidden());
   }
 }

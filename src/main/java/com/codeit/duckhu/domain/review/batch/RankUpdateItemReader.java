@@ -34,4 +34,8 @@ public class RankUpdateItemReader extends JpaPagingItemReader<PopularReview> {
       throw new DomainException(ErrorCode.BATCH_PARAMETER_ERROR);
     }
   }
+
+  public void setPeriodParam(String periodParam) {
+    this.periodParam = periodParam;
+  }
 }

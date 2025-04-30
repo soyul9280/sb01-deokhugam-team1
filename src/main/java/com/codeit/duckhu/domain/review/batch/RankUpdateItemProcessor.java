@@ -5,7 +5,7 @@ import org.springframework.batch.item.ItemProcessor;
 
 public class RankUpdateItemProcessor implements ItemProcessor<PopularReview, PopularReview> {
 
-  private int currentRank = 0;
+  private int currentRank = 1;
 
   @Override
   public PopularReview process(PopularReview item) {

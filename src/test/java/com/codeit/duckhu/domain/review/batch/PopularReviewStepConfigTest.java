@@ -1,8 +1,10 @@
 package com.codeit.duckhu.domain.review.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codeit.duckhu.domain.review.repository.PopularReviewRepository;
+import com.codeit.duckhu.global.exception.DomainException;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,5 +55,20 @@ class PopularReviewStepConfigTest {
 
     // Then - 계산 결과 확인
     assertThat(score).isEqualTo(6.5);
+  }
+
+  @Test
+  @DisplayName("잘못된 period 파라미터가 들어오면 예외가 발생")
+  void testInvalidPeriodThrowsException() {
+    // Given
+    RankUpdateItemReader reader = new RankUpdateItemReader(entityManagerFactory);
+
+    // 잘못된 값 세팅
+    reader.setPeriodParam("INVALID_PERIOD");
+
+    // When / Then
+    assertThatThrownBy(reader::init)
+        .isInstanceOf(DomainException.class)
+        .hasMessageContaining("잘못된 요청입니다.");
   }
 }

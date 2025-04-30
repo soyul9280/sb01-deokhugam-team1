@@ -83,6 +83,9 @@ dependencies {
 
     // session 통합테스트를 위한 HttpClient라이브러리
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
+
+    //prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 spotless {

@@ -15,12 +15,15 @@ import static org.mockito.Mockito.when;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
+import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
+import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponsePopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.CursorPageResponseReviewDto;
 import com.codeit.duckhu.domain.review.dto.PopularReviewDto;
 import com.codeit.duckhu.domain.review.dto.ReviewCreateRequest;
 import com.codeit.duckhu.domain.review.dto.ReviewDto;
+import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 import com.codeit.duckhu.domain.review.dto.ReviewSearchRequestDto;
 import com.codeit.duckhu.domain.review.dto.ReviewUpdateRequest;
 import com.codeit.duckhu.domain.review.entity.PopularReview;
@@ -34,15 +37,12 @@ import com.codeit.duckhu.domain.user.repository.UserRepository;
 import com.codeit.duckhu.global.exception.DomainException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.Direction;
-import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
-import com.codeit.duckhu.domain.notification.service.NotificationService;
 import com.codeit.duckhu.global.type.PeriodType;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.swing.text.html.Option;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -50,18 +50,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import static org.mockito.Mockito.doNothing;
-import com.codeit.duckhu.domain.review.dto.ReviewLikeDto;
 
 /** 리뷰 서비스 테스트 클래스 TDD 방식으로 구현 예정 */
 
-/**
- * TODO : 실패 케이스 작성 (FORBIDDEN, NOT_FOUND ...)
- */
+/** TODO : 실패 케이스 작성 (FORBIDDEN, NOT_FOUND ...) */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ReviewServiceTest {
@@ -77,11 +72,11 @@ class ReviewServiceTest {
   @Mock private CommentRepository commentRepository;
 
   @Mock private Direction direction;
-  
+
   @Mock private ThumbnailImageStorage thumbnailImageStorage;
 
   @Mock private PopularReviewRepository popularReviewRepository;
-  
+
   @Mock private NotificationService notificationService;
 
   @InjectMocks private ReviewServiceImpl reviewService;
@@ -172,7 +167,8 @@ class ReviewServiceTest {
       // thumbnailImageStorage.get() 모킹 추가
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
       // 3개 인자를 받는 toDto 메소드 모킹
-      when(reviewMapper.toDto(any(Review.class), anyString(), eq(testUserId))).thenReturn(testReviewDto);
+      when(reviewMapper.toDto(any(Review.class), anyString(), eq(testUserId)))
+          .thenReturn(testReviewDto);
 
       // When
       ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -203,7 +199,8 @@ class ReviewServiceTest {
       // Given
       when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
       when(bookRepository.findById(testBookId)).thenReturn(Optional.of(testBook));
-      when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId)) .thenReturn(Optional.of(testReview));
+      when(reviewRepository.findByUserIdAndBookId(testUserId, testBookId))
+          .thenReturn(Optional.of(testReview));
 
       // 기존 리뷰가 논리 삭제 된 상태
       when(testReview.isDeleted()).thenReturn(true);
@@ -212,7 +209,8 @@ class ReviewServiceTest {
       // 새로운 리뷰 저장
       when(reviewRepository.save(any(Review.class))).thenReturn(testReview);
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
-      when(reviewMapper.toDto(any(Review.class), anyString(), eq(testUserId))).thenReturn(testReviewDto);
+      when(reviewMapper.toDto(any(Review.class), anyString(), eq(testUserId)))
+          .thenReturn(testReviewDto);
 
       // When
       ReviewDto result = reviewService.createReview(testCreateRequest);
@@ -227,7 +225,7 @@ class ReviewServiceTest {
 
   @Nested
   @DisplayName("리뷰 검색 테스트")
-  class GetReviewById{
+  class GetReviewById {
     @Test
     @DisplayName("ID로 리뷰 조회 테스트")
     void getReviewById_shouldReturnReview() {
@@ -241,7 +239,8 @@ class ReviewServiceTest {
       when(testBook.getTitle()).thenReturn("테스트 도서");
       when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
-      when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId))).thenReturn(testReviewDto);
+      when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId)))
+          .thenReturn(testReviewDto);
 
       // When
       ReviewDto result = reviewService.getReviewById(testUserId, testReviewId);
@@ -259,8 +258,9 @@ class ReviewServiceTest {
       when(reviewRepository.findById(testReviewId)).thenReturn(Optional.empty());
 
       // When & Then
-      DomainException exception = assertThrows(DomainException.class,
-          () -> reviewService.getReviewById(testUserId, testReviewId));
+      DomainException exception =
+          assertThrows(
+              DomainException.class, () -> reviewService.getReviewById(testUserId, testReviewId));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
       verify(reviewRepository).findById(testReviewId);
     }
@@ -276,7 +276,7 @@ class ReviewServiceTest {
       // Given: findById 리턴과 delete 설정
       doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
       when(testReview.getUser()).thenReturn(testUser); // User 객체를 반환하도록 설정
-      when(testUser.getId()).thenReturn(testUserId);   // User ID를 반환하도록 설정
+      when(testUser.getId()).thenReturn(testUserId); // User ID를 반환하도록 설정
       when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
       willDoNothing().given(reviewRepository).delete(testReview);
 
@@ -298,8 +298,10 @@ class ReviewServiceTest {
       when(testUser.getId()).thenReturn(UUID.randomUUID()); // 다른 유저 ID 설정
 
       // When & Then
-      DomainException exception = assertThrows(DomainException.class,
-          () -> reviewService.hardDeleteReviewById(testUserId, testReviewId));
+      DomainException exception =
+          assertThrows(
+              DomainException.class,
+              () -> reviewService.hardDeleteReviewById(testUserId, testReviewId));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NO_AUTHORITY_USER);
     }
 
@@ -330,8 +332,10 @@ class ReviewServiceTest {
       when(testUser.getId()).thenReturn(UUID.randomUUID()); // 다른 유저
 
       // When & Then
-      DomainException exception = assertThrows(DomainException.class,
-          () -> reviewService.softDeleteReviewById(testUserId, testReviewId));
+      DomainException exception =
+          assertThrows(
+              DomainException.class,
+              () -> reviewService.softDeleteReviewById(testUserId, testReviewId));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NO_AUTHORITY_USER);
     }
   }
@@ -354,10 +358,12 @@ class ReviewServiceTest {
       when(testBook.getTitle()).thenReturn("테스트 도서");
       when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
-      when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId))).thenReturn(testReviewDto);
+      when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId)))
+          .thenReturn(testReviewDto);
 
       // When
-      ReviewDto result = reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest);
+      ReviewDto result =
+          reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest);
 
       // Then
       assertThat(result).isNotNull();
@@ -382,11 +388,14 @@ class ReviewServiceTest {
       when(testBook.getTitle()).thenReturn("테스트 도서");
       when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
-      when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId))).thenReturn(testReviewDto);
+      when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId)))
+          .thenReturn(testReviewDto);
 
       // When & Then
-      DomainException exception = assertThrows(DomainException.class,
-          () -> reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest));
+      DomainException exception =
+          assertThrows(
+              DomainException.class,
+              () -> reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NO_AUTHORITY_USER);
     }
 
@@ -401,8 +410,10 @@ class ReviewServiceTest {
       when(testReview.isDeleted()).thenReturn(true); // 리뷰가 논리 삭제된 상태
 
       // When & Then
-      DomainException exception = assertThrows(DomainException.class,
-          () -> reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest));
+      DomainException exception =
+          assertThrows(
+              DomainException.class,
+              () -> reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
     }
   }
@@ -418,7 +429,9 @@ class ReviewServiceTest {
       when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
       when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
       when(userRepository.existsById(testUserId)).thenReturn(true); // 존재하는 userId 설정
-      when(testReview.liked(testUserId)).thenReturn(false).thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
+      when(testReview.liked(testUserId))
+          .thenReturn(false)
+          .thenReturn(true); // 첫 호출에서 false, 두 번째 호출에서 true 반환
       when(reviewRepository.save(testReview)).thenReturn(testReview);
       when(testReview.getBook()).thenReturn(testBook);
       when(testReview.getId()).thenReturn(testReviewId);
@@ -439,7 +452,9 @@ class ReviewServiceTest {
       // Given
       when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
       when(userRepository.existsById(testUserId)).thenReturn(true); // 존재하는 userId 설정
-      when(testReview.liked(testUserId)).thenReturn(true).thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
+      when(testReview.liked(testUserId))
+          .thenReturn(true)
+          .thenReturn(false); // 첫 호출에서 true, 두 번째 호출에서 false 반환
       when(testReview.getId()).thenReturn(testReviewId);
       when(testReview.getUser()).thenReturn(testUser);
 
@@ -460,8 +475,9 @@ class ReviewServiceTest {
       when(reviewRepository.findById(testReviewId)).thenReturn(Optional.empty());
 
       // When & Then
-      DomainException exception = assertThrows(DomainException.class,
-          () -> reviewService.likeReview(testReviewId, testUserId));
+      DomainException exception =
+          assertThrows(
+              DomainException.class, () -> reviewService.likeReview(testReviewId, testUserId));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
     }
 
@@ -473,8 +489,9 @@ class ReviewServiceTest {
       when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
 
       // When & Then
-      DomainException exception = assertThrows(DomainException.class,
-          () -> reviewService.likeReview(testReviewId, testUserId));
+      DomainException exception =
+          assertThrows(
+              DomainException.class, () -> reviewService.likeReview(testReviewId, testUserId));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND);
     }
   }
@@ -492,18 +509,24 @@ class ReviewServiceTest {
 
       // 정확한 파라미터로 stubbing 설정
       when(reviewRepository.findReviewsWithCursor(
-          eq(null), eq("createdAt"), eq(Direction.DESC), // 기본값 가정
-          eq(null), eq(null), eq(null), eq(null), eq(51))) // limit+1
+              eq(null),
+              eq("createdAt"),
+              eq(Direction.DESC), // 기본값 가정
+              eq(null),
+              eq(null),
+              eq(null),
+              eq(null),
+              eq(51))) // limit+1
           .thenReturn(reviewList);
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
-      when(reviewMapper.toDto(any(Review.class), anyString(), eq(currentUserIdForTest))).thenReturn(
-          testReviewDto); // 예시 DTO 반환
+      when(reviewMapper.toDto(any(Review.class), anyString(), eq(currentUserIdForTest)))
+          .thenReturn(testReviewDto); // 예시 DTO 반환
 
       // When
       ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder().build(); // 기본값 사용
       // 수정: findReviews 호출 시 currentUserId 전달
-      CursorPageResponseReviewDto result = reviewService.findReviews(requestDto,
-          currentUserIdForTest);
+      CursorPageResponseReviewDto result =
+          reviewService.findReviews(requestDto, currentUserIdForTest);
 
       // Then
       assertThat(result).isNotNull();
@@ -524,7 +547,7 @@ class ReviewServiceTest {
       popularReview = mock(PopularReview.class);
 
       when(popularReviewRepository.findReviewsWithCursor(
-          eq(null), eq(Direction.DESC), eq(null), eq(null), eq(51)))
+              eq(null), eq(Direction.DESC), eq(null), eq(null), eq(51)))
           .thenReturn(popularReviews);
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
       when(reviewMapper.toDto(any(Review.class), anyString(), eq(testUserId)))
@@ -532,8 +555,8 @@ class ReviewServiceTest {
 
       // When
       ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder().build();
-      CursorPageResponsePopularReviewDto result = reviewService.getPopularReviews(
-          PeriodType.DAILY, Direction.DESC, null, null, 50);
+      CursorPageResponsePopularReviewDto result =
+          reviewService.getPopularReviews(PeriodType.DAILY, Direction.DESC, null, null, 50);
 
       // Then
       assertThat(result).isNotNull();

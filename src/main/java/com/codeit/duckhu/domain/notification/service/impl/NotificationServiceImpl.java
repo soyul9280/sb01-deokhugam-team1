@@ -293,7 +293,7 @@ public class NotificationServiceImpl implements NotificationService {
   @Scheduled(cron = "0 30 0 * * *", zone = "Asia/Seoul")
   public void deleteConfirmedNotificationsOlderThanAWeek() {
     try{
-      Instant cutoff = Instant.now().minus(1, ChronoUnit.MINUTES);
+      Instant cutoff = Instant.now().minus(1, ChronoUnit.WEEKS);
       log.info("Deleting confirmed notifications before {}", cutoff);
       notificationRepository.deleteOldConfirmedNotifications(cutoff);
 

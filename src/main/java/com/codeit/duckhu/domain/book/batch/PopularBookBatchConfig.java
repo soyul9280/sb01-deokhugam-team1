@@ -21,8 +21,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-// Spring Batch 인프라(PlatformTransactionManager, JobRepository 등)를 자동 구성
-@EnableBatchProcessing
 @RequiredArgsConstructor
 public class PopularBookBatchConfig {
 
@@ -37,7 +35,7 @@ public class PopularBookBatchConfig {
     private final BookRepository bookRepository;
     private final PopularBookRepository popularBookRepository;
 
-    //    private final BookItemReader reader;
+    private final BookItemReader reader;
     private final BookScoreProcessor processor;
 //   private final PopularBookWriter writer;
 
@@ -56,13 +54,11 @@ public class PopularBookBatchConfig {
 
     @Bean
     public Step dailyStep(
-        ItemReader<Book> bookReader,
-        ItemProcessor<Book, PopularBookScore> processor,
         ItemWriter<PopularBookScore> writer
     ) {
-        return new StepBuilder("dailyPopularBookStep", jobRepository)   // 2-arg 생성자 사용 :contentReference[oaicite:1]{index=1}
+        return new StepBuilder("dailyPopularBookStep", jobRepository)// 2-arg 생성자 사용 :contentReference[oaicite:1]{index=1}
             .<Book, PopularBookScore>chunk(100, transactionManager)     // 청크 크기, 트랜잭션 매니저 지정
-            .reader(bookReader)
+            .reader(reader)
             .processor(processor)
             .writer(writer)
 //            .listener(new StepLoggingListener("DAILY"))
@@ -71,13 +67,11 @@ public class PopularBookBatchConfig {
 
     @Bean
     public Step weeklyStep(
-        ItemReader<Book> bookReader,
-        ItemProcessor<Book, PopularBookScore> processor,
         ItemWriter<PopularBookScore> writer
     ) {
         return new StepBuilder("weeklyPopularBookStep", jobRepository)
             .<Book, PopularBookScore>chunk(100, transactionManager)
-            .reader(bookReader)
+            .reader(reader)
             .processor(processor)
             .writer(writer)
 //            .listener(new StepLoggingListener("WEEKLY"))
@@ -86,13 +80,11 @@ public class PopularBookBatchConfig {
 
     @Bean
     public Step monthlyStep(
-        ItemReader<Book> bookReader,
-        ItemProcessor<Book, PopularBookScore> processor,
         ItemWriter<PopularBookScore> writer
     ) {
         return new StepBuilder("monthlyPopularBookStep", jobRepository)
             .<Book, PopularBookScore>chunk(100, transactionManager)
-            .reader(bookReader)
+            .reader(reader)
             .processor(processor)
             .writer(writer)
 //            .listener(new StepLoggingListener("MONTHLY"))
@@ -101,13 +93,11 @@ public class PopularBookBatchConfig {
 
     @Bean
     public Step allTimeStep(
-        ItemReader<Book> bookReader,
-        ItemProcessor<Book, PopularBookScore> processor,
         ItemWriter<PopularBookScore> writer
     ) {
         return new StepBuilder("allTimePopularBookStep", jobRepository)
             .<Book, PopularBookScore>chunk(100, transactionManager)
-            .reader(bookReader)
+            .reader(reader)
             .processor(processor)
             .writer(writer)
 //            .listener(new StepLoggingListener("ALL_TIME"))

@@ -1,6 +1,5 @@
 package com.codeit.duckhu.domain.review.batch;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -19,7 +18,7 @@ public class PopularReviewJobConfig {
   public Job popularReviewJob() {
     return new JobBuilder("popularReviewJob", jobRepository)
         .start(stepConfig.popularReviewStep())
+        .next(stepConfig.rankUpdateStep())
         .build();
   }
-
 }

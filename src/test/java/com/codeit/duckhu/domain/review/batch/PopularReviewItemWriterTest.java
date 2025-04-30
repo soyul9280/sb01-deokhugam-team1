@@ -14,11 +14,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.batch.item.Chunk;
 
 class PopularReviewItemWriterTest {
-  @Mock
-  private PopularReviewRepository popularReviewRepository;
+  @Mock private PopularReviewRepository popularReviewRepository;
 
-  @InjectMocks
-  private PopularReviewItemWriter writer;
+  @InjectMocks private PopularReviewItemWriter writer;
 
   @BeforeEach
   void setUp() {

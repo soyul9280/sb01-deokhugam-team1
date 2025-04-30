@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PopularReviewItemWriter implements ItemWriter<PopularReview> {
+public class RankUpdateItemWriter implements ItemWriter<PopularReview> {
 
   private final PopularReviewRepository popularReviewRepository;
 
   @Override
-  public void write(Chunk<? extends PopularReview> chunk) throws Exception {
+  public void write(Chunk<? extends PopularReview> chunk) {
     popularReviewRepository.saveAll(chunk.getItems());
   }
 }

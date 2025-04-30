@@ -2,6 +2,8 @@ package com.codeit.duckhu.domain.review.batch;
 
 import com.codeit.duckhu.domain.review.entity.PopularReview;
 import com.codeit.duckhu.domain.review.entity.Review;
+import com.codeit.duckhu.global.exception.DomainException;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -19,6 +21,10 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
 
   @Override
   public PopularReview process(Review review) throws Exception {
+    if (periodParam == null || periodParam.isEmpty()){
+      throw new DomainException(ErrorCode.BATCH_PARAMETER_ERROR);
+    }
+
     PeriodType period = PeriodType.valueOf(periodParam);
 
     double score = (review.getLikeCount() * 0.3) + (review.getCommentCount() * 0.7);

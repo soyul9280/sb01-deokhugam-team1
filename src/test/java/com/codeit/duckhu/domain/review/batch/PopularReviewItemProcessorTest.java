@@ -28,5 +28,12 @@ class PopularReviewItemProcessorTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.getPeriod()).isEqualTo(PeriodType.DAILY);
+    double expectedScore = (10 * 0.3) + (5 * 0.7);
+    assertThat(result.getScore()).isEqualTo(expectedScore);
+    assertThat(result.getRank()).isEqualTo(0);
+    assertThat(result.getLikeCount()).isEqualTo(10);
+    assertThat(result.getCommentCount()).isEqualTo(5);
+    assertThat(result.getReviewRating()).isEqualTo(5.0);
+    assertThat(result.getReview()).isEqualTo(review);
   }
 }

@@ -1,6 +1,8 @@
 package com.codeit.duckhu.domain.review.batch;
 
 import com.codeit.duckhu.domain.review.entity.PopularReview;
+import com.codeit.duckhu.global.exception.DomainException;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
@@ -26,6 +28,10 @@ public class RankUpdateItemReader extends JpaPagingItemReader<PopularReview> {
     setEntityManagerFactory(entityManagerFactory);
     setQueryString("SELECT p FROM PopularReview p WHERE p.period = :period ORDER BY p.score DESC");
     setPageSize(100);
-    setParameterValues(Map.of("period", PeriodType.valueOf(periodParam)));
+    try{
+      setParameterValues(Map.of("period", PeriodType.valueOf(periodParam)));
+    } catch (IllegalArgumentException e) {
+      throw new DomainException(ErrorCode.BATCH_PARAMETER_ERROR);
+    }
   }
 }

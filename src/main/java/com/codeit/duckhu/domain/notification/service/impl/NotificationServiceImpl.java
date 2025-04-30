@@ -306,20 +306,4 @@ public class NotificationServiceImpl implements NotificationService {
     notificationRepository.bulkMarkAsConfirmed(receiverId, now);
     log.info("읽음 처리 완료 시각: {}", now);
   }
-
-  /** 매일 00시 30분에 1주일 지난 confirmed 알림을 삭제 */
-  @Override
-  @Transactional
-  @Scheduled(cron = "0 30 0 * * *", zone = "Asia/Seoul")
-  public void deleteConfirmedNotificationsOlderThanAWeek() {
-    try{
-      Instant cutoff = Instant.now().minus(1, ChronoUnit.WEEKS);
-      log.info("Deleting confirmed notifications before {}", cutoff);
-      notificationRepository.deleteOldConfirmedNotifications(cutoff);
-
-      meterRegistry.counter("batch.notification.delete.success").increment();
-    } catch (Exception e) {
-      meterRegistry.counter("batch.notification.delete.failure").increment();
-    }
-  }
 }

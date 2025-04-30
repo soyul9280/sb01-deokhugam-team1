@@ -408,26 +408,4 @@ public class NotificationServiceTest {
           .bulkMarkAsConfirmed(eq(receiverId), any(Instant.class));
     }
   }
-
-  @Nested
-  @DisplayName("알림 삭제 스케줄러")
-  class DeleteNotificationTest {
-
-    @Test
-    @DisplayName("매일 00:30 기준 1분 지난 확인된 알림 삭제")
-    void deleteConfirmedNotificationsOlderThanOneMinute() {
-      // given
-      Counter counter = mock(Counter.class);
-      given(meterRegistry.counter(anyString())).willReturn(counter);
-
-      // when
-      notificationService.deleteConfirmedNotificationsOlderThanAWeek();
-
-      // then
-      then(notificationRepository)
-          .should(times(1))
-          .deleteOldConfirmedNotifications(
-              argThat(cutoff -> Duration.between(cutoff, Instant.now()).toMinutes() >= 1));
-    }
-  }
 }

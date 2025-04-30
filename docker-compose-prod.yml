@@ -1,6 +1,6 @@
 
 services:
-  app:
+  prod-app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,7 +10,6 @@ services:
     ports:
       - "8081:80"
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}

@@ -51,6 +51,7 @@ dependencies {
     //lombok - test
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     // postgreSQL, H2 Database
     runtimeOnly 'org.postgresql:postgresql'
@@ -79,6 +80,9 @@ dependencies {
 
     //spring actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // session 통합테스트를 위한 HttpClient라이브러리
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
 }
 
 spotless {
@@ -98,6 +102,7 @@ jacoco {
 
 tasks.named('test') {
     useJUnitPlatform()
+    //현재 실패 테스트 케이스들이 많아 일시적으로 ignore설정 실패 테스트들 성공시 해당 코드 제거
     ignoreFailures = true
     finalizedBy 'jacocoTestReport'
 }
@@ -113,14 +118,29 @@ tasks.named('jacocoTestReport', JacocoReport).configure { report ->
         html.required.set(true)
     }
 
-    // classDirectories 재설정: controller, service, repository 패키지만 포함
+    // 커버리지 계산에서 제외할 패턴 Todo 현재 설정 고려중
+    def excludes = [
+            // DTO, Entity 같은 순수 데이터 구조
+            "**/com/codeit/**/dto/**",
+            // 예외 정의
+            "**/com/codeit/**/exception/**",
+            // MapStruct 등 매핑용 코드
+            "**/com/codeit/**/mapper/**",
+            // 애플리케이션 및 설정 클래스
+            "**/com/codeit/**/*Application*.class",
+            "**/com/codeit/**/config/**",
+            // QueryDSL이 생성하는 Q- 클래스
+            "**/com/codeit/**/Q*.class",
+
+            // 3) 글로벌 공통 유틸티
+            "**/com/codeit/**/logging/**",
+            "**/com/codeit/**/response/**",
+            "**/com/codeit/**/type/**"
+    ]
+
     classDirectories.setFrom(
-            classDirectories.files.collect { File f ->
-                fileTree(dir: f, include: [
-                        'com/codeit/duckhu/domain/**/controller/**',
-                        'com/codeit/duckhu/domain/**/service/**',
-                        'com/codeit/duckhu/domain/**/repository/**'
-                ])
-            }
+            files(classDirectories.files.collect { file ->
+                fileTree(dir: file, exclude: excludes)
+            })
     )
 }

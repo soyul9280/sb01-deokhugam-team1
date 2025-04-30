@@ -1,16 +1,12 @@
 package com.codeit.duckhu.domain.user.repository;
 
-import com.codeit.duckhu.config.QueryDslConfig;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.user.dto.PowerUserStatsDto;
 import com.codeit.duckhu.domain.user.entity.PowerUser;
-import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.poweruser.PowerUserRepository;
 import com.codeit.duckhu.domain.user.repository.poweruser.PowerUserRepositoryImpl;
 import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,4 +72,27 @@ public class PowerUserRepositoryTest {
         assertThat(result).hasSizeLessThanOrEqualTo(limit);
         assertThat(result).isSortedAccordingTo(Comparator.comparing(PowerUser::getScore));
     }
+
+    @Test
+    @DisplayName("커서 없이 첫 페이지 DESC정렬 조회 성공")
+    void searchPowerUserStats_desc() {
+        //given
+        Instant after = Instant.now().minus(30, ChronoUnit.DAYS);
+        int limit = 10;
+
+        //when
+        List<PowerUser> result = powerUserRepository.searchByPeriodWithCursorPaging(
+                PeriodType.MONTHLY,
+                Direction.DESC,
+                null,
+                after,
+                limit
+        );
+
+        //then
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSizeLessThanOrEqualTo(limit);
+        assertThat(result).isSortedAccordingTo(Comparator.comparing(PowerUser::getScore).reversed());
+    }
+
 }

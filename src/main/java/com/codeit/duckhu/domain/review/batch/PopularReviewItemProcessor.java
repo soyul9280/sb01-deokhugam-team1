@@ -21,7 +21,7 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
 
   @Override
   public PopularReview process(Review review) throws Exception {
-    if (periodParam == null || periodParam.isEmpty()){
+    if (periodParam == null || periodParam.isEmpty()) {
       throw new DomainException(ErrorCode.BATCH_PARAMETER_ERROR);
     }
 

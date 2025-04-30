@@ -1,36 +1,36 @@
-//package com.codeit.duckhu.domain.review.service.impl;
+// package com.codeit.duckhu.domain.review.service.impl;
 //
-//import static com.codeit.duckhu.domain.comment.domain.QComment.comment;
-//import static com.codeit.duckhu.domain.review.entity.QLikedUserId.likedUserId;
-//import static com.codeit.duckhu.domain.review.entity.QReview.review;
+// import static com.codeit.duckhu.domain.comment.domain.QComment.comment;
+// import static com.codeit.duckhu.domain.review.entity.QLikedUserId.likedUserId;
+// import static com.codeit.duckhu.domain.review.entity.QReview.review;
 //
-//import com.codeit.duckhu.domain.notification.service.NotificationService;
-//import com.codeit.duckhu.domain.review.entity.PopularReview;
-//import com.codeit.duckhu.domain.review.entity.Review;
-//import com.codeit.duckhu.domain.review.repository.PopularReviewRepository;
-//import com.codeit.duckhu.global.type.PeriodType;
-//import com.querydsl.core.Tuple;
-//import com.querydsl.core.types.dsl.BooleanExpression;
-//import com.querydsl.jpa.impl.JPAQueryFactory;
-//import io.micrometer.core.instrument.MeterRegistry;
-//import java.time.Instant;
-//import java.util.ArrayList;
-//import java.util.Comparator;
-//import java.util.List;
-//import java.util.UUID;
-//import java.util.stream.Collectors;
-//import lombok.Getter;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.scheduling.annotation.Scheduled;
-//import org.springframework.stereotype.Service;
-//import org.springframework.transaction.annotation.Transactional;
+// import com.codeit.duckhu.domain.notification.service.NotificationService;
+// import com.codeit.duckhu.domain.review.entity.PopularReview;
+// import com.codeit.duckhu.domain.review.entity.Review;
+// import com.codeit.duckhu.domain.review.repository.PopularReviewRepository;
+// import com.codeit.duckhu.global.type.PeriodType;
+// import com.querydsl.core.Tuple;
+// import com.querydsl.core.types.dsl.BooleanExpression;
+// import com.querydsl.jpa.impl.JPAQueryFactory;
+// import io.micrometer.core.instrument.MeterRegistry;
+// import java.time.Instant;
+// import java.util.ArrayList;
+// import java.util.Comparator;
+// import java.util.List;
+// import java.util.UUID;
+// import java.util.stream.Collectors;
+// import lombok.Getter;
+// import lombok.RequiredArgsConstructor;
+// import lombok.extern.slf4j.Slf4j;
+// import org.springframework.scheduling.annotation.Scheduled;
+// import org.springframework.stereotype.Service;
+// import org.springframework.transaction.annotation.Transactional;
 //
-///** 인기 리뷰 점수 계산 및 랭킹 업데이트를 위한 배치 서비스 */
-//@Slf4j
-//@Service
-//@RequiredArgsConstructor
-//public class PopularReviewBatchService {
+/// ** 인기 리뷰 점수 계산 및 랭킹 업데이트를 위한 배치 서비스 */
+// @Slf4j
+// @Service
+// @RequiredArgsConstructor
+// public class PopularReviewBatchService {
 //
 //  private final PopularReviewRepository popularReviewRepository;
 //
@@ -91,7 +91,8 @@
 //          popularReviewRepository.saveAll(popularReviewsToSave);
 //          log.info("{} 기간 인기 리뷰 {}개 저장 완료", period, popularReviewsToSave.size());
 //
-//          meterRegistry.counter("batch.powerReview.complete", "period", period.name()).increment();
+//          meterRegistry.counter("batch.powerReview.complete", "period",
+// period.name()).increment();
 //        } else {
 //          log.info("{} 기간 처리 대상 리뷰 없음", period);
 //
@@ -170,4 +171,4 @@
 //    private final int likesInPeriod;
 //    private final int commentsInPeriod;
 //  }
-//}
+// }

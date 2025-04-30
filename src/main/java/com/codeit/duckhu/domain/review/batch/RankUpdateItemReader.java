@@ -28,7 +28,7 @@ public class RankUpdateItemReader extends JpaPagingItemReader<PopularReview> {
     setEntityManagerFactory(entityManagerFactory);
     setQueryString("SELECT p FROM PopularReview p WHERE p.period = :period ORDER BY p.score DESC");
     setPageSize(100);
-    try{
+    try {
       setParameterValues(Map.of("period", PeriodType.valueOf(periodParam)));
     } catch (IllegalArgumentException e) {
       throw new DomainException(ErrorCode.BATCH_PARAMETER_ERROR);

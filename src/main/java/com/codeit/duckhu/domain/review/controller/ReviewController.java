@@ -11,9 +11,9 @@ import com.codeit.duckhu.domain.review.service.ReviewService;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.exception.UserException;
 import com.codeit.duckhu.global.exception.ErrorCode;
+import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
 import jakarta.servlet.http.HttpServletRequest;
-import com.codeit.duckhu.global.type.Direction;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.UUID;
@@ -41,16 +41,14 @@ public class ReviewController {
   private final ReviewService reviewService;
 
   @PostMapping
-  public ResponseEntity<ReviewDto> createReview(
-      @Valid @RequestBody ReviewCreateRequest request) {
+  public ResponseEntity<ReviewDto> createReview(@Valid @RequestBody ReviewCreateRequest request) {
     ReviewDto review = reviewService.createReview(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(review);
   }
 
   @PostMapping("/{reviewId}/like")
   public ResponseEntity<ReviewLikeDto> likeReview(
-      @PathVariable("reviewId") UUID reviewId,
-      HttpServletRequest httpServletRequest) {
+      @PathVariable("reviewId") UUID reviewId, HttpServletRequest httpServletRequest) {
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
       log.warn("비인증 사용자 리뷰 좋아요 요청 차단");
@@ -72,7 +70,7 @@ public class ReviewController {
   @DeleteMapping("/{reviewId}")
   public ResponseEntity<Void> softDeleteReview(
       @PathVariable("reviewId") UUID reviewId,
-      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId){
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId) {
     reviewService.softDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
@@ -87,8 +85,7 @@ public class ReviewController {
 
   @GetMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> getReviewById(
-      HttpServletRequest httpServletRequest,
-      @PathVariable("reviewId") UUID reviewId) {
+      HttpServletRequest httpServletRequest, @PathVariable("reviewId") UUID reviewId) {
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
       log.warn("비인증 사용자 리뷰 상세 조회 요청 차단");
@@ -104,7 +101,8 @@ public class ReviewController {
       HttpServletRequest httpServletRequest,
       @RequestParam(name = "keyword", required = false) String keyword,
       @RequestParam(name = "orderBy", required = false) String orderBy,
-      @RequestParam(name = "direction", required = false, defaultValue = "DESC") Direction direction,
+      @RequestParam(name = "direction", required = false, defaultValue = "DESC")
+          Direction direction,
       @RequestParam(name = "userId", required = false) UUID userId,
       @RequestParam(name = "bookId", required = false) UUID bookId,
       @RequestParam(name = "cursor", required = false) String cursor,
@@ -114,16 +112,17 @@ public class ReviewController {
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     UUID currentUserId = (authenticatedUser != null) ? authenticatedUser.getId() : null;
 
-    ReviewSearchRequestDto requestDto = ReviewSearchRequestDto.builder()
-        .keyword(keyword)
-        .orderBy(orderBy)
-        .direction(direction)
-        .userId(userId)
-        .bookId(bookId)
-        .cursor(cursor)
-        .after(after)
-        .limit(limit != null ? limit : 50)
-        .build();
+    ReviewSearchRequestDto requestDto =
+        ReviewSearchRequestDto.builder()
+            .keyword(keyword)
+            .orderBy(orderBy)
+            .direction(direction)
+            .userId(userId)
+            .bookId(bookId)
+            .cursor(cursor)
+            .after(after)
+            .limit(limit != null ? limit : 50)
+            .build();
 
     CursorPageResponseReviewDto result = reviewService.findReviews(requestDto, currentUserId);
     return ResponseEntity.ok(result);

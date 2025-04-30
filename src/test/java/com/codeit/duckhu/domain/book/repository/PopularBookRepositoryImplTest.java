@@ -1,14 +1,11 @@
 package com.codeit.duckhu.domain.book.repository;
 
-import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.entity.PopularBook;
-import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepository;
 import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepositoryCustom;
 import com.codeit.duckhu.domain.book.repository.popular.PopularBookRepositoryImpl;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +13,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;
 
@@ -83,4 +79,59 @@ public class PopularBookRepositoryImplTest {
     assertThat(allTime).extracting(PopularBook::getPeriod)
         .allMatch(p -> p == PeriodType.ALL_TIME);
   }
+
+  @Test
+  @DisplayName("ASC 정렬: rank=5, createdAt=1분 전 커서 기준 이후 데이터만 조회")
+  void searchAscWithCursor() {
+    // given
+    String cursor = "5";
+    Instant after = Instant.now().minusSeconds(60); // 커서의 createdAt 보다 더 이전으로 가정
+
+    // when
+    List<PopularBook> results = popularBookRepository.searchByPeriodWithCursorPaging(
+        PeriodType.WEEKLY,
+        Direction.ASC,
+        cursor,
+        after,
+        10
+    );
+
+    // then
+    assertThat(results).isNotEmpty();
+    for (PopularBook book : results) {
+      boolean rankValid = book.getRank() > 5;
+      boolean sameRankWithLaterCreated = book.getRank() == 5 && book.getCreatedAt().isAfter(after);
+      assertThat(rankValid || sameRankWithLaterCreated)
+          .as("rank > 5 or (rank == 5 && createdAt > after)")
+          .isTrue();
+    }
+  }
+
+  @Test
+  @DisplayName("DESC 정렬: rank=5, createdAt=1분 전 커서 기준 이전 데이터만 조회")
+  void searchDescWithCursor() {
+    // given
+    String cursor = "5";
+    Instant after = Instant.now().minusSeconds(60);
+
+    // when
+    List<PopularBook> results = popularBookRepository.searchByPeriodWithCursorPaging(
+        PeriodType.WEEKLY,
+        Direction.DESC,
+        cursor,
+        after,
+        10
+    );
+
+    // then
+    assertThat(results).isNotEmpty();
+    for (PopularBook book : results) {
+      boolean rankValid = book.getRank() < 5;
+      boolean sameRankWithEarlierCreated = book.getRank() == 5 && book.getCreatedAt().isBefore(after);
+      assertThat(rankValid || sameRankWithEarlierCreated)
+          .as("rank < 5 or (rank == 5 && createdAt < after)")
+          .isTrue();
+    }
+  }
+
 }

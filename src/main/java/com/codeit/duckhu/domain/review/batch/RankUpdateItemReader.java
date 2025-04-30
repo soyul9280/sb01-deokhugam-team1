@@ -9,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-@StepScope
+@Component
 @RequiredArgsConstructor
+@StepScope
 public class RankUpdateItemReader extends JpaPagingItemReader<PopularReview> {
 
   @Value("#{jobParameters['period']}")

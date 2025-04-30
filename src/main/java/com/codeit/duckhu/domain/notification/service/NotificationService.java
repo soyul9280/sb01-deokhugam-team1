@@ -15,8 +15,8 @@ public interface NotificationService {
   NotificationDto createNotifyByComment(UUID reviewId, UUID triggerUserId, String comment);
 
   // 인기 리뷰 10등 안에 진입시 알림 생성
-  NotificationDto createNotifyByPopularReview(UUID reviewId, UUID receiverId, PeriodType period,
-      int rank);
+  NotificationDto createNotifyByPopularReview(
+      UUID reviewId, UUID receiverId, PeriodType period, int rank);
 
   NotificationDto updateConfirmedStatus(UUID notificationId, UUID receiverId, boolean confirmed);
 
@@ -26,5 +26,6 @@ public interface NotificationService {
   void deleteConfirmedNotificationsOlderThanAWeek();
 
   // 목록 조회를 위한 메서드
-  CursorPageResponseNotificationDto getNotifications(UUID receiverId, String direction, Instant cursor, int limit);
+  CursorPageResponseNotificationDto getNotifications(
+      UUID receiverId, String direction, Instant cursor, int limit);
 }

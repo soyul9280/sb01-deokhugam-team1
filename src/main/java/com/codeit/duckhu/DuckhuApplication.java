@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-// Spring Batch 인프라(PlatformTransactionManager, JobRepository 등)를 자동 구성
 @EnableBatchProcessing
 public class DuckhuApplication {
 

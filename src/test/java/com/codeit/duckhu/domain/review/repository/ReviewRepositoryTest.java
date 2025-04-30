@@ -214,7 +214,7 @@ public class ReviewRepositoryTest {
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               3 // 페이지 크기 3
-          );
+              );
 
       // Then
       assertThat(firstPage.size()).isEqualTo(3);
@@ -236,7 +236,7 @@ public class ReviewRepositoryTest {
                   ? lastReviewOfFirstPage.getCreatedAt()
                   : Instant.now(), // 마지막 리뷰 생성 시간을 after로 사용
               3 // 페이지 크기 3
-          );
+              );
 
       // Then
       assertThat(secondPage.size()).isEqualTo(2);
@@ -295,7 +295,7 @@ public class ReviewRepositoryTest {
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               3 // 페이지 크기 3
-          );
+              );
 
       // Then
       assertThat(firstPage.size()).isEqualTo(3);
@@ -317,7 +317,7 @@ public class ReviewRepositoryTest {
                   ? lastReviewOfFirstPage.getCreatedAt()
                   : Instant.now(), // 마지막 리뷰 생성 시간을 after로 사용
               3 // 페이지 크기 3
-          );
+              );
 
       // Then
       assertThat(secondPage.size()).isEqualTo(2);
@@ -390,7 +390,7 @@ public class ReviewRepositoryTest {
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               10 // 페이지 크기 10
-          );
+              );
 
       // Then
       assertThat(searchResult.size()).isEqualTo(3);
@@ -471,7 +471,7 @@ public class ReviewRepositoryTest {
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               10 // 페이지 크기 10
-          );
+              );
 
       // Then
       assertThat(user1Reviews.size()).isEqualTo(3);
@@ -557,7 +557,7 @@ public class ReviewRepositoryTest {
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               10 // 페이지 크기 10
-          );
+              );
 
       // Then
       assertThat(book1Reviews.size()).isEqualTo(3);
@@ -567,6 +567,4 @@ public class ReviewRepositoryTest {
       }
     }
   }
-
-
 }

@@ -93,6 +93,9 @@ dependencies {
 
     // Spring Batch JPA Reader
     implementation 'org.springframework.batch:spring-batch-core'
+
+    //prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 spotless {

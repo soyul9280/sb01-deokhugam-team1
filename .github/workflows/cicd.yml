@@ -157,4 +157,9 @@ jobs:
           git push origin release/${{ github.run_id }}
 
       - name: 릴리즈 PR 생성
-        run: gh pr create --base main --head release/${{ github.run_id }} --title "🚀 $(jq -r .pull_request.title \"$GITHUB_EVENT_PATH\") -> main"
+        run: |
+          gh pr create \
+            --base main \
+            --head release/${{ github.run_id }} \
+            --title "🚀 Release PR: ${{ github.run_id }}" \
+            --body-file .github/PULL_REQUEST_TEMPLATE.md

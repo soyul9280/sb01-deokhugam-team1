@@ -1,14 +1,14 @@
 
 services:
-  app:
+  prod-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: duckhu-server
+    container_name: duckhu-prod-server
     networks:
       - monitoring-network
     ports:
-      - "80:8080"
+      - "8081:80"
     environment:
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
@@ -26,25 +26,8 @@ services:
     volumes:
       - app-storage:/app/duckhuFile
     depends_on:
-      - my-db
       - prometheus
       - grafana
-
-
-  my-db:
-    image: postgres:17
-    container_name: duckhu-db
-    networks:
-      - monitoring-network
-    environment:
-      - POSTGRES_DB=duckhu_dev
-      - POSTGRES_USER=${SPRING_DATASOURCE_USERNAME}
-      - POSTGRES_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-    ports:
-      - "5433:5432"
-    volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
   prometheus:
     image: prom/prometheus:latest

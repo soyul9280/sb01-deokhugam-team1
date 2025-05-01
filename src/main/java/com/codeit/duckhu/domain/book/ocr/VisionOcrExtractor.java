@@ -16,9 +16,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-/*
-TODO : vision-key 공유, RuntimeException 수정하기
- */
 @Slf4j
 @Component("visionOcrExtractor")
 @Primary
@@ -58,10 +55,10 @@ public class VisionOcrExtractor implements OcrExtractor {
 
     } catch (IOException e) {
       log.error("이미지 스트림 읽기 실패", e);
-      throw new OCRException(ErrorCode.INTERNAL_SERVER_ERROR);
+      throw new OCRException(ErrorCode.IMAGE_STREAM_READ_FAIL);
     } catch (Exception e) {
       log.error("Google Vision OCR 처리 실패", e);
-      throw new OCRException(ErrorCode.INTERNAL_SERVER_ERROR);
+      throw new OCRException(ErrorCode.OCR_PROCESSING_FAIL);
     }
   }
 
@@ -79,7 +76,7 @@ public class VisionOcrExtractor implements OcrExtractor {
       return ImageAnnotatorClient.create(settings);
     } catch (IOException e) {
       log.error("Google Vision 클라이언트 생성 실패", e);
-      throw new OCRException(ErrorCode.INTERNAL_SERVER_ERROR);
+      throw new OCRException(ErrorCode.GOOGLE_VISION_CLIENT_INIT_FAIL);
     }
   }
 

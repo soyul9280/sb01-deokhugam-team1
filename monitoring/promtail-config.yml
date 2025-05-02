@@ -3,7 +3,7 @@ server:
   grpc_listen_port: 0
 
 positions:
-  filename: /etc/promtail/positions.yml
+  filename: /tmp/promtail-positions.yml
 
 clients:
   - url: http://host.docker.internal:3100/loki/api/v1/push
@@ -15,4 +15,4 @@ scrape_configs:
           - localhost
         labels:
           job: was-log
-          __path__: /logs/deokhugam.log
+          __path__: /app/logs/deokhugam.log

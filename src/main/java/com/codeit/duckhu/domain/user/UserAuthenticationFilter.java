@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.logging.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -53,13 +54,21 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
               .findById(userId)
               .orElseThrow(() -> new UserException(ErrorCode.NOT_FOUND_USER)); // DB에서 사용자 조회
       request.setAttribute("authenticatedUser", user); // 사용자 정보 저장
+
+      //logback에 userid추가
+      MDC.put("userId", user.getId().toString());
       log.info("권한설정 작용 : 사용자 ID = {}", user.getId());
     } catch (Exception e) {
       log.warn("세션 인증 오류: {}", e.getMessage());
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
-    filterChain.doFilter(request, response);
+
+    try {
+      filterChain.doFilter(request, response);
+    } finally {
+      MDC.remove("userId");
+    }
   }
 
   private boolean isPublicPath(String path) {

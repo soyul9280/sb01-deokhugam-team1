@@ -203,6 +203,10 @@ public class ReviewServiceImpl implements ReviewService {
       throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
 
+    log.debug("리뷰 업데이트 내용 - 이전 평점: {}, 새 평점: {}",
+        review.getRating(), 
+        request.getRating());
+
     review.updateContent(request.getContent());
     review.updateRating(request.getRating());
 
@@ -252,6 +256,12 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     boolean likedAfter = review.liked(userId);
+    log.info("리뷰 좋아요 상태 변경 - 리뷰ID: {}, 사용자ID: {}, 이전 상태: {}, 변경 후 상태: {}", 
+        reviewId, 
+        userId, 
+        likedBefore, 
+        likedAfter);
+
     return ReviewLikeDto.builder()
         .reviewId(review.getId())
         .userId(userId)
@@ -271,6 +281,9 @@ public class ReviewServiceImpl implements ReviewService {
     String cursor = requestDto.getCursor();
     Instant after = requestDto.getAfter();
     int limit = requestDto.getLimit();
+
+    log.info("리뷰 조회 시작 - 키워드: {}, 정렬 기준: {}, 방향: {}",
+        keyword, orderBy, direction);
 
     // 리포지토리 메서드 호출하여 데이터 조회
     List<Review> reviews =
@@ -318,6 +331,13 @@ public class ReviewServiceImpl implements ReviewService {
                   return reviewMapper.toDto(review, thumbnailUrl, currentUserId);
                 })
             .collect(Collectors.toList());
+
+    log.info(
+        "리뷰 조회 완료 - 키워드: {}, 정렬 기준: {}, 방향: {}, 결과 수: {}",
+        keyword,
+        orderBy,
+        direction,
+        responseReviews.size());
 
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()

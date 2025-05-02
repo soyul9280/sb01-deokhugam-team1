@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
@@ -84,7 +85,7 @@ public interface ReviewApi {
     @ApiResponse(
         responseCode = "200",
         description = "리뷰 삭제 성공",
-        content = @Content(schema = @Schema(implementation = ReviewDto.class))),
+        content = @Content),
       @ApiResponse(
         responseCode = "400",
         description = "잘못된 요청(요청자 ID 누락)",
@@ -112,7 +113,7 @@ public interface ReviewApi {
       @ApiResponse(
           responseCode = "200",
           description = "리뷰 삭제 성공",
-          content = @Content(schema = @Schema(implementation = ReviewDto.class))),
+          content = @Content),
       @ApiResponse(
           responseCode = "400",
           description = "잘못된 요청(요청자 ID 누락)",
@@ -156,7 +157,8 @@ public interface ReviewApi {
   })
   @PostMapping(value = "/api/reviews/{reviewId}/like")
   ResponseEntity<ReviewDto> likeReview(
-      @PathVariable("reviewId") UUID reviewId);
+      @PathVariable("reviewId") UUID reviewId,
+      @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId);
 
   @Operation(summary = "리뷰 상세 정보 조회", description = "리뷰 ID로 상세 정보를 조회합니다.")
   @ApiResponses({
@@ -186,7 +188,7 @@ public interface ReviewApi {
       @ApiResponse(
           responseCode = "200",
           description = "리뷰 목록 조회 성공",
-          content = @Content(schema = @Schema(implementation = ReviewDto.class))),
+          content = @Content(schema = @Schema(implementation = List.class))),
       @ApiResponse(
           responseCode = "400",
           description = "잘못된 요청(정렬 기준 오류, 페이지네이션 파라미터 오류, 요청자 ID 누락)",
@@ -197,7 +199,7 @@ public interface ReviewApi {
           content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   @GetMapping(value = "/api/reviews")
-  ResponseEntity<ReviewDto> getReviews(
+  ResponseEntity<List<ReviewDto>> getReviews(
       @RequestParam(name = "keyword", required = false) String keyword,
       @RequestParam(name = "orderBy", required = false) String orderBy,
       @RequestParam(name = "direction", required = false, defaultValue = "DESC")
@@ -213,7 +215,7 @@ public interface ReviewApi {
       @ApiResponse(
           responseCode = "200",
           description = "인기 리뷰 목록 조회 성공",
-          content = @Content(schema = @Schema(implementation = ReviewDto.class))),
+          content = @Content(schema = @Schema(implementation = List.class))),
       @ApiResponse(
           responseCode = "400",
           description = "잘못된 요청(랭킹 기간 오류, 정렬 방향 오류 등)",
@@ -224,7 +226,7 @@ public interface ReviewApi {
           content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   @GetMapping(value = "/api/reviews/popular")
-  ResponseEntity<ReviewDto> getPopularReviews(
+  ResponseEntity<List<ReviewDto>> getPopularReviews(
       @RequestParam(name = "period", required = false) String period,
       @RequestParam(name = "direction", required = false, defaultValue = "DESC")
       Direction direction,

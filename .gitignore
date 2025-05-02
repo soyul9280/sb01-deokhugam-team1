@@ -64,3 +64,5 @@ logs/
 #grafana
 monitoring/grafana-data/
 monitoring/prometheus-data/
+monitoring/loki-data/
+monitoring/positions.yml

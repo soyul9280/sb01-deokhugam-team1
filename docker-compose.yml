@@ -71,6 +71,32 @@ services:
       - ./monitoring/grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
+      - loki
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    networks:
+      - monitoring-network
+    ports:
+      - "3100:3100"
+    command:
+      - '--config.file=/etc/loki/loki-config.yml'
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/loki-config.yml
+      - ./monitoring/loki-data:/loki
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:latest
+    networks:
+      - monitoring-network
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml
+      - ./monitoring/positions.yml:/etc/promtail/positions.yml
+      - ./logs:/logs
+    command:
+      - '--config.file=/etc/promtail/promtail-config.yml'
 
   node-exporter:
     image: prom/node-exporter:latest

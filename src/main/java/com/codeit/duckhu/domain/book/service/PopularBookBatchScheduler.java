@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-/*@Slf4j
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class PopularBookBatchScheduler {
@@ -29,4 +29,4 @@ public class PopularBookBatchScheduler {
       log.info("{} {} 인기 도서 갱신 중 오류 발생 {}", logPrefix, period, e.getMessage());
     }
   }
-}*/
+}

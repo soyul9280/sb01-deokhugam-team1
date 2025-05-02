@@ -25,4 +25,7 @@ public interface NotificationService {
   // 목록 조회를 위한 메서드
   CursorPageResponseNotificationDto getNotifications(
       UUID receiverId, String direction, Instant cursor, int limit);
+
+  // 배치 삭제
+  void deleteConfirmedNotificationsOlderThanAWeek();
 }

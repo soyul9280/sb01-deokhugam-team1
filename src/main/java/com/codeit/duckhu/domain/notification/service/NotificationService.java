@@ -22,10 +22,10 @@ public interface NotificationService {
 
   void updateAllConfirmedStatus(UUID receiverId);
 
-  // 사용자가 확인을 한 일주일을 지난 알림들 삭제
-  void deleteConfirmedNotificationsOlderThanAWeek();
-
   // 목록 조회를 위한 메서드
   CursorPageResponseNotificationDto getNotifications(
       UUID receiverId, String direction, Instant cursor, int limit);
+
+  // 배치 삭제
+  void deleteConfirmedNotificationsOlderThanAWeek();
 }

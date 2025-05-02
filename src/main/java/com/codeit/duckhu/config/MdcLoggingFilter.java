@@ -27,7 +27,15 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
             MDC.put("requestId", requestId);
 
             // 클라이언트 IP
-            String ip = request.getRemoteAddr();
+            String ip = request.getHeader("X-Forwarded-For");
+            if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+                ip = request.getRemoteAddr();
+            } else {
+                // X-Forwarded-For에는 여러 IP가 콤마로 구분되어 있을 수 있으므로 첫 번째 IP 사용
+                if (ip.contains(",")) {
+                    ip = ip.split(",")[0].trim();
+                }
+            }
             MDC.put("ipAddress", ip);
 
             chain.doFilter(request, response);

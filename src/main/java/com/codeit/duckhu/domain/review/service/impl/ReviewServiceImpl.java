@@ -58,7 +58,7 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   @Transactional
   public ReviewDto createReview(ReviewCreateRequest request) {
-    log.info("새로운 리뷰 생성, rating: {}", request.getRating());
+    log.info("새로운 리뷰 생성 - 사용자 ID: {}, 도서 ID: {}", request.getUserId(), request.getBookId());
 
     // 사용자 찾기
     User user =
@@ -152,7 +152,7 @@ public class ReviewServiceImpl implements ReviewService {
     if (review.getUser().getId().equals(userId)) {
       reviewRepository.delete(review);
     } else {
-      log.debug("리뷰 삭제 권한 없음 - 사용자 ID: {}", userId);
+      log.debug("리뷰 물리 삭제 권한 없음 - 사용자 ID: {}", userId);
       throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
 
@@ -170,7 +170,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 사용자가 권한이 있는지 확인
     if (!review.getUser().getId().equals(userId)) {
-      log.debug("리뷰 삭제 권한 없음 - 사용자 ID: {}", userId);
+      log.debug("리뷰 논리 삭제 권한 없음 - 사용자 ID: {}", userId);
       throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
     review.softDelete();
@@ -199,7 +199,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 사용자가 권한이 있는지 확인
     if (!user.getId().equals(review.getUser().getId())) {
-      log.debug("리뷰 삭제 권한 없음 - 사용자 ID: {}", userId);
+      log.debug("리뷰 업데이트 권한 없음 - 사용자 ID: {}", userId);
       throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
 

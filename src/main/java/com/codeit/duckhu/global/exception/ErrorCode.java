@@ -26,6 +26,11 @@ public enum ErrorCode {
   UNABLE_EXTRACT_ISBN(HttpStatus.BAD_REQUEST, "이미지에서 ISBN을 확인할 수 없습니다.", "잘못된 요청을 진행하였습니다."),
   INVALID_IMAGE_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 이미지 형식입니다.", "잘못된 요청을 진행하였습니다."),
 
+  //S3
+  S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 이미지 업로드에 실패했습니다.", "이미지 저장 중 오류 발생"),
+  S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 객체 삭제에 실패했습니다.", "이미지를 삭제할 수 없습니다."),
+  PRESIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Presigned URL 생성 실패", "이미지 접근 URL 생성 중 오류 발생"),
+
   // USER
   EMAIL_DUPLICATION(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다.", "USER_409"),
   LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.", "USER_401"),

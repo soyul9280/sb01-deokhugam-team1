@@ -148,6 +148,11 @@ public class ReviewServiceImpl implements ReviewService {
             .findById(reviewId)
             .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
+    if (review.isDeleted()) {
+      log.debug("이미 삭제된 리뷰입니다.");
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
+    }
+
     // 사용자가 권한이 있는지 확인
     if (review.getUser().getId().equals(userId)) {
       reviewRepository.delete(review);
@@ -167,6 +172,11 @@ public class ReviewServiceImpl implements ReviewService {
         reviewRepository
             .findById(reviewId)
             .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
+
+    if (review.isDeleted()) {
+      log.debug("이미 삭제된 리뷰입니다.");
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
+    }
 
     // 사용자가 권한이 있는지 확인
     if (!review.getUser().getId().equals(userId)) {
@@ -194,7 +204,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     if (review.isDeleted()) {
       log.debug("이미 삭제된 리뷰입니다.");
-      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
     }
 
     // 사용자가 권한이 있는지 확인
@@ -232,7 +242,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     if (review.isDeleted()) {
       log.debug("이미 삭제된 리뷰입니다.");
-      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
     }
 
     // 사용자 찾기

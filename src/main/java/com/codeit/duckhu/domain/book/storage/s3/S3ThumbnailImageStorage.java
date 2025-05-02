@@ -1,6 +1,5 @@
 package com.codeit.duckhu.domain.book.storage.s3;
 
-import com.amazonaws.SdkClientException;
 import com.codeit.duckhu.domain.book.exception.CustomS3Exception;
 import com.codeit.duckhu.domain.book.storage.ThumbnailImageStorage;
 import com.codeit.duckhu.global.exception.ErrorCode;
@@ -13,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;

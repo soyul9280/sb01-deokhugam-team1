@@ -57,7 +57,7 @@ public class NotificationServiceImpl implements NotificationService {
   @Transactional
   public NotificationDto createNotifyByLike(UUID reviewId, UUID triggerUserId) {
 
-    log.info("좋아요 알림 생성 시작: reviewId={}, triggerUserId={}", reviewId, triggerUserId);
+    log.debug("createNotifyByLike.start reviewId={} triggerUserId={}", reviewId, triggerUserId);
 
     // 1. 리뷰 조회 → 수신자 ID 확보
     Review review =
@@ -91,7 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
     Notification notification =
         Notification.forLike(reviewId, receiverId, nickname, review.getContent());
     Notification saved = notificationRepository.save(notification);
-    log.info("좋아요 알림 생성 완료: notificationId={}", saved.getId());
+    log.info("createNotifyByLike.success notificationId={}", saved.getId());
 
     // DTO 생성
     return notificationMapper.toDto(saved);
@@ -140,7 +140,7 @@ public class NotificationServiceImpl implements NotificationService {
     Notification saved = notificationRepository.save(notification);
     log.info("댓글 알림 생성 완료: notificationId={}", saved.getId());
 
-    return notificationMapper.toDto(notificationRepository.save(saved));
+    return notificationMapper.toDto(saved);
   }
 
   /**
@@ -195,13 +195,7 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   public CursorPageResponseNotificationDto getNotifications(
       UUID receiverId, String direction, Instant cursor, int limit) {
-    log.info(
-        "서비스 시작: getNotifications, receiverId={}, direction={}, cursor={}, limit={}",
-        receiverId,
-        direction,
-        cursor,
-        limit);
-
+    log.debug("getNotifications.start receiverId={} dir={} cursor={} limit={}", receiverId, direction, cursor, limit);
     // 1) 정렬 방향 & 페이징 설정
     Sort.Direction sortDir =
         "ASC".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;

@@ -91,9 +91,8 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(value = {DomainException.class})
   public ResponseEntity<ErrorResponse> handleCustomException(DomainException e) {
-    log.error(
-        "handleCustomException() in GlobalExceptionHandler throw CustomException : {}",
-        e.getMessage());
+    // CustomException의 경우 보통 Client쪽 문제라 생각하여 warn으로 수정
+    log.warn("domain error: code={}, msg={}", e.getErrorCode(), e.getMessage());
     return ResponseEntity.status(e.getErrorCode().getStatus()) // ex. 403, 409, 401
         .body(ErrorResponse.of(e));
   }

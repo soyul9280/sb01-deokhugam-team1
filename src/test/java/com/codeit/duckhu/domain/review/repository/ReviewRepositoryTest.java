@@ -566,5 +566,22 @@ public class ReviewRepositoryTest {
         assertThat(review.getContent()).contains("도서1 리뷰");
       }
     }
+    @Test
+    @DisplayName("평점 정렬인데 커서 없음, after만 있는 경우")
+    void findReview_ratingSort_afterOnly() {
+      List<Review> result = reviewRepository.findReviewsWithCursor(
+          null, "rating", DESC, null, null, null, Instant.now(), 5
+      );
+      assertThat(result).isNotNull(); // 오류 없이 실행되는지 확인
+    }
+
+    @Test
+    @DisplayName("잘못된 orderBy 필드가 들어온 경우")
+    void findReview_invalidOrderBy() {
+      List<Review> result = reviewRepository.findReviewsWithCursor(
+          null, "invalidField", DESC, null, null, null, null, 5
+      );
+      assertThat(result).isNotNull(); // 기본 정렬이 작동하는지만 확인
+    }
   }
 }

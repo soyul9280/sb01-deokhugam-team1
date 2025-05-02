@@ -140,5 +140,90 @@ public class PopularReviewRepositoryTest {
       List<PopularReview> all = popularReviewRepository.findAll();
       assertThat(all).isEmpty();
     }
+
+    @Test
+    @DisplayName("cursor만 있고 after가 없는 경우")
+    void findPopularReview_cursorWithoutAfter() {
+      List<PopularReview> result = popularReviewRepository.findReviewsWithCursor(
+          PeriodType.WEEKLY,
+          Direction.ASC,
+          "2",
+          null,  // after가 null
+          10
+      );
+      assertThat(result).isNotNull(); // 예외 없이 동작하는지만 확인
+    }
+
+    @Test
+    @DisplayName("정렬 방향이 DESC인 경우")
+    void findPopularReview_descDirection() {
+      List<PopularReview> result = popularReviewRepository.findReviewsWithCursor(
+          PeriodType.DAILY,
+          Direction.DESC,
+          null,
+          Instant.now(),
+          10
+      );
+      assertThat(result).isNotNull();
+    }
+
+    @Test
+    @DisplayName("period가 null인 경우")
+    void findPopularReviewWithoutPeriod() {
+      List<PopularReview> result =
+          popularReviewRepository.findReviewsWithCursor(
+              null,  // period
+              Direction.ASC,
+              null,
+              Instant.now(),
+              10
+          );
+      assertThat(result).isNotNull();
+    }
+
+    @Test
+    @DisplayName("cursor만 있고 after는 null인 경우")
+    void findPopularReviewWithCursorOnly() {
+      List<PopularReview> result =
+          popularReviewRepository.findReviewsWithCursor(
+              PeriodType.DAILY,
+              Direction.DESC,
+              "1",     // cursor만 존재
+              null,    // after 없음
+              10
+          );
+      assertThat(result).isNotNull();
+    }
+
+    @Test
+    @DisplayName("정렬 방향이 DESC일 경우")
+    void findPopularReviewDescDirection() {
+      List<PopularReview> result =
+          popularReviewRepository.findReviewsWithCursor(
+              PeriodType.WEEKLY,
+              Direction.DESC,
+              null,
+              Instant.now(),
+              5
+          );
+      assertThat(result).isNotNull();
+    }
+
+    @Test
+    @DisplayName("커서 조건이 있고 정렬 방향이 ASC인 경우")
+    void findPopularReviewWithCursor_ASC() {
+      // Given
+      Instant now = Instant.now();
+      String cursor = "1";
+      Direction direction = Direction.ASC;
+
+      // When
+      List<PopularReview> result =
+          popularReviewRepository.findReviewsWithCursor(
+              PeriodType.DAILY, direction, cursor, now, 10);
+
+      // Then
+      assertThat(result).isNotNull();
+    }
   }
 }

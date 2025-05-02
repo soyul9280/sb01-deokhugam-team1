@@ -58,7 +58,7 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   @Transactional
   public ReviewDto createReview(ReviewCreateRequest request) {
-    log.info("새로운 리뷰 생성, rating: {}", request.getRating());
+    log.info("새로운 리뷰 생성 - 사용자 ID: {}, 도서 ID: {}", request.getUserId(), request.getBookId());
 
     // 사용자 찾기
     User user =
@@ -77,7 +77,8 @@ public class ReviewServiceImpl implements ReviewService {
         reviewRepository.findByUserIdAndBookId(request.getUserId(), request.getBookId());
     if (existingReview.isPresent()) {
       if (!existingReview.get().isDeleted()) {
-        throw new DomainException(ErrorCode.REVIEW_ALREADY_EXISTS);
+        log.debug("이미 리뷰가 존재합니다. - 사용자 ID: {}, 도서 ID: {}", user.getId(), book.getId());
+        throw new DomainException(ErrorCode.REVIEW_ALREADY_EXISTS_BY_BOOK);
       }
       // 삭제된 리뷰인 경우 재활용
       Review review = existingReview.get();
@@ -123,7 +124,8 @@ public class ReviewServiceImpl implements ReviewService {
             .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
     if (review.isDeleted()) {
-      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
+      log.debug("이미 삭제된 리뷰입니다.");
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
     }
 
     // 코멘트 수를 DB에서 직접 가져옵니다
@@ -146,10 +148,16 @@ public class ReviewServiceImpl implements ReviewService {
             .findById(reviewId)
             .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
+    if (review.isDeleted()) {
+      log.debug("이미 삭제된 리뷰입니다.");
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
+    }
+
     // 사용자가 권한이 있는지 확인
     if (review.getUser().getId().equals(userId)) {
       reviewRepository.delete(review);
     } else {
+      log.debug("리뷰 물리 삭제 권한 없음 - 사용자 ID: {}", userId);
       throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
 
@@ -165,8 +173,14 @@ public class ReviewServiceImpl implements ReviewService {
             .findById(reviewId)
             .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
+    if (review.isDeleted()) {
+      log.debug("이미 삭제된 리뷰입니다.");
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
+    }
+
     // 사용자가 권한이 있는지 확인
     if (!review.getUser().getId().equals(userId)) {
+      log.debug("리뷰 논리 삭제 권한 없음 - 사용자 ID: {}", userId);
       throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
     review.softDelete();
@@ -189,13 +203,19 @@ public class ReviewServiceImpl implements ReviewService {
         userRepository.findById(userId).orElseThrow(() -> new DomainException(ErrorCode.NOT_FOUND));
 
     if (review.isDeleted()) {
-      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
+      log.debug("이미 삭제된 리뷰입니다.");
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
     }
 
     // 사용자가 권한이 있는지 확인
     if (!user.getId().equals(review.getUser().getId())) {
+      log.debug("리뷰 업데이트 권한 없음 - 사용자 ID: {}", userId);
       throw new DomainException(ErrorCode.NO_AUTHORITY_USER);
     }
+
+    log.debug("리뷰 업데이트 내용 - 이전 평점: {}, 새 평점: {}",
+        review.getRating(), 
+        request.getRating());
 
     review.updateContent(request.getContent());
     review.updateRating(request.getRating());
@@ -221,12 +241,14 @@ public class ReviewServiceImpl implements ReviewService {
             .orElseThrow(() -> new DomainException(ErrorCode.REVIEW_NOT_FOUND));
 
     if (review.isDeleted()) {
-      throw new DomainException(ErrorCode.REVIEW_NOT_FOUND);
+      log.debug("이미 삭제된 리뷰입니다.");
+      throw new DomainException(ErrorCode.REVIEW_IS_DELETED);
     }
 
     // 사용자 찾기
     var isExistUser = userRepository.existsById(userId);
     if (!isExistUser) {
+      log.debug("사용자를 찾을 수 없습니다. - 사용자 ID: {}", userId);
       throw new DomainException(ErrorCode.NOT_FOUND);
     }
 
@@ -244,6 +266,12 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     boolean likedAfter = review.liked(userId);
+    log.info("리뷰 좋아요 상태 변경 - 리뷰ID: {}, 사용자ID: {}, 이전 상태: {}, 변경 후 상태: {}", 
+        reviewId, 
+        userId, 
+        likedBefore, 
+        likedAfter);
+
     return ReviewLikeDto.builder()
         .reviewId(review.getId())
         .userId(userId)
@@ -263,6 +291,9 @@ public class ReviewServiceImpl implements ReviewService {
     String cursor = requestDto.getCursor();
     Instant after = requestDto.getAfter();
     int limit = requestDto.getLimit();
+
+    log.info("리뷰 조회 시작 - 키워드: {}, 정렬 기준: {}, 방향: {}",
+        keyword, orderBy, direction);
 
     // 리포지토리 메서드 호출하여 데이터 조회
     List<Review> reviews =
@@ -311,6 +342,13 @@ public class ReviewServiceImpl implements ReviewService {
                 })
             .collect(Collectors.toList());
 
+    log.info(
+        "리뷰 조회 완료 - 키워드: {}, 정렬 기준: {}, 방향: {}, 결과 수: {}",
+        keyword,
+        orderBy,
+        direction,
+        responseReviews.size());
+
     // 응답 DTO 구성
     return CursorPageResponseReviewDto.builder()
         .content(reviewDtos)
@@ -333,7 +371,7 @@ public class ReviewServiceImpl implements ReviewService {
         popularRepository.findReviewsWithCursor(period, direction, cursor, after, size + 1);
 
     if (fetched.isEmpty()) {
-      log.info("조회딘 인기 리뷰가 없습니다 . - 기간 : {}", period);
+      log.info("조회된 인기 리뷰가 없습니다 . - 기간 : {}", period);
       return CursorPageResponsePopularReviewDto.builder()
           .content(List.of())
           .size(0)

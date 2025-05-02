@@ -42,6 +42,7 @@ public class ReviewController {
 
   @PostMapping
   public ResponseEntity<ReviewDto> createReview(@Valid @RequestBody ReviewCreateRequest request) {
+    log.info("리뷰 생성 요청 : {}", request);
     ReviewDto review = reviewService.createReview(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(review);
   }
@@ -49,6 +50,7 @@ public class ReviewController {
   @PostMapping("/{reviewId}/like")
   public ResponseEntity<ReviewLikeDto> likeReview(
       @PathVariable("reviewId") UUID reviewId, HttpServletRequest httpServletRequest) {
+    log.info("리뷰 좋아요 요청 : {}", reviewId);
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
       log.warn("비인증 사용자 리뷰 좋아요 요청 차단");
@@ -63,6 +65,7 @@ public class ReviewController {
       @PathVariable UUID reviewId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId,
       @Valid @RequestBody ReviewUpdateRequest request) {
+    log.info("리뷰 수정 요청 : {}", reviewId);
     ReviewDto review = reviewService.updateReview(userId, reviewId, request);
     return ResponseEntity.ok(review);
   }
@@ -71,6 +74,7 @@ public class ReviewController {
   public ResponseEntity<Void> softDeleteReview(
       @PathVariable("reviewId") UUID reviewId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId) {
+    log.info("리뷰 삭제 요청 : {}", reviewId);
     reviewService.softDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
@@ -79,6 +83,7 @@ public class ReviewController {
   public ResponseEntity<Void> hardDeleteReview(
       @PathVariable("reviewId") UUID reviewId,
       @RequestHeader(value = "Deokhugam-Request-User-ID") UUID userId) {
+    log.info("리뷰 하드 삭제 요청 : {}", reviewId);
     reviewService.hardDeleteReviewById(userId, reviewId);
     return ResponseEntity.noContent().build();
   }
@@ -86,6 +91,7 @@ public class ReviewController {
   @GetMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> getReviewById(
       HttpServletRequest httpServletRequest, @PathVariable("reviewId") UUID reviewId) {
+    log.info("리뷰 상세 조회 요청 : {}", reviewId);
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     if (authenticatedUser == null) { // 로그인 하지 않은 사용자가 들어왔을때
       log.warn("비인증 사용자 리뷰 상세 조회 요청 차단");
@@ -108,6 +114,7 @@ public class ReviewController {
       @RequestParam(name = "cursor", required = false) String cursor,
       @RequestParam(name = "after", required = false) Instant after,
       @RequestParam(name = "limit", required = false) Integer limit) {
+    log.info("리뷰 목록 조회 요청 : {}, {}, {}", keyword, orderBy, direction);
 
     User authenticatedUser = (User) httpServletRequest.getAttribute("authenticatedUser");
     UUID currentUserId = (authenticatedUser != null) ? authenticatedUser.getId() : null;
@@ -135,6 +142,7 @@ public class ReviewController {
       @RequestParam(name = "cursor", required = false) String cursor,
       @RequestParam(name = "after", required = false) Instant after,
       @RequestParam(name = "limit", required = false) Integer limit) {
+    log.info("인기 리뷰 목록 조회 요청 : {}, {}", period, direction);
 
     CursorPageResponsePopularReviewDto result =
         reviewService.getPopularReviews(period, direction, cursor, after, limit);

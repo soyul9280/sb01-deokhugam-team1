@@ -93,6 +93,11 @@
 
           meterRegistry.counter("batch.powerReview.complete", "period",
  period.name()).increment();
+
+          log.info("{} 기간 메트릭 기록 - 완료: {}, 처리 리뷰 수: {}", 
+              period, 
+              true, 
+              popularReviewsToSave.size());
         } else {
           log.info("{} 기간 처리 대상 리뷰 없음", period);
 

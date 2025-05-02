@@ -48,6 +48,11 @@ public enum ErrorCode {
   ),
 
 
+  //S3
+  S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 이미지 업로드에 실패했습니다.", "이미지 저장 중 오류 발생"),
+  S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3 객체 삭제에 실패했습니다.", "이미지를 삭제할 수 없습니다."),
+  PRESIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Presigned URL 생성 실패", "이미지 접근 URL 생성 중 오류 발생"),
+
   // USER
   EMAIL_DUPLICATION(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다.", "USER_409"),
   LOGIN_INPUT_INVALID(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.", "USER_401"),
@@ -70,7 +75,10 @@ public enum ErrorCode {
 
   // review
   REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다.", "리뷰를 찾을 수 없습니다."),
-  REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 작성한 리뷰가 존재합니다.", "한 도서에 리뷰는 1개만 작성할 수 있습니다."),
+  REVIEW_ALREADY_EXISTS_BY_BOOK(HttpStatus.CONFLICT, "이미 작성한 리뷰가 존재합니다.", "한 도서에 리뷰는 1개만 작성할 수 있습니다."),
+  REVIEW_IS_DELETED(HttpStatus.BAD_REQUEST, "삭제된 리뷰입니다.", "이미 삭제된 리뷰입니다."),
+
+  // batch
   BATCH_PARAMETER_ERROR(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.", "기간 정보가 비어있습니다.");
 
   private final HttpStatus status;

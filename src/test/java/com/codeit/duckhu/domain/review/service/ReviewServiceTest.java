@@ -38,6 +38,7 @@ import com.codeit.duckhu.global.exception.DomainException;
 import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.Direction;
 import com.codeit.duckhu.global.type.PeriodType;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -263,6 +264,20 @@ class ReviewServiceTest {
               DomainException.class, () -> reviewService.getReviewById(testUserId, testReviewId));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
       verify(reviewRepository).findById(testReviewId);
+    }
+
+    @Test
+    @DisplayName("삭제된 리뷰 조회")
+    void getReviewById_shouldThrowException_whenDeleted() {
+      // Given
+      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+      when(testReview.isDeleted()).thenReturn(true); // 리뷰가 삭제된 상태
+
+      // When & Then
+      DomainException exception =
+          assertThrows(
+              DomainException.class, () -> reviewService.getReviewById(testUserId, testReviewId));
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
     }
   }
 
@@ -494,6 +509,20 @@ class ReviewServiceTest {
               DomainException.class, () -> reviewService.likeReview(testReviewId, testUserId));
       assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND);
     }
+
+    @Test
+    @DisplayName("삭제된 리뷰에 좋아요 요청 시 예외")
+    void likeReview_reviewDeleted() {
+      // Given
+      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+      when(testReview.isDeleted()).thenReturn(true); // 리뷰가 삭제된 상태
+
+      // When & Then
+      DomainException exception =
+          assertThrows(
+              DomainException.class, () -> reviewService.likeReview(testReviewId, testUserId));
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+    }
   }
 
   @Nested
@@ -563,5 +592,89 @@ class ReviewServiceTest {
       assertThat(result.isHasNext()).isFalse();
       assertThat(result.getContent()).isEmpty();
     }
+
+    @Test
+    @DisplayName("인기 리뷰 커서, after 조건 포함된 페이지네이션 테스트")
+    void findPopularReviews_withCursorAndAfter_shouldCallCursorLogic() {
+      // Given
+      String cursor = "3";
+      Instant after = Instant.now().minusSeconds(60);
+      List<PopularReview> mockList = new ArrayList<>();
+
+      PopularReview review = mock(PopularReview.class);
+      Review innerReview = mock(Review.class);
+      Book book = mock(Book.class);
+      User user = mock(User.class);
+
+      when(review.getReview()).thenReturn(innerReview);
+      when(innerReview.getBook()).thenReturn(book);
+      when(book.getId()).thenReturn(testBookId);
+      when(book.getTitle()).thenReturn("테스트 도서");
+      when(book.getThumbnailUrl()).thenReturn("thumbnail.jpg");
+      when(innerReview.getUser()).thenReturn(user);
+      when(user.getId()).thenReturn(testUserId);
+      when(user.getNickname()).thenReturn("테스터");
+      when(innerReview.getContent()).thenReturn("리뷰 내용");
+
+      when(review.getReviewRating()).thenReturn(4.0);
+      when(review.getPeriod()).thenReturn(PeriodType.DAILY);
+      when(review.getCreatedAt()).thenReturn(Instant.now());
+      when(review.getRank()).thenReturn(3);
+      when(review.getScore()).thenReturn(99.0);
+      when(review.getLikeCount()).thenReturn(10);
+      when(review.getCommentCount()).thenReturn(5);
+
+      mockList.add(review);
+
+      when(popularReviewRepository.findReviewsWithCursor(
+          eq(PeriodType.DAILY), eq(Direction.ASC), eq(cursor), eq(after), eq(51)))
+          .thenReturn(mockList);
+      when(popularReviewRepository.countByPeriodSince(eq(PeriodType.DAILY), any()))
+          .thenReturn((long) mockList.size());
+      when(thumbnailImageStorage.get(anyString())).thenReturn(TEST_THUMBNAIL_URL);
+
+      // When
+      CursorPageResponsePopularReviewDto result =
+          reviewService.getPopularReviews(PeriodType.DAILY, Direction.ASC, cursor, after, 50);
+
+      // Then
+      assertThat(result).isNotNull();
+      assertThat(result.getContent()).hasSize(1);
+      assertThat(result.getNextCursor()).isNull();
+    }
   }
+
+  @Nested
+  @DisplayName("Id로 엔티티 조회 테스트")
+  class findByIdEntityReturn {
+
+    @Test
+    @DisplayName("ID로 리뷰 엔티티를 조회")
+    void findByIdEntityReturn_shouldReturnReview() {
+      // given
+      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+
+      // when
+      Review result = reviewService.findByIdEntityReturn(testReviewId);
+
+      // then
+      assertThat(result).isEqualTo(testReview);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 ID로 조회 시 예외 발생")
+    void findByIdEntityReturn_shouldThrowException_whenNotFound() {
+      // given
+      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.empty());
+
+      // when & then
+      DomainException exception = assertThrows(
+          DomainException.class,
+          () -> reviewService.findByIdEntityReturn(testReviewId)
+      );
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+    }
+  }
+
+
 }

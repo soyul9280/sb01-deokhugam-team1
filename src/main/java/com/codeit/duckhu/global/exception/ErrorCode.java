@@ -30,7 +30,11 @@ public enum ErrorCode {
       "이미지를 Base64로 변환하는 데 실패했습니다.",
       "잘못된 이미지 URL이거나 이미지 접근에 실패했습니다."
   ),
-
+  NAVER_API_REQUEST_FAIL(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      "네이버 도서 API 요청에 실패했습니다.",
+      "외부 API 호출 중 오류가 발생했습니다."
+  ),
 
   // OCR
   IMAGE_STREAM_READ_FAIL(HttpStatus.BAD_REQUEST, "이미지 스트림을 읽을 수 없습니다.",

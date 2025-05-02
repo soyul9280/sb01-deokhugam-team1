@@ -30,6 +30,7 @@ public class VisionOcrExtractor implements OcrExtractor {
 
   @Override
   public String extractOCR(MultipartFile image) {
+    log.info("OCR 처리 시작 - 파일명: {}, 크기: {} bytes", image.getOriginalFilename(), image.getSize());
     try {
       ByteString imgBytes = ByteString.readFrom(image.getInputStream());
       Image img = Image.newBuilder().setContent(imgBytes).build();
@@ -50,14 +51,15 @@ public class VisionOcrExtractor implements OcrExtractor {
         }
 
         String extractedText = responses.get(0).getFullTextAnnotation().getText();
+        log.debug("Vision API 텍스트 추출 완료");
         return extractIsbnFromText(extractedText);
       }
 
     } catch (IOException e) {
-      log.error("이미지 스트림 읽기 실패", e);
+      log.error("이미지 스트림 읽기 실패 - 오류: {}", e.toString());
       throw new OCRException(ErrorCode.IMAGE_STREAM_READ_FAIL);
     } catch (Exception e) {
-      log.error("Google Vision OCR 처리 실패", e);
+      log.error("Google Vision OCR 처리 - 오류:  {}", e.toString());
       throw new OCRException(ErrorCode.OCR_PROCESSING_FAIL);
     }
   }
@@ -65,6 +67,7 @@ public class VisionOcrExtractor implements OcrExtractor {
   /** Vision API 클라이언트 생성 */
   private ImageAnnotatorClient createClient() {
     try {
+      log.debug("Google Vision 클라이언트 생성 시도");
       GoogleCredentials credentials =
           GoogleCredentials.fromStream(new ClassPathResource(CREDENTIALS_PATH).getInputStream());
 
@@ -73,6 +76,7 @@ public class VisionOcrExtractor implements OcrExtractor {
               .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
               .build();
 
+      log.info("Google Vision 클라이언트 생성 성공");
       return ImageAnnotatorClient.create(settings);
     } catch (IOException e) {
       log.error("Google Vision 클라이언트 생성 실패", e);
@@ -83,9 +87,11 @@ public class VisionOcrExtractor implements OcrExtractor {
   /** OCR 결과 텍스트에서 ISBN 추출 */
   private String extractIsbnFromText(String text) {
     String cleanedText = text.replaceAll("[\\n\\r]", " ").replaceAll("\\s+", " ");
+    log.debug("OCR 텍스트 정제 완료");
     Matcher matcher = ISBN_PATTERN.matcher(cleanedText);
 
     if (matcher.find()) {
+      log.info("ISBN 추출 성공");
       return matcher.group(1).replaceAll("[- ]", "");
     }
 

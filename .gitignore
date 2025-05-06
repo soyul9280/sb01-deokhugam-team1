@@ -61,6 +61,8 @@ src/main/resources/vision-key.json
 # log
 logs/
 
-#grafana
+#monitoring
 monitoring/grafana-data/
 monitoring/prometheus-data/
+monitoring/loki-data/
+monitoring/positions.yml

@@ -47,7 +47,7 @@ public class UserController implements UserApi {
     UserDto result = userService.create(userRegisterRequest);
     request.getSession(true).setAttribute("userId", result.getId());
     return ResponseEntity.status(HttpStatus.CREATED)
-        .header("Deokhugam-Request-User-Id", result.getId().toString())
+        .header("Deokhugam-Request-User-ID", result.getId().toString())
         .body(result);
   }
 
@@ -60,7 +60,7 @@ public class UserController implements UserApi {
     UserDto result = userService.login(userLoginRequest);
     request.getSession(true).setAttribute("userId", result.getId());
     return ResponseEntity.ok()
-        .header("Deokhugam-Request-User-Id", result.getId().toString())
+        .header("Deokhugam-Request-User-ID", result.getId().toString())
         .body(result);
   }
 
@@ -71,7 +71,7 @@ public class UserController implements UserApi {
 
     UserDto result = userService.findById(userId);
     return ResponseEntity.status(HttpStatus.OK)
-        .header("Deokhugam-Request-User-Id", result.getId().toString())
+        .header("Deokhugam-Request-User-ID", result.getId().toString())
         .body(result);
   }
 

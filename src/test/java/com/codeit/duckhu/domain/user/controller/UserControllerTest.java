@@ -32,14 +32,18 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
 @Import(GlobalExceptionHandler.class)
+@ActiveProfiles("test")
 class UserControllerTest {
   @Autowired private MockMvc mockMvc;
 
@@ -132,6 +136,8 @@ class UserControllerTest {
     UUID userId = UUID.randomUUID();
     User user = new User("testA@example.com", "testA", "testa1234!");
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    ReflectionTestUtils.setField(user, "id", userId);
+
 
     UserDto userDto = new UserDto(userId, "testA@example.com", "testA", Instant.now());
     given(userService.findById(userId)).willReturn(userDto);
@@ -141,7 +147,7 @@ class UserControllerTest {
         .perform(
             get("/api/users/{userId}", userId)
                 .sessionAttr("userId", userId)
-                .header("Deokhugam-Request-User-Id", userId)
+                .header("Deokhugam-Request-User-ID", userId)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -164,8 +170,10 @@ class UserControllerTest {
   void update_fail() throws Exception {
     // given
     UUID loginId = UUID.randomUUID();
-    given(userRepository.findById(loginId))
-        .willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
+    User user = new User("test@example.com", "test", "test1234!");
+    given(userRepository.findById(loginId)).willReturn(Optional.of(user));
+    ReflectionTestUtils.setField(user, "id", loginId);
+
     UserUpdateRequest request = new UserUpdateRequest("u");
     // when
     // then
@@ -173,7 +181,7 @@ class UserControllerTest {
         .perform(
             patch("/api/users/{userId}", loginId)
                 .sessionAttr("userId", loginId)
-                .header("Deokhugam-Request-User-Id", loginId)
+                .header("Deokhugam-Request-User-ID", loginId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
@@ -186,8 +194,10 @@ class UserControllerTest {
     // given
     UUID targetId = UUID.randomUUID(); // 타겟(다른 사람)
     UUID loginId = UUID.randomUUID();
+    User user = new User("test@example.com", "test", "test1234!");
+    ReflectionTestUtils.setField(user, "id", loginId);
     given(userRepository.findById(loginId))
-        .willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
+        .willReturn(Optional.of(user));
 
     UserUpdateRequest request = new UserUpdateRequest("newName");
 
@@ -197,7 +207,7 @@ class UserControllerTest {
         .perform(
             patch("/api/users/{userId}", targetId)
                 .sessionAttr("userId", loginId)
-                .header("Deokhugam-Request-User-Id", loginId)
+                .header("Deokhugam-Request-User-ID", loginId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isForbidden())
@@ -228,8 +238,11 @@ class UserControllerTest {
     // given
     UUID targetId = UUID.randomUUID(); // 타겟(다른 사람)
     UUID loginId = UUID.randomUUID();
-    given(userRepository.findById(loginId))
-        .willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
+    User user = new User("test@example.com", "test", "test1234!");
+    given(userRepository.findById(loginId)).willReturn(Optional.of(user));
+
+    ReflectionTestUtils.setField(user, "id", loginId);
+
 
     // when
     // then
@@ -237,7 +250,7 @@ class UserControllerTest {
         .perform(
             delete("/api/users/{userId}", targetId)
                 .sessionAttr("userId", loginId)
-                .header("Deokhugam-Request-User-Id", loginId)
+                .header("Deokhugam-Request-User-ID", loginId)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.details").value(""))
@@ -260,8 +273,10 @@ class UserControllerTest {
     // given
     UUID targetId = UUID.randomUUID(); // 타겟(다른 사람)
     UUID loginId = UUID.randomUUID();
-    given(userRepository.findById(loginId))
-        .willReturn(Optional.of(new User("test@example.com", "test", "test1234!")));
+    User user = new User("test@example.com", "test", "test1234!");
+    given(userRepository.findById(loginId)).willReturn(Optional.of(user));
+    ReflectionTestUtils.setField(user, "id", loginId);
+
 
     // when
     // then
@@ -269,7 +284,7 @@ class UserControllerTest {
         .perform(
             delete("/api/users/{userId}/hard", targetId)
                 .sessionAttr("userId", loginId)
-                .header("Deokhugam-Request-User-Id", loginId)
+                .header("Deokhugam-Request-User-ID", loginId)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.details").value(""))

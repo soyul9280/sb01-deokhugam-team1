@@ -2,7 +2,10 @@ package com.codeit.duckhu.domain.user.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -27,10 +30,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,6 +49,7 @@ class UserServiceImplTest {
   @Mock private UserMapper userMapper;
   @Mock private PowerUserMapper powerUserMapper;
   @Mock private PowerUserRepository powerUserRepository;
+  @Mock private MeterRegistry meterRegistry;
 
   @InjectMocks private UserServiceImpl sut;
 
@@ -332,6 +340,12 @@ class UserServiceImplTest {
 
       given(powerUserRepository.findPowerUserStatsBetween(any(), any())).willReturn(stats);
       given(userRepository.findAllById(any())).willReturn(List.of(mockUser));
+      Counter mockCounter = mock(Counter.class);
+
+      given(meterRegistry.counter(eq("batch.user.powerUser.success"),
+              eq("period"),
+              eq("DAILY")))
+              .willReturn(mockCounter);
 
       // when
       sut.savePowerUser(period);

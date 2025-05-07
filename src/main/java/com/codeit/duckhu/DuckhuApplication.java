@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableBatchProcessing
+//@EnableBatchProcessing
 public class DuckhuApplication {
 
   public static void main(String[] args) {

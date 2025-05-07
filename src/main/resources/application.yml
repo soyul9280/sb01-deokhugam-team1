@@ -42,6 +42,8 @@ springdoc:
 logging:
   level:
     root: INFO
+  file:
+    path: ${LOGGING_FILE_PATH:logs}
 
 management:
   endpoints:

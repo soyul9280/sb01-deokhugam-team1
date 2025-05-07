@@ -26,10 +26,8 @@ public class PowerUserBatchScheduler {
     try {
       log.info("{} {} 파워 유저를 갱신합니다.", logPrefix, period);
       userService.savePowerUser(period);
-      meterRegistry.counter("batch.powerUser.success", "period", period.name()).increment();
     } catch (Exception e) {
-      log.warn("{} {} 파워 유저 갱신 중 오류 발생 {}", logPrefix, period, e.getMessage());
-      meterRegistry.counter("batch.powerUser.failure", "period", period.name()).increment();
+      log.debug("{} {} 파워 유저 갱신 중 오류 발생 {}", logPrefix, period, e.getMessage());
     }
   }
 }

@@ -28,6 +28,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,10 +44,15 @@ public class UserServiceImpl implements UserService {
   private final PowerUserRepository powerUserRepository;
   private final UserMapper userMapper;
   private final PowerUserMapper powerUserMapper;
+  private final MeterRegistry meterRegistry;
+
 
   @Override
   public UserDto create(UserRegisterRequest request) {
+    log.info("[사용자 등록 요청] 이메일: {}", request.getEmail());
+
     if (userRepository.existsByEmail(request.getEmail())) {
+      log.debug("[사용자 등록 실패] 이메일 중복 : {}", request.getEmail());
       throw new EmailDuplicateException(request.getEmail());
     }
 
@@ -60,6 +67,8 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional(readOnly = true)
   public UserDto login(UserLoginRequest userLoginRequest) {
+    log.info("[사용자 로그인 요청] 이메일: {}", userLoginRequest.getEmail());
+
     String email = userLoginRequest.getEmail();
     String password = userLoginRequest.getPassword();
     User user =
@@ -67,11 +76,11 @@ public class UserServiceImpl implements UserService {
             .findByEmail(email)
             .orElseGet(
                 () -> {
-                  log.info("[로그인 실패] 존재하지 않는 이메일: {}", email);
+                  log.debug("[로그인 실패] 존재하지 않는 이메일: {}", email);
                   throw new UserException(ErrorCode.LOGIN_INPUT_INVALID);
                 });
     if (!user.getPassword().equals(password)) {
-      log.info("[로그인 실패] 일치하지 않는 비밀번호: {}", password);
+      log.debug("[로그인 실패] 일치하지 않는 비밀번호: {}", password);
       throw new UserException(ErrorCode.LOGIN_INPUT_INVALID);
     }
     log.info("[로그인 완료] 사용자 ID: {}, 이메일: {}", user.getId(), email);
@@ -81,37 +90,43 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional(readOnly = true)
   public UserDto findById(UUID id) {
+    log.info("[사용자 조회 요청] id: {}", id);
+
     User user =
         userRepository
             .findById(id)
             .orElseGet(
                 () -> {
-                  log.info("[사용자 조회 실패] id: {}", id);
+                  log.debug("[사용자 조회 실패] id: {}", id);
                   throw new UserException(ErrorCode.NOT_FOUND_USER);
                 });
     if (user.isDeleted()) {
-      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
+      log.debug("[사용자 조회 실패] 논리 삭제된 id: {}", id);
       throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
+    log.info("[사용자 조회 완료] id: {}", id);
     return userMapper.toDto(user);
   }
 
   @Override
   public UserDto update(UUID id, UserUpdateRequest userUpdateRequest) {
+    log.info("[사용자 수정 요청] id: {}", id);
     User user =
         userRepository
             .findById(id)
             .orElseGet(
                 () -> {
-                  log.info("[사용자 조회 실패] id: {}", id);
+                  log.debug("[사용자 조회 실패] 존재하지 않는 id: {}", id);
                   throw new UserException(ErrorCode.NOT_FOUND_USER);
                 });
 
     if (user.isDeleted()) {
-      log.info("[사용자 조회 실패] 논리 삭제된 id: {}", id);
+      log.debug("[사용자 조회 실패] 논리 삭제된 id: {}", id);
       throw new UserException(ErrorCode.NOT_FOUND_USER);
     }
+    log.info("[사용자 수정 중] id: {}, 수정 전 닉네임: {}" ,id, user.getNickname());
     user.update(userUpdateRequest);
+    log.info("[사용자 수정 완료] id: {}, 수정 후 닉네임: {}", id, user.getNickname());
     return userMapper.toDto(user);
   }
 
@@ -121,7 +136,7 @@ public class UserServiceImpl implements UserService {
             .findById(id)
             .orElseGet(
                 () -> {
-                  log.info("[사용자 조회 실패] id: {}", id);
+                  log.info("[사용자 조회 실패] 존재하지 않는 id: {}", id);
                   throw new UserException(ErrorCode.NOT_FOUND_USER);
                 });
 
@@ -135,12 +150,14 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void softDelete(UUID id) {
+    log.info("[사용자 논리 삭제 요청] id: {}", id);
+
     User user =
         userRepository
             .findById(id)
             .orElseGet(
                 () -> {
-                  log.info("[사용자 조회 실패] id: {}", id);
+                  log.debug("[사용자 조회 실패] 존재하지 않는 id: {}", id);
                   throw new UserException(ErrorCode.NOT_FOUND_USER);
                 });
 
@@ -150,17 +167,19 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void hardDelete(UUID id) {
+    log.info("[사용자 물리 삭제 요청] id: {}", id);
+
     User user =
         userRepository
             .findById(id)
             .orElseGet(
                 () -> {
-                  log.info("[사용자 조회 실패] id: {}", id);
+                  log.debug("[사용자 조회 실패] id: {}", id);
                   throw new UserException(ErrorCode.NOT_FOUND_USER);
                 });
 
     userRepository.deleteById(user.getId());
-    log.warn("[사용자 물리 삭제 완료] id: {}", id); // 정상적이지만 주의가 필요한 행동(복구 불가능한 행위)이니까 warn
+    log.debug("[사용자 물리 삭제 완료] id: {}", id);
   }
 
   @Override
@@ -226,9 +245,12 @@ public class UserServiceImpl implements UserService {
       // PowerUser에 저장
       powerUserRepository.saveAll(powerUsers);
       log.info("[PowerUser 저장 완료] 대상 수: {}, period={}", powerUsers.size(), period);
+
+      meterRegistry.counter("batch.user.powerUser.success", "period", period.name()).increment();
     } catch (Exception e) {
-      log.warn(
-          "[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage()); // 배치작업 오류 그냥 넘어가면 안되니까
+      log.warn("[Batch 오류] period = {} 처리 중 오류 발생 : {}", period, e.getMessage()); // 배치작업 오류 그냥 넘어가면 안되니까
+
+      meterRegistry.counter("batch.user.powerUser.failure", "period", period.name()).increment();
     }
   }
 
@@ -236,12 +258,15 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   public CursorPageResponsePowerUserDto findPowerUsers(
       PeriodType period, Direction direction, String cursor, Instant after, int limit) {
+    log.info("[파워유저 목록 조회] period: {}, direction: {}, limit: {}", period, direction, limit);
 
     List<PowerUser> powerUsers =
         powerUserRepository.searchByPeriodWithCursorPaging(
             period, direction, cursor, after, limit + 1);
 
     boolean hasNext = powerUsers.size() > limit;
+    log.debug("[쿼리 실행 결과] 전체 개수: {}, hasNext: {}", powerUsers.size(), hasNext);
+
 
     // 저장된 PowerUser 커서페이지로 갖고오기
     List<PowerUser> pageContent = hasNext ? powerUsers.subList(0, limit) : powerUsers;
@@ -254,6 +279,9 @@ public class UserServiceImpl implements UserService {
       nextCursor = last.getUser().getId().toString();
       nextAfter = last.getCreatedAt();
     }
+
+    log.debug("[응답 변환] 변환된 powerUserDto 개수: {}", list.size());
+
 
     return CursorPageResponsePowerUserDto.builder()
         .content(list)

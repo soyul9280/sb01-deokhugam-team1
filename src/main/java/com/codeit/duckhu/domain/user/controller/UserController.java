@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController implements UserApi {
 
   private final UserService userService;
@@ -41,6 +43,7 @@ public class UserController implements UserApi {
   @PostMapping
   public ResponseEntity<UserDto> create(
       HttpServletRequest request, @Valid @RequestBody UserRegisterRequest userRegisterRequest) {
+    log.info("API 호출: POST /api/users 이메일: {}, 닉네임: {}", userRegisterRequest.getEmail(), userRegisterRequest.getNickname());
     UserDto result = userService.create(userRegisterRequest);
     request.getSession(true).setAttribute("userId", result.getId());
     return ResponseEntity.status(HttpStatus.CREATED)
@@ -52,6 +55,8 @@ public class UserController implements UserApi {
   @PostMapping("/login")
   public ResponseEntity<UserDto> login(
       HttpServletRequest request, @Valid @RequestBody UserLoginRequest userLoginRequest) {
+    log.info("API 호출: POST /api/users/login 이메일: {}", userLoginRequest.getEmail());
+
     UserDto result = userService.login(userLoginRequest);
     request.getSession(true).setAttribute("userId", result.getId());
     return ResponseEntity.ok()
@@ -62,6 +67,8 @@ public class UserController implements UserApi {
   @Override
   @GetMapping("/{userId}")
   public ResponseEntity<UserDto> findById(@PathVariable UUID userId) {
+    log.info("API 호출: GET /api/users/{userId} id: {}", userId);
+
     UserDto result = userService.findById(userId);
     return ResponseEntity.status(HttpStatus.OK)
         .header("Deokhugam-Request-User-Id", result.getId().toString())
@@ -74,8 +81,11 @@ public class UserController implements UserApi {
       HttpServletRequest request,
       @PathVariable("userId") UUID targetId,
       @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
+    log.info("API 호출: PATCH /api/users/{userId} id: {}", targetId);
+
     User authenticatedUser = (User) request.getAttribute("authenticatedUser");
-    if (!targetId.equals(authenticatedUser.getId())) { // 로그인은 했지만 권한이 없을때 403 던지기
+    if (!targetId.equals(authenticatedUser.getId())) {
+      log.warn("비인증 사용자, 사용자 수정 시도 차단");
       throw new UserException(ErrorCode.UNAUTHORIZED_UPDATE);
     }
     UserDto result = userService.update(targetId, userUpdateRequest);
@@ -86,8 +96,11 @@ public class UserController implements UserApi {
   @DeleteMapping("/{userId}")
   public ResponseEntity<Void> softDelete(
       HttpServletRequest request, @PathVariable("userId") UUID targetId) {
+    log.info("API 호출: DELETE /api/users/{userId} id: {}", targetId);
+
     User authenticatedUser = (User) request.getAttribute("authenticatedUser");
-    if (!targetId.equals(authenticatedUser.getId())) { // 로그인은 했지만 권한이 없을때 403 던지기
+    if (!targetId.equals(authenticatedUser.getId())) {
+      log.warn("비인증 사용자, 사용자 논리 삭제 시도 차단");
       throw new UserException(ErrorCode.UNAUTHORIZED_DELETE);
     }
     userService.softDelete(targetId);
@@ -98,8 +111,11 @@ public class UserController implements UserApi {
   @DeleteMapping("/{userId}/hard")
   public ResponseEntity<Void> hardDelete(
       HttpServletRequest request, @PathVariable("userId") UUID targetId) {
+    log.info("API 호출: DELETE /api/users/{userId}/hard id: {}", targetId);
+
     User authenticatedUser = (User) request.getAttribute("authenticatedUser");
-    if (!targetId.equals(authenticatedUser.getId())) { // 로그인은 했지만 권한이 없을때 403 던지기
+    if (!targetId.equals(authenticatedUser.getId())) {
+      log.warn("비인증 사용자, 사용자 물리 삭제 시도 차단");
       throw new UserException(ErrorCode.UNAUTHORIZED_DELETE);
     }
     userService.hardDelete(targetId);
@@ -115,8 +131,14 @@ public class UserController implements UserApi {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant after,
       @RequestParam(defaultValue = "50") int limit) {
+    log.info("API 호출: GET /api/users/power, direction= {}, cursor= {}, limit= {}", direction, cursor, limit);
     CursorPageResponsePowerUserDto result =
         userService.findPowerUsers(period, direction, cursor, after, limit);
+
+    log.info(
+            "API 응답 준비 완료: returnedCount={}, hasNext={}",
+            result.getContent().size(),
+            result.isHasNext());
     return ResponseEntity.status(HttpStatus.OK).body(result);
   }
 }

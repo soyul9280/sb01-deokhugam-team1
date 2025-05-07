@@ -354,4 +354,33 @@ class UserServiceImplTest {
       verify(powerUserRepository, times(1)).saveAll(any());
     }
   }
+
+  @Nested
+  @DisplayName("findByIdEntityReturn")
+  class FindByIdEntityTest {
+
+    @Test
+    @DisplayName("Entity리턴 성공")
+    void findEntity_success() {
+      UUID id = UUID.randomUUID();
+      User user = new User("test@example.com", "nick", "pw");
+      given(userRepository.findById(id)).willReturn(Optional.of(user));
+
+      User result = sut.findByIdEntityReturn(id);
+
+      assertThat(result).isEqualTo(user);
+      verify(userRepository, times(1)).findById(id);
+    }
+
+    @Test
+    @DisplayName("Entity리턴 실패 - 존재하지 않는 id")
+    void findEntity_fail() {
+      UUID id = UUID.randomUUID();
+      given(userRepository.findById(id)).willReturn(Optional.empty());
+
+      assertThatThrownBy(() -> sut.findByIdEntityReturn(id))
+              .isInstanceOf(UserException.class)
+              .hasMessage("해당 유저가 존재하지 않습니다.");
+    }
+  }
 }

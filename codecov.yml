@@ -1,0 +1,3 @@
+comment:
+  layout: "flags, tree, files, diff"
+  hide_project_coverage: false

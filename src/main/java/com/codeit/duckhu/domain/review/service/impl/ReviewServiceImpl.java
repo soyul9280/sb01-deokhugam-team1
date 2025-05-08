@@ -397,7 +397,7 @@ public class ReviewServiceImpl implements ReviewService {
     long totalElements = popularRepository.countByPeriodSince(period, from);
 
     log.info(
-        "인기 리뷰 조회 안료 - 기간 : {}, 결과 수 : {}, 총 개수: {}",
+        "인기 리뷰 조회 완료 - 기간 : {}, 결과 수 : {}, 총 개수: {}",
         period,
         responseReviews.size(),
         totalElements);

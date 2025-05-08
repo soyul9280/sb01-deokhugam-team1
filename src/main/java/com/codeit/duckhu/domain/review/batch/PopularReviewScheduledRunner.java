@@ -16,7 +16,7 @@ public class PopularReviewScheduledRunner {
   private final JobLauncher jobLauncher;
   private final Job popularReviewJob;
 
-  @Scheduled(cron = "0 40 16 * * ?", zone = "Asia/Seoul")
+  @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Seoul")
   public void runPopularReviewJobForAllPeriods() {
     long totalStart = System.currentTimeMillis();
     log.info("전체 배치 시작");

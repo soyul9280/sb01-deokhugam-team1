@@ -121,7 +121,7 @@ class CommentRepositoryTest {
   }
 
   @Test
-  void searchAll_whenAfterAndCursorIdAreNull_returnsAll() {
+  void searchAll_afterAndCursorIdAreNull_returnsAll() {
     commentRepository.save(comment);
 
     Slice<Comment> slice = commentRepository.searchAll(
@@ -132,7 +132,7 @@ class CommentRepositoryTest {
   }
 
   @Test
-  void searchAll_withDirectionDESC() {
+  void searchAll_DESC() {
     commentRepository.save(comment);
 
     Slice<Comment> slice = commentRepository.searchAll(
@@ -143,7 +143,7 @@ class CommentRepositoryTest {
   }
 
   @Test
-  void searchAll_withDirectionASC() {
+  void searchAll_ASC() {
     commentRepository.save(comment);
 
     Slice<Comment> slice = commentRepository.searchAll(

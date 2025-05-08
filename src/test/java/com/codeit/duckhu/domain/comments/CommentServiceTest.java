@@ -270,7 +270,7 @@ class CommentServiceTest {
   }
 
   @Test
-  void getList_shouldExcludeDeletedComments() {
+  void getList_excludeDeletedComments() {
     UUID reviewId = UUID.randomUUID();
     Comment deletedComment = mock(Comment.class);
 
@@ -290,7 +290,7 @@ class CommentServiceTest {
   }
 
   @Test
-  void create_shouldHandleNotificationExceptionGracefully() {
+  void create_notificationException() {
     CommentCreateRequest request = new CommentCreateRequest();
     request.setUserId(UUID.randomUUID());
     request.setReviewId(UUID.randomUUID());
@@ -312,7 +312,7 @@ class CommentServiceTest {
   }
 
   @Test
-  void deleteSoft_alreadyDeletedComment_shouldNotDecreaseCount() {
+  void deleteSoft_alreadyDeletedComment() {
     UUID commentId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
     Comment comment = mock(Comment.class);

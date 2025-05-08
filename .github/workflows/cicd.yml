@@ -29,8 +29,6 @@ jobs:
           files: build/reports/jacoco/test/jacocoTestReport.xml
           flags: unittests
           fail_ci_if_error: false
-          comment: true
-          comment_type: 'flags,tree,files,diff'
 
       - name: 테스트 완료 알림
         run: echo "::notice::테스트 및 커버리지 리포트 생성이 완료되었습니다."

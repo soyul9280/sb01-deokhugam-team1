@@ -124,8 +124,7 @@ clean {
     delete file('src/main/generated')
 }
 
-tasks.named('jacocoTestReport', JacocoReport).configure { report ->
-    dependsOn test
+tasks.named('jacocoTestReport', JacocoReport).configure { report -> dependsOn test
 
     reports {
         xml.required.set(true)

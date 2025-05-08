@@ -26,17 +26,31 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @Slf4j
 @DataJpaTest
 @ActiveProfiles("test")
+@Sql(scripts = "classpath:notifications.sql",
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Import({TestJpaConfig.class, NotificationRepositoryImpl.class})
 public class NotificationRepositoryTest {
 
   @Autowired private NotificationRepository notificationRepository;
 
   @PersistenceContext private EntityManager em;
+
+  private UUID seededBookId;
+  private UUID seededUserId;
+  private UUID seededReviewId;
+
+  @BeforeEach
+  void initSeedIds() {
+    seededBookId   = UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc");
+    seededUserId   = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    seededReviewId = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+  }
 
   @Nested
   @DisplayName("알림 저장")
@@ -98,25 +112,33 @@ public class NotificationRepositoryTest {
   @DisplayName("알림 조회")
   class FindNotificationTest {
 
+    @BeforeEach
+    void clearNotifications() {
+      notificationRepository.deleteAll();
+      em.flush();
+      em.clear();
+    }
+
     @Test
     @DisplayName("사용자의 모든 알림을 조회한다")
     void findAllByReceiverId() {
-      // Given
-      UUID receiverId = UUID.randomUUID();
+      // 이제 seeded 알림은 지워졌으니, 아래 n1,n2,n3 만 DB에 남습니다.
+      UUID receiverId = seededUserId;
       String reviewTitle = "~책에 대한 리뷰";
-      Notification n1 = Notification.forLike(UUID.randomUUID(), receiverId, "buzz", reviewTitle);
-      Notification n2 =
-          Notification.forComment(UUID.randomUUID(), receiverId, "buzz", "댓글", reviewTitle);
-      Notification n3 =
-          Notification.forLike(UUID.randomUUID(), UUID.randomUUID(), "buzz", reviewTitle); // 다른 수신자
+
+      Notification n1 = Notification.forLike(seededReviewId, receiverId, "buzz", reviewTitle);
+      Notification n2 = Notification.forComment(seededReviewId, receiverId, "buzz", "댓글", reviewTitle);
+      Notification n3 = Notification.forLike(seededReviewId, null,      "buzz", reviewTitle);
 
       notificationRepository.saveAll(List.of(n1, n2, n3));
+      em.flush();
+      em.clear();
 
-      // When
       List<Notification> result = notificationRepository.findAllByReceiverId(receiverId);
 
-      // Then
-      assertThat(result).hasSize(2).allMatch(n -> n.getReceiverId().equals(receiverId));
+      assertThat(result)
+          .hasSize(2)
+          .allMatch(n -> n.getReceiverId().equals(receiverId));
     }
   }
 
@@ -124,53 +146,61 @@ public class NotificationRepositoryTest {
   @DisplayName("알림 삭제")
   class DeleteNotificationTest {
 
+    @BeforeEach
+    void clearNotifications() {
+      notificationRepository.deleteAll();
+      em.flush();
+      em.clear();
+    }
+
     @Test
     @Transactional
     @DisplayName("1주일이 지난 확인된 알림은 삭제된다")
     void deleteOldConfirmedNotifications() {
-      // given: 알림 3개 생성 (1개는 8일 전, 나머지는 최근 생성 or 미확인 상태)
-      UUID receiverId = UUID.randomUUID();
+      // Given
+      UUID receiverId = seededUserId;
       String nickname = "buzz";
       String reviewTitle = "테스트 리뷰 제목";
-
-      Notification oldConfirmed =
-          Notification.forLike(UUID.randomUUID(), receiverId, nickname, reviewTitle);
-      oldConfirmed.markAsConfirmed();
-
       Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
 
-      // oldConfirmed의 updatedAt을 cutoff보다 확실히 과거로 설정
-      ReflectionTestUtils.setField(oldConfirmed, "updatedAt", cutoff.minus(1, ChronoUnit.DAYS));
+      Notification oldConfirmed = Notification.forLike(
+          seededReviewId, receiverId, nickname, reviewTitle);
+      oldConfirmed.markAsConfirmed();
+      // DB 반영 전 updatedAt 조작
+      ReflectionTestUtils.setField(oldConfirmed,
+          "updatedAt", cutoff.minus(1, ChronoUnit.DAYS));
 
-      Notification recentConfirmed =
-          Notification.forLike(UUID.randomUUID(), receiverId, nickname, reviewTitle);
+      Notification recentConfirmed = Notification.forLike(
+          seededReviewId, receiverId, nickname, reviewTitle);
       recentConfirmed.markAsConfirmed();
-      ReflectionTestUtils.setField(recentConfirmed, "updatedAt", Instant.now());
+      ReflectionTestUtils.setField(recentConfirmed,
+          "updatedAt", Instant.now());
 
-      Notification unconfirmed =
-          Notification.forLike(UUID.randomUUID(), receiverId, nickname, reviewTitle);
+      Notification unconfirmed = Notification.forLike(
+          seededReviewId, receiverId, nickname, reviewTitle);
 
-      notificationRepository.saveAll(List.of(oldConfirmed, recentConfirmed, unconfirmed));
+      notificationRepository.saveAll(
+          List.of(oldConfirmed, recentConfirmed, unconfirmed));
       notificationRepository.flush();
 
-      // 수동으로 oldConfirmed의 updatedAt을 DB에 반영
-      em.createQuery("UPDATE Notification n SET n.updatedAt = :updatedAt WHERE n.id = :id")
+      // 실제 DB에도 업데이트 타임 반영
+      em.createQuery(
+              "UPDATE Notification n SET n.updatedAt = :updatedAt WHERE n.id = :id")
           .setParameter("updatedAt", cutoff.minus(1, ChronoUnit.DAYS))
           .setParameter("id", oldConfirmed.getId())
           .executeUpdate();
 
-      // 영속성 컨텍스트 초기화 (캐시 무효화)
       em.clear();
 
-      // when
+      // When
       notificationRepository.deleteOldConfirmedNotifications(cutoff);
 
-      // then
+      // Then
       List<Notification> remaining = notificationRepository.findAll();
-      List<UUID> remainingIds = remaining.stream().map(Notification::getId).toList();
-      List<UUID> expectedIds = List.of(recentConfirmed.getId(), unconfirmed.getId());
-
-      assertThat(remainingIds).containsExactlyInAnyOrderElementsOf(expectedIds);
+      List<UUID> remainingIds = remaining.stream()
+          .map(Notification::getId).toList();
+      assertThat(remainingIds).containsExactlyInAnyOrder(
+          recentConfirmed.getId(), unconfirmed.getId());
     }
   }
 
@@ -182,25 +212,29 @@ public class NotificationRepositoryTest {
     @Transactional
     @DisplayName("모든 미확인 알림이 confirmed=true 로 업데이트된다")
     void bulkMarkAsConfirmed() {
-      // given
-      UUID receiverId = UUID.randomUUID();
+      // Given
+      UUID receiverId = seededUserId;
       Instant now = Instant.now();
 
-      Notification n1 = Notification.forLike(UUID.randomUUID(), receiverId, "buzz", "타이틀");
-      Notification n2 = Notification.forComment(UUID.randomUUID(), receiverId, "buzz", "댓글", "타이틀");
-      // 모두 unconfirmed 상태로 저장
+      Notification n1 = Notification.forLike(
+          seededReviewId, receiverId, "buzz", "타이틀");
+      Notification n2 = Notification.forComment(
+          seededReviewId, receiverId, "buzz", "댓글", "타이틀");
+
       notificationRepository.saveAll(List.of(n1, n2));
       em.flush();
       em.clear();
 
-      // when
+      // When
       notificationRepository.bulkMarkAsConfirmed(receiverId, now);
       em.flush();
       em.clear();
 
-      // then
-      List<Notification> updated = notificationRepository.findAllByReceiverId(receiverId);
-      assertThat(updated).allMatch(n -> n.isConfirmed() && n.getUpdatedAt().equals(now));
+      // Then
+      List<Notification> updated =
+          notificationRepository.findAllByReceiverId(receiverId);
+      assertThat(updated)
+          .allMatch(n -> n.isConfirmed() && n.getUpdatedAt().equals(now));
     }
   }
 
@@ -213,19 +247,18 @@ public class NotificationRepositoryTest {
 
     @BeforeEach
     void setUp() {
-      receiverId = UUID.randomUUID();
-      // createdAt 순서대로 5개 생성
-      all =
-          IntStream.range(0, 5)
-              .mapToObj(
-                  i -> {
-                    Notification n =
-                        Notification.forLike(UUID.randomUUID(), receiverId, "buzz", "타이틀");
-                    ReflectionTestUtils.setField(
-                        n, "createdAt", Instant.now().minus(i, ChronoUnit.MINUTES));
-                    return n;
-                  })
-              .collect(Collectors.toList());
+      // 항상 같은 seededUserId, seededReviewId 사용
+      receiverId = seededUserId;
+      all = IntStream.range(0, 5)
+          .mapToObj(i -> {
+            Notification n = Notification.forLike(
+                seededReviewId, receiverId, "buzz", "타이틀");
+            ReflectionTestUtils.setField(
+                n, "createdAt", Instant.now().minus(i, ChronoUnit.MINUTES));
+            return n;
+          })
+          .collect(Collectors.toList());
+
       notificationRepository.saveAll(all);
       em.flush();
       em.clear();
@@ -234,46 +267,59 @@ public class NotificationRepositoryTest {
     @Test
     @DisplayName("DESC 커서 없을 때 페이지 크기만큼 조회")
     void findDescNoCursor() {
-      Pageable page = PageRequest.of(0, 2, Sort.by("createdAt").descending());
-      List<Notification> page1 = notificationRepository.findDescNoCursor(receiverId, page);
+      Pageable page = PageRequest.of(0, 2,
+          Sort.by("createdAt").descending());
+      List<Notification> page1 =
+          notificationRepository.findDescNoCursor(receiverId, page);
 
       assertThat(page1)
           .hasSize(2)
-          .isSortedAccordingTo((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+          .isSortedAccordingTo(
+              (a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
     }
 
     @Test
     @DisplayName("DESC 커서 있을 때 이후 조회")
     void findDescWithCursor() {
-      Pageable page = PageRequest.of(0, 2, Sort.by("createdAt").descending());
-      List<Notification> page1 = notificationRepository.findDescNoCursor(receiverId, page);
+      Pageable page = PageRequest.of(0, 2,
+          Sort.by("createdAt").descending());
+      List<Notification> page1 =
+          notificationRepository.findDescNoCursor(receiverId, page);
       Instant cursor = page1.get(1).getCreatedAt();
 
       List<Notification> page2 =
           notificationRepository.findDescWithCursor(receiverId, cursor, page);
-      assertThat(page2).allMatch(n -> n.getCreatedAt().isBefore(cursor));
+      assertThat(page2)
+          .allMatch(n -> n.getCreatedAt().isBefore(cursor));
     }
 
     @Test
     @DisplayName("ASC 커서 없을 때 페이지 크기만큼 조회")
     void findAscNoCursor() {
-      Pageable page = PageRequest.of(0, 2, Sort.by("createdAt").ascending());
-      List<Notification> page1 = notificationRepository.findAscNoCursor(receiverId, page);
+      Pageable page = PageRequest.of(0, 2,
+          Sort.by("createdAt").ascending());
+      List<Notification> page1 =
+          notificationRepository.findAscNoCursor(receiverId, page);
 
       assertThat(page1)
           .hasSize(2)
-          .isSortedAccordingTo(Comparator.comparing(Notification::getCreatedAt));
+          .isSortedAccordingTo(
+              Comparator.comparing(Notification::getCreatedAt));
     }
 
     @Test
     @DisplayName("ASC 커서 있을 때 이후 조회")
     void findAscWithCursor() {
-      Pageable page = PageRequest.of(0, 2, Sort.by("createdAt").ascending());
-      List<Notification> page1 = notificationRepository.findAscNoCursor(receiverId, page);
+      Pageable page = PageRequest.of(0, 2,
+          Sort.by("createdAt").ascending());
+      List<Notification> page1 =
+          notificationRepository.findAscNoCursor(receiverId, page);
       Instant cursor = page1.get(1).getCreatedAt();
 
-      List<Notification> page2 = notificationRepository.findAscWithCursor(receiverId, cursor, page);
-      assertThat(page2).allMatch(n -> n.getCreatedAt().isAfter(cursor));
+      List<Notification> page2 =
+          notificationRepository.findAscWithCursor(receiverId, cursor, page);
+      assertThat(page2)
+          .allMatch(n -> n.getCreatedAt().isAfter(cursor));
     }
   }
 }

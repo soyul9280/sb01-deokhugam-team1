@@ -39,16 +39,17 @@
   private final MeterRegistry meterRegistry;
 
   /** 매일 새벽 12시에 실행 */
-  @Scheduled(cron = "0 0 0 * * ?")
+  @Scheduled(cron = "0 47 12 * * ?", zone = "Asia/Seoul")
   @Transactional
   public void calculatePopularReviews() {
-    log.info("인기 리뷰 점수 계산 및 랭킹 업데이트");
+    log.info("인기 리뷰 점수 계산 및 랭킹 업데이트 시작");
     Instant now = Instant.now();
 
     for (PeriodType period : PeriodType.values()) {
       // ALL_TIME은 startTime을 null로 설정하여 전체 기간을 대상으로 합니다.
       Instant startTime = period.toStartInstant(now);
       log.info("{} 기간 인기 리뷰 계산 시작 (시작 시간: {})", period, startTime);
+      long periodStart = System.currentTimeMillis();
 
       try {
         // DB에서 기간 내 활동(좋아요, 댓글)이 있는 리뷰 데이터 조회
@@ -94,9 +95,9 @@
           meterRegistry.counter("batch.powerReview.complete", "period",
  period.name()).increment();
 
-          log.info("{} 기간 메트릭 기록 - 완료: {}, 처리 리뷰 수: {}", 
-              period, 
-              true, 
+          log.info("{} 기간 메트릭 기록 - 완료: {}, 처리 리뷰 수: {}",
+              period,
+              true,
               popularReviewsToSave.size());
         } else {
           log.info("{} 기간 처리 대상 리뷰 없음", period);
@@ -110,6 +111,9 @@
 
         meterRegistry.counter("batch.powerReview.failure", "period", period.name()).increment();
       }
+      long periodEnd = System.currentTimeMillis(); // 끝나는 시간
+      long periodDuration = periodEnd - periodStart;
+      log.info("✅ {} 기간 인기 리뷰 배치 종료 - 소요 시간: {} ms", period, periodDuration);
     }
     log.info("인기 리뷰 업데이트 완료");
   }

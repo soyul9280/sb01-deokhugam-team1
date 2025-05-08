@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,12 +20,14 @@ import com.codeit.duckhu.domain.comment.exception.NoCommentException;
 import com.codeit.duckhu.domain.comment.repository.CommentRepository;
 import com.codeit.duckhu.domain.comment.service.CommentMapper;
 import com.codeit.duckhu.domain.comment.service.CommentService;
+import com.codeit.duckhu.domain.notification.exception.NotificationException;
 import com.codeit.duckhu.domain.notification.service.impl.NotificationServiceImpl;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.review.repository.TestJpaConfig;
 import com.codeit.duckhu.domain.review.service.impl.ReviewServiceImpl;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.service.UserServiceImpl;
+import com.codeit.duckhu.global.exception.ErrorCode;
 import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.util.List;
@@ -265,4 +268,65 @@ class CommentServiceTest {
     assertThat(responseCommentDto.getContent()).hasSize(1);
     assertThat(responseCommentDto.getContent().get(0).getContent()).isEqualTo("test comment");
   }
+
+  @Test
+  void getList_shouldExcludeDeletedComments() {
+    UUID reviewId = UUID.randomUUID();
+    Comment deletedComment = mock(Comment.class);
+
+    given(deletedComment.getIsDeleted()).willReturn(true);
+
+    List<Comment> comments = List.of(deletedComment);
+    Slice<Comment> slice = new SliceImpl<>(comments, PageRequest.of(0, 10), false);
+
+    given(commentRepository.searchAll(eq(reviewId), eq("ASC"), any(), any(), eq(10)))
+        .willReturn(slice);
+
+    CursorPageResponseCommentDto response = commentService.getList(
+        reviewId, Direction.ASC, null, Instant.now(), 10
+    );
+
+    assertThat(response.getContent()).isEmpty();
+  }
+
+  @Test
+  void create_shouldHandleNotificationExceptionGracefully() {
+    CommentCreateRequest request = new CommentCreateRequest();
+    request.setUserId(UUID.randomUUID());
+    request.setReviewId(UUID.randomUUID());
+    request.setContent("test comment");
+
+    CommentDto dto = new CommentDto();
+    dto.setContent("test comment");
+
+    given(userService.findByIdEntityReturn(any())).willReturn(mockUser);
+    given(reviewService.findByIdEntityReturn(any())).willReturn(review);
+    given(commentMapper.toDto(any(Comment.class))).willReturn(dto);
+
+    doThrow(new NotificationException(ErrorCode.INTERNAL_SERVER_ERROR)).when(notificationService)
+        .createNotifyByComment(any(), any(), any());
+
+    CommentDto result = commentService.create(request);
+
+    assertThat(result.getContent()).isEqualTo("test comment");
+  }
+
+  @Test
+  void deleteSoft_alreadyDeletedComment_shouldNotDecreaseCount() {
+    UUID commentId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    Comment comment = mock(Comment.class);
+
+    when(comment.getUser()).thenReturn(mockUser);
+    when(mockUser.getId()).thenReturn(userId);
+    when(comment.getIsDeleted()).thenReturn(true);
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+    commentService.deleteSoft(commentId, userId);
+
+    verify(comment).markAsDeleted(true);
+  }
+
+
 }

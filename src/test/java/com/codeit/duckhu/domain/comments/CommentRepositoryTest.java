@@ -119,4 +119,37 @@ class CommentRepositoryTest {
 
     assertThat(slice.getContent()).contains(saved);
   }
+
+  @Test
+  void searchAll_whenAfterAndCursorIdAreNull_returnsAll() {
+    commentRepository.save(comment);
+
+    Slice<Comment> slice = commentRepository.searchAll(
+        savedReview.getId(), "ASC", null, null, 10
+    );
+
+    assertThat(slice.getContent()).hasSize(1);
+  }
+
+  @Test
+  void searchAll_withDirectionDESC() {
+    commentRepository.save(comment);
+
+    Slice<Comment> slice = commentRepository.searchAll(
+        savedReview.getId(), "DESC", Instant.EPOCH, UUID.randomUUID(), 10
+    );
+
+    assertThat(slice).isNotNull();
+  }
+
+  @Test
+  void searchAll_withDirectionASC() {
+    commentRepository.save(comment);
+
+    Slice<Comment> slice = commentRepository.searchAll(
+        savedReview.getId(), "ASC", Instant.EPOCH, UUID.randomUUID(), 10
+    );
+
+    assertThat(slice).isNotNull();
+  }
 }

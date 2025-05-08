@@ -82,6 +82,18 @@ class CommentServiceTest {
   }
 
   @Test
+  void create_fail() {
+    CommentCreateRequest request = new CommentCreateRequest();
+    request.setUserId(null);
+    request.setReviewId(UUID.randomUUID());
+    request.setContent("test comment");
+
+    assertThrows(NullPointerException.class, () -> {
+      commentService.create(request);
+    });
+  }
+
+  @Test
   void update_success() {
     // given
     UUID commentId = UUID.randomUUID();
@@ -218,6 +230,15 @@ class CommentServiceTest {
 
     assertEquals("test comment", result.getContent());
     assertNotNull(result);
+  }
+
+  @Test
+  void get_fail() {
+    UUID commentId = UUID.randomUUID();
+
+    assertThrows(NoCommentException.class, () -> {
+      commentService.get(commentId);
+    });
   }
 
   @Test

@@ -53,7 +53,7 @@ public class Notification extends BaseUpdatableEntity {
 
   public static Notification forPopularReview(
       UUID reviewId, UUID receiverId, PeriodType period, int rank, String reviewTitle) {
-    String periodName;
+    String periodName = period.name();
     switch (period) {
       case DAILY:
         periodName = "일간";
@@ -67,8 +67,6 @@ public class Notification extends BaseUpdatableEntity {
       case ALL_TIME:
         periodName = "전체";
         break;
-      default:
-        periodName = period.name();
     }
 
     String content = String.format("나의 리뷰가 %s 인기 리뷰 %d위에 선정되었습니다.", periodName, rank);

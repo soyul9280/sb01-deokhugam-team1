@@ -167,7 +167,7 @@ public class NotificationServiceTest {
               Instant.now(),
               Instant.now());
 
-      // 두 번 save() 호출됨을 stub
+      // save는 한 번만 호출되고, 그 결과를 notification으로 리턴
       given(notificationRepository.save(any(Notification.class))).willReturn(notification);
       given(notificationMapper.toDto(notification)).willReturn(expectedDto);
 
@@ -176,10 +176,9 @@ public class NotificationServiceTest {
           notificationService.createNotifyByComment(reviewId, triggerUserId, comment);
 
       // then: 결과 및 각 mock 객체의 호출 여부 검증
-      // then: 저장은 두 번 호출
       then(reviewRepository).should().findById(reviewId);
       then(userRepository).should().findById(triggerUserId);
-      then(notificationRepository).should(times(2)).save(any(Notification.class));
+      then(notificationRepository).should(times(1)).save(any(Notification.class));
       then(notificationMapper).should(times(1)).toDto(notification);
 
       assertThat(result.reviewId()).isEqualTo(reviewId);

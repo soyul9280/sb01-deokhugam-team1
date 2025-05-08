@@ -17,8 +17,11 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -74,24 +77,41 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
                 Collectors.toMap(
                     t -> t.get(comment.user.id), t -> Math.toIntExact(t.get(1, Long.class))));
 
-    return reviewScores.stream()
-        .map(
-            tuple -> {
-              UUID userId = tuple.get(review.user.id);
-              Number scoreSum = tuple.get(1, Number.class);
-              Double reviewScoreSum = scoreSum != null ? scoreSum.doubleValue() : 0.0;
+    Set<UUID> allUserIds=new HashSet<>();
+    allUserIds.addAll(
+            reviewScores.stream()
+                    .map(t -> t.get(review.user.id))
+                    .filter(Objects::nonNull)
+                    .toList()
+    );
+    allUserIds.addAll(likedCounts.keySet());
+    allUserIds.addAll(commentCounts.keySet());
 
+    return allUserIds.stream()
+            .map(userId -> {
+              // 리뷰 점수 가져오기
+              Double reviewScoreSum = reviewScores.stream()
+                      .filter(t -> t.get(review.user.id).equals(userId))
+                      .map(t -> {
+                        Number score = t.get(1, Number.class);
+                        return score != null ? score.doubleValue() : 0.0;
+                      })
+                      .findFirst()
+                      .orElse(0.0);
+
+              // 좋아요 & 댓글 수
               Integer likeCount = likedCounts.getOrDefault(userId, 0);
-              Integer commCount = commentCounts.getOrDefault(userId, 0);
+              Integer commentCount = commentCounts.getOrDefault(userId, 0);
 
               return PowerUserStatsDto.builder()
-                  .userId(userId)
-                  .reviewScoreSum(reviewScoreSum)
-                  .likedCount(likeCount)
-                  .commentCount(commCount)
-                  .build();
+                      .userId(userId)
+                      .reviewScoreSum(reviewScoreSum)
+                      .likedCount(likeCount)
+                      .commentCount(commentCount)
+                      .build();
             })
-        .toList();
+            .toList();
+
   }
 
   @Override

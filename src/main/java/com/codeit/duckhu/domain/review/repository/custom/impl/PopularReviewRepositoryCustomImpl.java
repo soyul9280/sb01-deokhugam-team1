@@ -66,17 +66,15 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
     if (isAsc) {
       orderSpecifiers = new OrderSpecifier[] {
           review.rank.asc(), 
-          review.score.asc(),  // rank가 같은 경우 score로 정렬
+          review.score.desc(),  // rank가 같은 경우 score로 정렬
           review.createdAt.asc()
       };
-      log.debug("인기 리뷰 정렬 조건: rank ASC, score ASC, createdAt ASC");
     } else {
       orderSpecifiers = new OrderSpecifier[] {
           review.rank.desc(), 
           review.score.desc(),  // rank가 같은 경우 score로 정렬
           review.createdAt.desc()
       };
-      log.debug("인기 리뷰 정렬 조건: rank DESC, score DESC, createdAt DESC");
     }
 
     List<PopularReview> result = queryFactory

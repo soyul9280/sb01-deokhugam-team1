@@ -30,11 +30,10 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.transaction.PlatformTransactionManager;
 
-class PopularReviewBatchIntegrationTest {
+class PopularReviewBatchUnitTest {
 
   @Mock private PopularReviewRepository popularReviewRepository;
   @Mock private Review review;

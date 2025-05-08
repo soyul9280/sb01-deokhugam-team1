@@ -94,7 +94,7 @@ public class PopularReviewStepConfig {
   ) {
     RankUpdateItemReader reader = new RankUpdateItemReader(entityManagerFactory);
     reader.setPeriodParam(periodParam);
-    readedr.setParameterValues(Map.of("period", PeriodType.valueOf(periodParam)));
+    reader.setParameterValues(Map.of("period", PeriodType.valueOf(periodParam)));
     return reader;
   }
 }

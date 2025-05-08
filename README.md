@@ -1,22 +1,3 @@
-<p align="center">
-  <!-- Codecov Coverage Badge -->
-  <a href="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1">
-    <img
-      src="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1/graph/badge.svg?token=X8IVR1V9VT"
-      alt="codecov"
-    />
-  </a>
-</p>
-
-<p align="center">
-  <!-- Codecov Coverage Tree Graph -->
-  <img
-    src="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1/graphs/tree.svg?token=X8IVR1V9VT"
-    alt="Coverage Tree"
-    width="800"
-  />
-</p>
-
 #  프로젝트 소개
 
 - 책 읽는 즐거움을 공유하고, 지식과 감상을 나누는 책 덕후들의 커뮤니티 서비스
@@ -59,6 +40,15 @@
 
 
 ------
+
+## 🧪 테스트 및 커버리지
+
+| 항목              | 상태                                                                                             |
+|------------------|--------------------------------------------------------------------------------------------------|
+| **CI/CD**        | [![CI/CD](https://github.com/normaldeve/sb01-deokhugam-team1/actions/workflows/cicd.yml/badge.svg)](https://github.com/normaldeve/sb01-deokhugam-team1/actions/workflows/cicd.yml) |
+| **Test Coverage**| [![codecov](https://codecov.io/gh/sb01-deokhugam-team1/sb01-deokhugam-team1/branch/dev/graph/badge.svg)](https://codecov.io/gh/sb01-deokhugam-team1/sb01-deokhugam-team1) |
+
+---
 
 ## 📝 팀원별 구현 기능 상세
 

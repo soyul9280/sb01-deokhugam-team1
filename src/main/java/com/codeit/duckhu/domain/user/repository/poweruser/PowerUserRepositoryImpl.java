@@ -131,21 +131,19 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
   }
 
   private BooleanBuilder getCursorCondition(String cursor, Instant after, boolean isAsc) {
-    UUID cursorId = UUID.fromString(cursor);
+    int cursorRank = Integer.parseInt(cursor);
     BooleanBuilder builder = new BooleanBuilder();
 
     if (isAsc) {
       builder.and(
-          powerUser
-              .createdAt
-              .gt(after)
-              .or(powerUser.createdAt.eq(after).and(powerUser.user.id.gt(cursorId))));
+              powerUser.rank.gt(cursorRank)
+                      .or(powerUser.rank.eq(cursorRank).and(powerUser.createdAt.gt(after)))
+      );
     } else {
       builder.and(
-          powerUser
-              .createdAt
-              .lt(after)
-              .or(powerUser.createdAt.eq(after).and(powerUser.user.id.lt(cursorId))));
+              powerUser.rank.lt(cursorRank)
+                      .or(powerUser.rank.eq(cursorRank).and(powerUser.createdAt.lt(after)))
+      );
     }
 
     return builder;

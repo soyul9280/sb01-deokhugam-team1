@@ -276,7 +276,7 @@ public class UserServiceImpl implements UserService {
     Instant nextAfter = null;
     if (hasNext && !pageContent.isEmpty()) {
       PowerUser last = pageContent.get(pageContent.size() - 1);
-      nextCursor = last.getUser().getId().toString();
+      nextCursor = String.valueOf(last.getRank());
       nextAfter = last.getCreatedAt();
     }
 

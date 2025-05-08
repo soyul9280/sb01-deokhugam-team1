@@ -40,27 +40,20 @@ public class RankUpdateItemProcessor implements ItemProcessor<PopularReview, Pop
     }
     
     if (item == null) {
-      log.warn("처리할 리뷰가 없습니다.");
+      log.debug("처리할 리뷰가 없습니다.");
       return null;
     }
     
     Double score = item.getScore();
     if (score == null || score <= 0) {
       // ID를 안전하게 추출
-      UUID reviewId = null;
-      try {
-        if (item.getReview() != null) {
-          reviewId = item.getReview().getId();
-        }
-      } catch (Exception e) {
-        // 무시
-      }
+      UUID reviewId = item.getReview() != null ? item.getReview().getId() : null;
       
       if (periodParam != null) {
-        log.warn("스코어가 0 이하인 인기 리뷰가 랭킹 업데이트에 포함됨: reviewId={}, score={}, 기간={}", 
+        log.debug("스코어가 0 이하인 인기 리뷰가 랭킹 업데이트에 포함됨: reviewId={}, score={}, 기간={}",
             reviewId, score, periodParam);
       } else {
-        log.warn("스코어가 0 이하인 인기 리뷰가 랭킹 업데이트에 포함됨: reviewId={}, score={}", 
+        log.debug("스코어가 0 이하인 인기 리뷰가 랭킹 업데이트에 포함됨: reviewId={}, score={}",
             reviewId, score);
       }
       return null; // 스코어가 0 이하인 항목은 필터링
@@ -69,14 +62,7 @@ public class RankUpdateItemProcessor implements ItemProcessor<PopularReview, Pop
     item.setRank(currentRank);
     
     // ID를 안전하게 추출
-    UUID reviewId = null;
-    try {
-      if (item.getReview() != null) {
-        reviewId = item.getReview().getId();
-      }
-    } catch (Exception e) {
-      // 무시
-    }
+    UUID reviewId = item.getReview() != null ? item.getReview().getId() : null;
     
     if (periodParam != null) {
       log.debug("인기 리뷰 랭킹 설정: rank={}, reviewId={}, score={}, 기간={}", 

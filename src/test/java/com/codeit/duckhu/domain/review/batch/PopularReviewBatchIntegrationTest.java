@@ -85,12 +85,30 @@ class PopularReviewBatchIntegrationTest {
   @DisplayName("RankUpdateItemProcessor 테스트")
   void testRankUpdateItemProcessor() {
     // given
-    RankUpdateItemProcessor processor = new RankUpdateItemProcessor();
+    RankUpdateItemProcessor processor = new RankUpdateItemProcessor("TEST");
+    when(popularReview.getScore()).thenReturn(10.0);
+    when(popularReview.getReview()).thenReturn(review);
     
     // when
     processor.process(popularReview);
     
     // then - 예외가 발생하지 않으면 성공
+    verify(popularReview).setRank(1);
+  }
+  
+  @Test
+  @DisplayName("RankUpdateItemProcessor 스코어 0 필터링 테스트")
+  void testRankUpdateItemProcessorFilterZeroScore() {
+    // given
+    RankUpdateItemProcessor processor = new RankUpdateItemProcessor("TEST");
+    when(popularReview.getScore()).thenReturn(0.0);
+    when(popularReview.getReview()).thenReturn(review);
+    
+    // when
+    PopularReview result = processor.process(popularReview);
+    
+    // then
+    assertNull(result); // 스코어가 0인 경우 null 반환
   }
   
   @Test
@@ -215,9 +233,15 @@ class PopularReviewBatchIntegrationTest {
   @DisplayName("RankUpdateItemProcessor 순서 증가 테스트")
   void testRankUpdateItemProcessorIncrement() {
     // given
-    RankUpdateItemProcessor processor = new RankUpdateItemProcessor();
+    RankUpdateItemProcessor processor = new RankUpdateItemProcessor("TEST");
     PopularReview review1 = mock(PopularReview.class);
     PopularReview review2 = mock(PopularReview.class);
+    
+    // review mock 설정
+    when(review1.getScore()).thenReturn(10.0);
+    when(review2.getScore()).thenReturn(8.0);
+    when(review1.getReview()).thenReturn(review);
+    when(review2.getReview()).thenReturn(review);
     
     // when - 여러 번 호출
     processor.process(review1);

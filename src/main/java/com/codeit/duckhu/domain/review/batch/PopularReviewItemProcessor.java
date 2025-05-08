@@ -31,6 +31,12 @@ public class PopularReviewItemProcessor implements ItemProcessor<Review, Popular
     PeriodType period = PeriodType.valueOf(periodParam);
 
     double score = (review.getLikeCount() * 0.3) + (review.getCommentCount() * 0.7);
+    
+    // 스코어가 0인 리뷰는 처리하지 않음
+    if (score <= 0) {
+      log.debug("스코어가 0 이하인 리뷰 제외: reviewId={}, score={}", review.getId(), score);
+      return null;
+    }
 
     return PopularReview.builder()
         .review(review)

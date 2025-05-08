@@ -8,12 +8,14 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
+@StepScope
 @RequiredArgsConstructor
+@Slf4j
 public class RankUpdateItemReader extends JpaPagingItemReader<PopularReview> {
 
   @Value("#{jobParameters['period']}")
@@ -24,7 +26,7 @@ public class RankUpdateItemReader extends JpaPagingItemReader<PopularReview> {
   @PostConstruct
   public void init() {
     setEntityManagerFactory(entityManagerFactory);
-    setQueryString("SELECT p FROM PopularReview p WHERE p.period = :period ORDER BY p.score DESC");
+    setQueryString("SELECT p FROM PopularReview p WHERE p.period = :period AND p.score > 0 ORDER BY p.score DESC, p.id ASC");
     setPageSize(100);
     try {
       setParameterValues(Map.of("period", PeriodType.valueOf(periodParam)));

@@ -31,6 +31,10 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
     if (period != null) {
       booleanBuilder.and(review.period.eq(period));
     }
+    
+    // 스코어가 0보다 큰 항목만 필터링
+    booleanBuilder.and(review.score.gt(0.0));
+    booleanBuilder.and(review.likeCount.gt(0).or(review.commentCount.gt(0)));
 
     // 현재 시간 기준으로 시작 시간 계산
     Instant now = Instant.now();
@@ -57,18 +61,35 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
       booleanBuilder.and(cursorCondition);
     }
 
-    // 정렬 조건 설정
-    OrderSpecifier<?>[] orderSpecifiers =
-        isAsc
-            ? new OrderSpecifier[] {review.rank.asc(), review.createdAt.asc()}
-            : new OrderSpecifier[] {review.rank.desc(), review.createdAt.desc()};
+    // 정렬 조건 설정 - 랭크 먼저, 그 다음 스코어 순서로 정렬
+    OrderSpecifier<?>[] orderSpecifiers;
+    if (isAsc) {
+      orderSpecifiers = new OrderSpecifier[] {
+          review.rank.asc(), 
+          review.score.asc(),  // rank가 같은 경우 score로 정렬
+          review.createdAt.asc()
+      };
+      log.debug("인기 리뷰 정렬 조건: rank ASC, score ASC, createdAt ASC");
+    } else {
+      orderSpecifiers = new OrderSpecifier[] {
+          review.rank.desc(), 
+          review.score.desc(),  // rank가 같은 경우 score로 정렬
+          review.createdAt.desc()
+      };
+      log.debug("인기 리뷰 정렬 조건: rank DESC, score DESC, createdAt DESC");
+    }
 
-    return queryFactory
+    List<PopularReview> result = queryFactory
         .selectFrom(review)
         .where(booleanBuilder)
         .orderBy(orderSpecifiers)
         .limit(size)
         .fetch();
+    
+    log.info("인기 리뷰 조회 결과: {} 개의 리뷰, 기간: {}, 방향: {}", 
+        result.size(), period, direction);
+    
+    return result;
   }
 
   @Override
@@ -80,6 +101,9 @@ public class PopularReviewRepositoryCustomImpl implements PopularReviewRepositor
     }
 
     booleanBuilder.and(review.createdAt.goe(from));
+    // 스코어가 0보다 큰 항목만 카운트
+    booleanBuilder.and(review.score.gt(0.0));
+    booleanBuilder.and(review.likeCount.gt(0).or(review.commentCount.gt(0)));
 
     return queryFactory.select(review.count()).from(review).where(booleanBuilder).fetchOne();
   }

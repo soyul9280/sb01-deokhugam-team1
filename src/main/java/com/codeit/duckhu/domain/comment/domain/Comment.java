@@ -18,18 +18,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Comment extends BaseUpdatableEntity {
 
-  @ManyToOne
-  @JoinColumn(name = "user_id")
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @ManyToOne
-  @JoinColumn(name = "review_id")
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "review_id", nullable = false)
   private Review review;
 
-  @Column(name = "content")
+  @Column(name = "content", nullable = false)
   private String content;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted;
 
   @Builder

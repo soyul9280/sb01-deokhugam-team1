@@ -1,6 +1,7 @@
 package com.codeit.duckhu.domain.comments;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
@@ -15,11 +16,13 @@ import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -80,6 +83,15 @@ class CommentRepositoryTest {
   }
 
   @Test
+  void save_fail() {
+    Comment failComment = new Comment(null,savedReview,"test",false);
+    commentRepository.save(failComment);
+    assertThrows(DataIntegrityViolationException.class,()-> {
+      commentRepository.flush();
+    });
+  }
+
+  @Test
   void findByReview_Id() {
     commentRepository.save(comment);
 
@@ -87,6 +99,14 @@ class CommentRepositoryTest {
     assertThat(list).hasSize(1);
     assertThat(list.get(0).getContent()).isEqualTo("test comment");
     assertThat(list.get(0).getReview().getId()).isEqualTo(savedReview.getId());
+  }
+
+  @Test
+  void findByReview_Id_fail() {
+    commentRepository.save(comment);
+
+    List<Comment> list = commentRepository.findByReview_Id(UUID.randomUUID());
+    assertThat(list.size()).isEqualTo(0);
   }
 
   @Test
@@ -98,5 +118,38 @@ class CommentRepositoryTest {
             savedReview.getId(), Direction.ASC.toString(), Instant.EPOCH, null, 10);
 
     assertThat(slice.getContent()).contains(saved);
+  }
+
+  @Test
+  void searchAll_afterAndCursorIdAreNull_returnsAll() {
+    commentRepository.save(comment);
+
+    Slice<Comment> slice = commentRepository.searchAll(
+        savedReview.getId(), "ASC", null, null, 10
+    );
+
+    assertThat(slice.getContent()).hasSize(1);
+  }
+
+  @Test
+  void searchAll_DESC() {
+    commentRepository.save(comment);
+
+    Slice<Comment> slice = commentRepository.searchAll(
+        savedReview.getId(), "DESC", Instant.EPOCH, UUID.randomUUID(), 10
+    );
+
+    assertThat(slice).isNotNull();
+  }
+
+  @Test
+  void searchAll_ASC() {
+    commentRepository.save(comment);
+
+    Slice<Comment> slice = commentRepository.searchAll(
+        savedReview.getId(), "ASC", Instant.EPOCH, UUID.randomUUID(), 10
+    );
+
+    assertThat(slice).isNotNull();
   }
 }

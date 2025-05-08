@@ -7,7 +7,7 @@ on:
 
 jobs:
   run_tests:
-    name: 🧪 테스트 실행
+    name: 🧪 테스트 실행 및 Codecov 업로드
     if: github.event.action == 'opened' || github.event.action == 'synchronize'
     runs-on: ubuntu-latest
     steps:
@@ -22,41 +22,6 @@ jobs:
       - name: Gradle 테스트 및 JaCoCo 리포트 생성
         run: ./gradlew clean test jacocoTestReport
 
-      - name: JaCoCo 리포트 업로드
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: build/reports/jacoco/test/jacocoTestReport.xml
-
-      - name: 테스트 완료 알림
-        run: echo "::notice::테스트 및 커버리지 리포트 생성이 완료되었습니다."
-
-  upload_coverage:
-    name: 📊 Codecov 업로드
-    needs: run_tests
-
-    # main으로 머지될때만 실행(커버리지 잘 나오는지 우선 dev일때도 되도록 수정)
-    if: github.event.pull_request.merged == true && (github.base_ref == 'main' || github.base_ref == 'dev')
-    runs-on: ubuntu-latest
-    steps:
-      - name: 코드 체크아웃
-        uses: actions/checkout@v4
-
-      - name: JaCoCo 리포트 다운로드
-        uses: actions/download-artifact@v4
-        with:
-          name: jacoco-report
-          path: build/reports/jacoco/test
-
-      - name: JDK 설치
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: JaCoCo 리포트 위치 확인
-        run: ls -l build/reports/jacoco/test/jacocoTestReport.xml
-
       - name: Codecov Action 실행
         uses: codecov/codecov-action@v5
         with:
@@ -64,8 +29,9 @@ jobs:
           files: build/reports/jacoco/test/jacocoTestReport.xml
           flags: unittests
           fail_ci_if_error: false
-          comment: true
-          comment_type: 'flags,tree,files,diff'
+
+      - name: 테스트 완료 알림
+        run: echo "::notice::테스트 및 커버리지 리포트 생성이 완료되었습니다."
 
   set_environment:
     name: 🔀 환경 설정

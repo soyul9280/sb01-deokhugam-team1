@@ -1,18 +1,22 @@
 <p align="center">
-  <!-- Badge -->
+  <!-- Codecov Coverage Badge -->
   <a href="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1">
     <img
       src="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1/graph/badge.svg?token=X8IVR1V9VT"
       alt="codecov"
     />
   </a>
-  <!-- Graph -->
+</p>
+
+<p align="center">
+  <!-- Codecov Coverage Tree Graph -->
   <img
     src="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1/graphs/tree.svg?token=X8IVR1V9VT"
     alt="Coverage Tree"
-    width="300"
+    width="800"
   />
 </p>
+
 #  프로젝트 소개
 
 - 책 읽는 즐거움을 공유하고, 지식과 감상을 나누는 책 덕후들의 커뮤니티 서비스

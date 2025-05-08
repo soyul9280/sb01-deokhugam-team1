@@ -1,16 +1,19 @@
 <p align="center">
-  <!-- Badge -->
+  <!-- Codecov Coverage Badge -->
   <a href="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1">
     <img
       src="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1/graph/badge.svg?token=X8IVR1V9VT"
       alt="codecov"
     />
   </a>
-  <!-- Graph -->
+</p>
+
+<p align="center">
+  <!-- Codecov Coverage Tree Graph -->
   <img
     src="https://codecov.io/gh/GiMin0123/sb01-deokhugam-team1/graphs/tree.svg?token=X8IVR1V9VT"
     alt="Coverage Tree"
-    width="300"
+    width="800"
   />
 </p>
 

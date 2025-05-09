@@ -277,7 +277,7 @@ class ReviewServiceTest {
       DomainException exception =
           assertThrows(
               DomainException.class, () -> reviewService.getReviewById(testUserId, testReviewId));
-      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_IS_DELETED);
     }
   }
 
@@ -293,6 +293,7 @@ class ReviewServiceTest {
       when(testReview.getUser()).thenReturn(testUser); // User 객체를 반환하도록 설정
       when(testUser.getId()).thenReturn(testUserId); // User ID를 반환하도록 설정
       when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
+      when(testReview.isDeleted()).thenReturn(false); // 삭제되지 않은 상태로 설정
       willDoNothing().given(reviewRepository).delete(testReview);
 
       // When : 서비스 호출 시 예외가 나지 않아야 하고
@@ -304,13 +305,29 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("다른 유저가 하드 삭제시 에러")
-    void hardDeleteReviewById_shouldThrowException() {
+    @DisplayName("삭제된 리뷰를 하드 삭제시 에러")
+    void hardDeleteReviewById_shouldThrowException_whenIsDeleted() {
       // Given
-      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-      when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+      doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
+      when(testReview.isDeleted()).thenReturn(true); // 리뷰가 삭제된 상태
+
+      // When & Then
+      DomainException exception =
+          assertThrows(
+              DomainException.class,
+              () -> reviewService.hardDeleteReviewById(testUserId, testReviewId));
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_IS_DELETED);
+    }
+
+    @Test
+    @DisplayName("다른 유저가 하드 삭제시 에러")
+    void hardDeleteReviewById_shouldThrowException_whenNotOwner() {
+      // Given
+      UUID otherUserId = UUID.randomUUID(); // 다른 유저 ID
+      doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
       when(testReview.getUser()).thenReturn(testUser);
-      when(testUser.getId()).thenReturn(UUID.randomUUID()); // 다른 유저 ID 설정
+      when(testUser.getId()).thenReturn(otherUserId); // 다른 유저 ID 설정
+      when(testReview.isDeleted()).thenReturn(false);
 
       // When & Then
       DomainException exception =
@@ -328,6 +345,7 @@ class ReviewServiceTest {
       when(testReview.getUser()).thenReturn(testUser);
       when(testUser.getId()).thenReturn(testUserId);
       when(testReview.getBook()).thenReturn(testBook); // Book 객체를 반환하도록 설정
+      when(testReview.isDeleted()).thenReturn(false); // 삭제되지 않은 상태로 설정
 
       // When
       reviewService.softDeleteReviewById(testUserId, testReviewId);
@@ -338,13 +356,29 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("다른 유저가 소프트 삭제시 에러")
-    void softDeleteReviewById_shouldThrowException() {
+    @DisplayName("삭제된 리뷰를 소프트 삭제시 에러")
+    void softDeleteReviewById_shouldThrowException_whenIsDeleted() {
       // Given
-      when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-      when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+      doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
+      when(testReview.isDeleted()).thenReturn(true); // 리뷰가 삭제된 상태
+
+      // When & Then
+      DomainException exception =
+          assertThrows(
+              DomainException.class,
+              () -> reviewService.softDeleteReviewById(testUserId, testReviewId));
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_IS_DELETED);
+    }
+
+    @Test
+    @DisplayName("다른 유저가 소프트 삭제시 에러")
+    void softDeleteReviewById_shouldThrowException_whenNotOwner() {
+      // Given
+      UUID otherUserId = UUID.randomUUID(); // 다른 유저 ID
+      doReturn(Optional.of(testReview)).when(reviewRepository).findById(testReviewId);
       when(testReview.getUser()).thenReturn(testUser);
-      when(testUser.getId()).thenReturn(UUID.randomUUID()); // 다른 유저
+      when(testUser.getId()).thenReturn(otherUserId); // 다른 유저 ID 설정
+      when(testReview.isDeleted()).thenReturn(false);
 
       // When & Then
       DomainException exception =
@@ -372,6 +406,7 @@ class ReviewServiceTest {
       when(testBook.getId()).thenReturn(testBookId);
       when(testBook.getTitle()).thenReturn("테스트 도서");
       when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
+      when(testReview.isDeleted()).thenReturn(false); // 삭제되지 않은 상태
       when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
       when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId)))
           .thenReturn(testReviewDto);
@@ -387,7 +422,7 @@ class ReviewServiceTest {
 
     @Test
     @DisplayName("다른 유저가 업데이트시 에러")
-    void updateReview_shouldThrowException() {
+    void updateReview_shouldThrowException_whenNotOwner() {
       // Given
       User loginUser = mock(User.class);
       User reviewOwner = mock(User.class);
@@ -395,16 +430,9 @@ class ReviewServiceTest {
       when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
       when(userRepository.findById(testUserId)).thenReturn(Optional.of(loginUser));
       when(testReview.getUser()).thenReturn(reviewOwner);
-      when(loginUser.getId()).thenReturn(UUID.randomUUID());
-      when(reviewOwner.getId()).thenReturn(UUID.randomUUID());
-
-      when(testReview.getBook()).thenReturn(testBook);
-      when(testBook.getId()).thenReturn(testBookId);
-      when(testBook.getTitle()).thenReturn("테스트 도서");
-      when(testBook.getThumbnailUrl()).thenReturn("test.jpg");
-      when(thumbnailImageStorage.get(any())).thenReturn(TEST_THUMBNAIL_URL);
-      when(reviewMapper.toDto(eq(testReview), anyString(), eq(testUserId)))
-          .thenReturn(testReviewDto);
+      when(loginUser.getId()).thenReturn(testUserId);
+      when(reviewOwner.getId()).thenReturn(UUID.randomUUID()); // 다른 유저
+      when(testReview.isDeleted()).thenReturn(false); // 삭제되지 않은 상태
 
       // When & Then
       DomainException exception =
@@ -429,7 +457,7 @@ class ReviewServiceTest {
           assertThrows(
               DomainException.class,
               () -> reviewService.updateReview(testUserId, testReviewId, testreviewUpdateRequest));
-      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_IS_DELETED);
     }
   }
 
@@ -498,10 +526,11 @@ class ReviewServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 유저가 좋아요 요청 시 예외")
-    void likeReview_userNotFount() {
+    void likeReview_userNotFound() {
       // Given
-      when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
       when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
+      when(testReview.isDeleted()).thenReturn(false);
+      when(userRepository.existsById(testUserId)).thenReturn(false); // 존재하지 않는 userId 설정
 
       // When & Then
       DomainException exception =
@@ -521,7 +550,7 @@ class ReviewServiceTest {
       DomainException exception =
           assertThrows(
               DomainException.class, () -> reviewService.likeReview(testReviewId, testUserId));
-      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+      assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_IS_DELETED);
     }
   }
 

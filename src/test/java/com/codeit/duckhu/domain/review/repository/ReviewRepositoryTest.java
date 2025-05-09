@@ -1,17 +1,19 @@
 package com.codeit.duckhu.domain.review.repository;
 
-import static com.codeit.duckhu.global.type.Direction.DESC;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codeit.duckhu.domain.book.entity.Book;
 import com.codeit.duckhu.domain.book.repository.BookRepository;
 import com.codeit.duckhu.domain.review.entity.Review;
 import com.codeit.duckhu.domain.user.entity.User;
 import com.codeit.duckhu.domain.user.repository.UserRepository;
+import com.codeit.duckhu.global.type.Direction;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,13 +32,21 @@ public class ReviewRepositoryTest {
   @Autowired private UserRepository userRepository;
 
   @Autowired private BookRepository bookRepository;
-
+  
+  @BeforeEach
+  void setUp() {
+    // 테스트 전 데이터 초기화
+    reviewRepository.deleteAll();
+    userRepository.deleteAll();
+    bookRepository.deleteAll();
+  }
+  
   @Test
   @DisplayName("리뷰 저장 확인")
   void saveReview_shouldSavedReview() {
     // Given
     User user =
-        User.builder().email("test@example.com").nickname("테스터").password("password").build();
+        User.builder().email("test333@test.com").nickname("테스터").password("password12!@").build();
     User savedUser = userRepository.save(user);
 
     Book book =
@@ -49,7 +59,7 @@ public class ReviewRepositoryTest {
             .build();
     Book savedBook = bookRepository.save(book);
 
-    Review savedReview =
+    Review reviewToSave =
         Review.builder()
             .rating(5)
             .content("재밌어요")
@@ -60,14 +70,14 @@ public class ReviewRepositoryTest {
             .build();
 
     // When
-    Review foundReview = reviewRepository.save(savedReview);
+    Review savedReview = reviewRepository.save(reviewToSave);
 
     // Then
-    assertThat(foundReview).isNotNull();
-    assertThat(foundReview.getRating()).isEqualTo(5);
-    assertThat(foundReview.getContent()).isEqualTo("재밌어요");
-    assertThat(foundReview.getLikeCount()).isEqualTo(0);
-    assertThat(foundReview.getCommentCount()).isEqualTo(0);
+    assertThat(savedReview).isNotNull();
+    assertThat(savedReview.getRating()).isEqualTo(5);
+    assertThat(savedReview.getContent()).isEqualTo("재밌어요");
+    assertThat(savedReview.getLikeCount()).isEqualTo(0);
+    assertThat(savedReview.getCommentCount()).isEqualTo(0);
   }
 
   @Test
@@ -77,10 +87,9 @@ public class ReviewRepositoryTest {
     // 사용자 생성 및 저장
     User user =
         User.builder()
-            .email("test@example.com")
+            .email("test41@example.com")
             .nickname("테스터")
-            .password("password")
-            // .isDeleted(false)
+            .password("password12!@")
             .build();
     User savedUser = userRepository.save(user);
 
@@ -108,14 +117,14 @@ public class ReviewRepositoryTest {
             .user(savedUser)
             .book(savedBook)
             .build();
-    reviewRepository.save(review);
+    Review savedReview = reviewRepository.save(review);
 
     // When
     Optional<Review> foundReview =
         reviewRepository.findByUserIdAndBookId(savedUser.getId(), savedBook.getId());
 
     // Then
-    assertThat(foundReview.isPresent()).isTrue();
+    assertThat(foundReview).isPresent();
     assertThat(foundReview.get().getContent()).isEqualTo("정말 좋은 책이에요");
     assertThat(foundReview.get().getRating()).isEqualTo(5);
     assertThat(foundReview.get().getUser().getId()).isEqualTo(savedUser.getId());
@@ -132,7 +141,6 @@ public class ReviewRepositoryTest {
             .email("test2@example.com")
             .nickname("테스터2")
             .password("password")
-            // .isDeleted(false)
             .build();
     User savedUser = userRepository.save(user);
 
@@ -150,14 +158,12 @@ public class ReviewRepositoryTest {
             .build();
     Book savedBook = bookRepository.save(book);
 
-    // 리뷰는 저장하지 않음
-
     // When
     Optional<Review> foundReview =
         reviewRepository.findByUserIdAndBookId(savedUser.getId(), savedBook.getId());
 
     // Then
-    assertThat(foundReview.isPresent()).isFalse();
+    assertThat(foundReview).isEmpty();
   }
 
   @Nested
@@ -173,7 +179,6 @@ public class ReviewRepositoryTest {
               .email("test-cursor1@example.com")
               .nickname("커서테스터1")
               .password("password")
-              //        .isDeleted(false)
               .build();
       User savedUser = userRepository.save(user);
 
@@ -201,23 +206,25 @@ public class ReviewRepositoryTest {
                 .book(savedBook)
                 .build();
         reviewRepository.save(review);
+        
       }
 
-      // When
+      // When - 첫 페이지 조회 (3개)
       List<Review> firstPage =
           reviewRepository.findReviewsWithCursor(
-              null, // 키워드 없음
-              "createdAt", // 생성 시간 기준 정렬
-              DESC, // 내림차순
-              null, // 사용자 ID 필터 없음
-              null, // 책 ID 필터 없음
-              null, // 첫 페이지니까 커서 없음
-              null, // 첫 페이지니까 after 없음
-              3 // 페이지 크기 3
-              );
+              null,
+              "createdAt",
+              Direction.DESC,
+              null,
+              null,
+              null,
+              null,
+              3
+          );
 
-      // Then
-      assertThat(firstPage.size()).isEqualTo(3);
+      // Then - 첫 페이지 검증
+      assertThat(firstPage).hasSize(3);
+      
       assertThat(firstPage.get(0).getContent()).contains("커서 페이지네이션 테스트 리뷰 5");
       assertThat(firstPage.get(1).getContent()).contains("커서 페이지네이션 테스트 리뷰 4");
       assertThat(firstPage.get(2).getContent()).contains("커서 페이지네이션 테스트 리뷰 3");
@@ -226,20 +233,18 @@ public class ReviewRepositoryTest {
       Review lastReviewOfFirstPage = firstPage.get(firstPage.size() - 1);
       List<Review> secondPage =
           reviewRepository.findReviewsWithCursor(
-              null, // 키워드 없음
-              "createdAt", // 생성 시간 기준 정렬
-              DESC, // 내림차순
-              null, // 사용자 ID 필터 없음
-              null, // 책 ID 필터 없음
-              lastReviewOfFirstPage.getId().toString(), // 마지막 리뷰 ID를 커서로 사용
-              lastReviewOfFirstPage.getCreatedAt() != null
-                  ? lastReviewOfFirstPage.getCreatedAt()
-                  : Instant.now(), // 마지막 리뷰 생성 시간을 after로 사용
-              3 // 페이지 크기 3
-              );
+              null,
+              "createdAt",
+              Direction.DESC,
+              null,
+              null,
+              lastReviewOfFirstPage.getId().toString(),
+              lastReviewOfFirstPage.getCreatedAt(),
+              3
+          );
 
-      // Then
-      assertThat(secondPage.size()).isEqualTo(2);
+      // Then - 두 번째 페이지 검증
+      assertThat(secondPage).hasSize(2);
       assertThat(secondPage.get(0).getContent()).contains("커서 페이지네이션 테스트 리뷰 2");
       assertThat(secondPage.get(1).getContent()).contains("커서 페이지네이션 테스트 리뷰 1");
     }
@@ -254,7 +259,6 @@ public class ReviewRepositoryTest {
               .email("test-cursor2@example.com")
               .nickname("커서테스터2")
               .password("password")
-              //            .isDeleted(false)
               .build();
       User savedUser = userRepository.save(user);
 
@@ -282,23 +286,24 @@ public class ReviewRepositoryTest {
                 .book(savedBook)
                 .build();
         reviewRepository.save(review);
+
       }
 
-      // When
+      // When - 평점 기준 내림차순 정렬, 첫 페이지(3개)
       List<Review> firstPage =
           reviewRepository.findReviewsWithCursor(
               null, // 키워드 없음
               "rating", // 평점 기준 정렬
-              DESC, // 내림차순
+              Direction.DESC, // 내림차순
               null, // 사용자 ID 필터 없음
               null, // 책 ID 필터 없음
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               3 // 페이지 크기 3
-              );
+          );
 
-      // Then
-      assertThat(firstPage.size()).isEqualTo(3);
+      // Then - 첫 페이지 검증
+      assertThat(firstPage).hasSize(3);
       assertThat(firstPage.get(0).getRating()).isEqualTo(5);
       assertThat(firstPage.get(1).getRating()).isEqualTo(4);
       assertThat(firstPage.get(2).getRating()).isEqualTo(3);
@@ -309,18 +314,16 @@ public class ReviewRepositoryTest {
           reviewRepository.findReviewsWithCursor(
               null, // 키워드 없음
               "rating", // 평점 기준 정렬
-              DESC, // 내림차순
+              Direction.DESC, // 내림차순
               null, // 사용자 ID 필터 없음
               null, // 책 ID 필터 없음
               String.valueOf(lastReviewOfFirstPage.getRating()), // 마지막 리뷰 평점을 커서로 사용
-              lastReviewOfFirstPage.getCreatedAt() != null
-                  ? lastReviewOfFirstPage.getCreatedAt()
-                  : Instant.now(), // 마지막 리뷰 생성 시간을 after로 사용
+              lastReviewOfFirstPage.getCreatedAt(), // 마지막 리뷰 생성 시간을 after로 사용
               3 // 페이지 크기 3
-              );
+          );
 
       // Then
-      assertThat(secondPage.size()).isEqualTo(2);
+      assertThat(secondPage).hasSize(2);
       assertThat(secondPage.get(0).getRating()).isEqualTo(2);
       assertThat(secondPage.get(1).getRating()).isEqualTo(1);
     }
@@ -335,7 +338,6 @@ public class ReviewRepositoryTest {
               .email("test-keyword@example.com")
               .nickname("키워드테스터")
               .password("password")
-              //            .isDeleted(false)
               .build();
       User savedUser = userRepository.save(user);
 
@@ -384,17 +386,19 @@ public class ReviewRepositoryTest {
           reviewRepository.findReviewsWithCursor(
               "검색용 키워드", // 검색 키워드
               "createdAt", // 생성 시간 기준 정렬
-              DESC, // 내림차순
+              Direction.DESC, // 내림차순
               null, // 사용자 ID 필터 없음
               null, // 책 ID 필터 없음
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               10 // 페이지 크기 10
-              );
+          );
 
       // Then
-      assertThat(searchResult.size()).isEqualTo(3);
-      assertThat(searchResult.get(0).getContent()).contains("검색용 키워드");
+      assertThat(searchResult).hasSize(3);
+      for (Review review : searchResult) {
+        assertThat(review.getContent()).contains("검색용 키워드");
+      }
     }
 
     @Test
@@ -407,7 +411,6 @@ public class ReviewRepositoryTest {
               .email("test-user1@example.com")
               .nickname("사용자1")
               .password("password")
-              //            .isDeleted(false)
               .build();
       User savedUser1 = userRepository.save(user1);
 
@@ -416,7 +419,6 @@ public class ReviewRepositoryTest {
               .email("test-user2@example.com")
               .nickname("사용자2")
               .password("password")
-              //            .isDeleted(false)
               .build();
       User savedUser2 = userRepository.save(user2);
 
@@ -465,16 +467,16 @@ public class ReviewRepositoryTest {
           reviewRepository.findReviewsWithCursor(
               null, // 키워드 없음
               "createdAt", // 생성 시간 기준 정렬
-              DESC, // 내림차순
+              Direction.DESC, // 내림차순
               savedUser1.getId(), // 사용자1의 ID로 필터링
               null, // 책 ID 필터 없음
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               10 // 페이지 크기 10
-              );
+          );
 
       // Then
-      assertThat(user1Reviews.size()).isEqualTo(3);
+      assertThat(user1Reviews).hasSize(3);
       for (Review review : user1Reviews) {
         assertThat(review.getUser().getId()).isEqualTo(savedUser1.getId());
         assertThat(review.getContent()).contains("사용자1의 리뷰");
@@ -491,7 +493,6 @@ public class ReviewRepositoryTest {
               .email("test-book@example.com")
               .nickname("도서테스터")
               .password("password")
-              //            .isDeleted(false)
               .build();
       User savedUser = userRepository.save(user);
 
@@ -551,37 +552,109 @@ public class ReviewRepositoryTest {
           reviewRepository.findReviewsWithCursor(
               null, // 키워드 없음
               "createdAt", // 생성 시간 기준 정렬
-              DESC, // 내림차순
+              Direction.DESC, // 내림차순
               null, // 사용자 ID 필터 없음
               savedBook1.getId(), // 도서1의 ID로 필터링
               null, // 첫 페이지니까 커서 없음
               null, // 첫 페이지니까 after 없음
               10 // 페이지 크기 10
-              );
+          );
 
       // Then
-      assertThat(book1Reviews.size()).isEqualTo(3);
+      assertThat(book1Reviews).hasSize(3);
       for (Review review : book1Reviews) {
         assertThat(review.getBook().getId()).isEqualTo(savedBook1.getId());
         assertThat(review.getContent()).contains("도서1 리뷰");
       }
     }
+    
     @Test
     @DisplayName("평점 정렬인데 커서 없음, after만 있는 경우")
     void findReview_ratingSort_afterOnly() {
+      // Given
+      User user = User.builder()
+          .email("test-after@example.com")
+          .nickname("after테스터")
+          .password("password")
+          .build();
+      User savedUser = userRepository.save(user);
+
+      Book book = Book.builder()
+          .title("after 테스트 도서")
+          .author("테스트 작가")
+          .publisher("테스트 출판사")
+          .isbn("9788956609999")
+          .publishedDate(LocalDate.now())
+          .isDeleted(false)
+          .build();
+      Book savedBook = bookRepository.save(book);
+
+      // 리뷰 3개 생성
+      for (int i = 1; i <= 3; i++) {
+        Review review = Review.builder()
+            .content("after 테스트 리뷰 " + i)
+            .rating(i)
+            .likeCount(0)
+            .commentCount(0)
+            .user(savedUser)
+            .book(savedBook)
+            .build();
+        reviewRepository.save(review);
+      }
+
+      // When
+      Instant afterTime = Instant.now().minusSeconds(60); // 현재시간보다 1분 전
       List<Review> result = reviewRepository.findReviewsWithCursor(
-          null, "rating", DESC, null, null, null, Instant.now(), 5
+          null, "rating", Direction.DESC, null, null, null, afterTime, 5
       );
-      assertThat(result).isNotNull(); // 오류 없이 실행되는지 확인
+
+      // Then
+      assertThat(result).isNotNull();
+      assertThat(result).isNotEmpty();
+      assertThat(result.get(0).getRating()).isEqualTo(3);
     }
 
     @Test
     @DisplayName("잘못된 orderBy 필드가 들어온 경우")
     void findReview_invalidOrderBy() {
+      // Given
+      User user = User.builder()
+          .email("test-invalid@example.com")
+          .nickname("invalid테스터")
+          .password("password")
+          .build();
+      User savedUser = userRepository.save(user);
+
+      Book book = Book.builder()
+          .title("invalid 테스트 도서")
+          .author("테스트 작가")
+          .publisher("테스트 출판사")
+          .isbn("9788956609991")
+          .publishedDate(LocalDate.now())
+          .isDeleted(false)
+          .build();
+      Book savedBook = bookRepository.save(book);
+
+      // 리뷰 생성
+      Review review = Review.builder()
+          .content("invalid 테스트 리뷰")
+          .rating(5)
+          .likeCount(0)
+          .commentCount(0)
+          .user(savedUser)
+          .book(savedBook)
+          .build();
+      Review savedReview = reviewRepository.save(review);
+
+      // When
       List<Review> result = reviewRepository.findReviewsWithCursor(
-          null, "invalidField", DESC, null, null, null, null, 5
+          null, "invalidField", Direction.DESC, null, null, null, null, 5
       );
-      assertThat(result).isNotNull(); // 기본 정렬이 작동하는지만 확인
+
+      // Then
+      assertThat(result).isNotNull();
+      assertThat(result).isNotEmpty();
+      assertThat(result).contains(savedReview);
     }
   }
 }

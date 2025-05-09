@@ -16,6 +16,12 @@ spring:
       hibernate.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
   transaction:
     default-timeout: 30
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
 duckhu:
   storage:
     type: s3

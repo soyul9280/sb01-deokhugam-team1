@@ -36,7 +36,7 @@ public class PowerUserRepositoryTest {
   void powerUserStats_success() {
     // given
     Instant now = Instant.now();
-    Instant start = now.minus(1, ChronoUnit.DAYS);
+    Instant start = now.minus(2, ChronoUnit.DAYS);
 
     // when
     List<PowerUserStatsDto> stats = powerUserRepository.findPowerUserStatsBetween(start, now);

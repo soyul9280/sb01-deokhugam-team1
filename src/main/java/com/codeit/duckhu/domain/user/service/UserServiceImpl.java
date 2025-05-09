@@ -187,12 +187,11 @@ public class UserServiceImpl implements UserService {
     try {
       Instant now = Instant.now();
       Instant start = period.toStartInstant(now);
-      Instant end = now;
 
       log.info("[Batch 시작] period={} | from={} ~ to={}", period, start, now);
 
       // 계산에 필요한 요소들 갖고오기
-      List<PowerUserStatsDto> stats = powerUserRepository.findPowerUserStatsBetween(start, end);
+      List<PowerUserStatsDto> stats = powerUserRepository.findPowerUserStatsBetween(start, now);
 
       // 유저목록가져오기
       Set<UUID> userIds = stats.stream().map(PowerUserStatsDto::userId).collect(Collectors.toSet());
@@ -269,14 +268,16 @@ public class UserServiceImpl implements UserService {
 
 
     // 저장된 PowerUser 커서페이지로 갖고오기
-    List<PowerUser> pageContent = hasNext ? powerUsers.subList(0, limit) : powerUsers;
-    List<PowerUserDto> list = pageContent.stream().map(powerUserMapper::toDto).toList();
+    if (hasNext) {
+      powerUsers = powerUsers.subList(0, limit);
+    }
+    List<PowerUserDto> list = powerUsers.stream().map(powerUserMapper::toDto).toList();
 
     String nextCursor = null;
     Instant nextAfter = null;
-    if (hasNext && !pageContent.isEmpty()) {
-      PowerUser last = pageContent.get(pageContent.size() - 1);
-      nextCursor = last.getUser().getId().toString();
+    if (hasNext && !powerUsers.isEmpty()) {
+      PowerUser last = powerUsers.get(powerUsers.size() - 1);
+      nextCursor = String.valueOf(last.getRank());
       nextAfter = last.getCreatedAt();
     }
 

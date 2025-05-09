@@ -27,12 +27,15 @@ import org.springframework.test.context.ActiveProfiles;
 @Import(TestJpaConfig.class)
 public class ReviewRepositoryTest {
 
-  @Autowired private ReviewRepository reviewRepository;
+  @Autowired
+  private ReviewRepository reviewRepository;
 
-  @Autowired private UserRepository userRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-  @Autowired private BookRepository bookRepository;
-  
+  @Autowired
+  private BookRepository bookRepository;
+
   @BeforeEach
   void setUp() {
     // 테스트 전 데이터 초기화
@@ -40,7 +43,7 @@ public class ReviewRepositoryTest {
     userRepository.deleteAll();
     bookRepository.deleteAll();
   }
-  
+
   @Test
   @DisplayName("리뷰 저장 확인")
   void saveReview_shouldSavedReview() {
@@ -169,6 +172,7 @@ public class ReviewRepositoryTest {
   @Nested
   @DisplayName("커서 페이지네이션")
   class CursorPaginationTests {
+
     @Test
     @DisplayName("커서 기반 페이지네이션으로 리뷰 목록 조회 (시간순)")
     void findReviewsWithCursor_byCreatedAt_success() {
@@ -206,7 +210,7 @@ public class ReviewRepositoryTest {
                 .book(savedBook)
                 .build();
         reviewRepository.save(review);
-        
+
       }
 
       // When - 첫 페이지 조회 (3개)
@@ -224,7 +228,7 @@ public class ReviewRepositoryTest {
 
       // Then - 첫 페이지 검증
       assertThat(firstPage).hasSize(3);
-      
+
       assertThat(firstPage.get(0).getContent()).contains("커서 페이지네이션 테스트 리뷰 5");
       assertThat(firstPage.get(1).getContent()).contains("커서 페이지네이션 테스트 리뷰 4");
       assertThat(firstPage.get(2).getContent()).contains("커서 페이지네이션 테스트 리뷰 3");
@@ -567,7 +571,7 @@ public class ReviewRepositoryTest {
         assertThat(review.getContent()).contains("도서1 리뷰");
       }
     }
-    
+
     @Test
     @DisplayName("평점 정렬인데 커서 없음, after만 있는 경우")
     void findReview_ratingSort_afterOnly() {
@@ -655,6 +659,301 @@ public class ReviewRepositoryTest {
       assertThat(result).isNotNull();
       assertThat(result).isNotEmpty();
       assertThat(result).contains(savedReview);
+    }
+
+    @Test
+    @DisplayName("생성시간 오름차순(ASC) 정렬 및 커서 페이지네이션")
+    void findReviewsWithCursor_byCreatedAtAsc_success() {
+      // Given
+      // 테스트 사용자 생성
+      User user =
+          User.builder()
+              .email("test-cursor-asc@example.com")
+              .nickname("커서테스터ASC")
+              .password("password")
+              .build();
+      User savedUser = userRepository.save(user);
+
+      // 테스트 도서 생성
+      Book book =
+          Book.builder()
+              .title("커서 테스트 도서 ASC")
+              .author("테스트 작가")
+              .publisher("테스트 출판사")
+              .isbn("9788956609953")
+              .publishedDate(LocalDate.now())
+              .isDeleted(false)
+              .build();
+      Book savedBook = bookRepository.save(book);
+
+      // 리뷰 5개 생성
+      for (int i = 1; i <= 5; i++) {
+        Review review =
+            Review.builder()
+                .content("생성시간 오름차순 테스트 리뷰 " + i)
+                .rating(i)
+                .likeCount(0)
+                .commentCount(0)
+                .user(savedUser)
+                .book(savedBook)
+                .build();
+        reviewRepository.save(review);
+      }
+
+      // When - 첫 페이지 조회 (3개)
+      List<Review> firstPage =
+          reviewRepository.findReviewsWithCursor(
+              null,
+              "createdAt",
+              Direction.ASC,
+              null,
+              null,
+              null,
+              null,
+              3
+          );
+
+      // Then - 첫 페이지 검증 (오름차순이므로 1, 2, 3이 나와야 함)
+      assertThat(firstPage).hasSize(3);
+      assertThat(firstPage.get(0).getContent()).contains("생성시간 오름차순 테스트 리뷰 1");
+      assertThat(firstPage.get(1).getContent()).contains("생성시간 오름차순 테스트 리뷰 2");
+      assertThat(firstPage.get(2).getContent()).contains("생성시간 오름차순 테스트 리뷰 3");
+
+      // 다음 페이지 조회
+      Review lastReviewOfFirstPage = firstPage.get(firstPage.size() - 1);
+      List<Review> secondPage =
+          reviewRepository.findReviewsWithCursor(
+              null,
+              "createdAt",
+              Direction.ASC,
+              null,
+              null,
+              lastReviewOfFirstPage.getId().toString(),
+              lastReviewOfFirstPage.getCreatedAt(),
+              3
+          );
+
+      // Then - 두 번째 페이지 검증
+      assertThat(secondPage).hasSize(2);
+      assertThat(secondPage.get(0).getContent()).contains("생성시간 오름차순 테스트 리뷰 4");
+      assertThat(secondPage.get(1).getContent()).contains("생성시간 오름차순 테스트 리뷰 5");
+    }
+
+    @Test
+    @DisplayName("평점 오름차순(ASC) 정렬 및 커서 페이지네이션")
+    void findReviewsWithCursor_byRatingAsc_success() {
+      // Given
+      // 테스트 사용자 생성
+      User user =
+          User.builder()
+              .email("test-rating-asc@example.com")
+              .nickname("평점테스터ASC")
+              .password("password")
+              .build();
+      User savedUser = userRepository.save(user);
+
+      // 테스트 도서 생성
+      Book book =
+          Book.builder()
+              .title("평점 테스트 도서 ASC")
+              .author("테스트 작가")
+              .publisher("테스트 출판사")
+              .isbn("9788956609954")
+              .publishedDate(LocalDate.now())
+              .isDeleted(false)
+              .build();
+      Book savedBook = bookRepository.save(book);
+
+      // 평점이 다른 리뷰 5개 생성 (순서를 섞어서 생성)
+      int[] ratings = {3, 1, 5, 2, 4};
+      for (int i = 0; i < 5; i++) {
+        Review review =
+            Review.builder()
+                .content("평점 오름차순 테스트 리뷰 " + ratings[i])
+                .rating(ratings[i])
+                .likeCount(0)
+                .commentCount(0)
+                .user(savedUser)
+                .book(savedBook)
+                .build();
+        reviewRepository.save(review);
+      }
+
+      // When - 첫 페이지 조회 (3개)
+      List<Review> firstPage =
+          reviewRepository.findReviewsWithCursor(
+              null,
+              "rating",
+              Direction.ASC,
+              null,
+              null,
+              null,
+              null,
+              3
+          );
+
+      // Then - 첫 페이지 검증 (오름차순이므로 평점 1, 2, 3이 나와야 함)
+      assertThat(firstPage).hasSize(3);
+      assertThat(firstPage.get(0).getRating()).isEqualTo(1);
+      assertThat(firstPage.get(1).getRating()).isEqualTo(2);
+      assertThat(firstPage.get(2).getRating()).isEqualTo(3);
+
+      // 다음 페이지 조회
+      Review lastReviewOfFirstPage = firstPage.get(firstPage.size() - 1);
+      List<Review> secondPage =
+          reviewRepository.findReviewsWithCursor(
+              null,
+              "rating",
+              Direction.ASC,
+              null,
+              null,
+              String.valueOf(lastReviewOfFirstPage.getRating()),
+              lastReviewOfFirstPage.getCreatedAt(),
+              3
+          );
+
+      // Then - 두 번째 페이지 검증
+      assertThat(secondPage).hasSize(2);
+      assertThat(secondPage.get(0).getRating()).isEqualTo(4);
+      assertThat(secondPage.get(1).getRating()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("평점 내림차순(DESC) 정렬 및 커서 페이지네이션")
+    void findReviewsWithCursor_byRatingDesc_success() {
+      // Given
+      // 테스트 사용자 생성
+      User user =
+          User.builder()
+              .email("test-rating-desc@example.com")
+              .nickname("평점테스터DESC")
+              .password("password")
+              .build();
+      User savedUser = userRepository.save(user);
+
+      // 테스트 도서 생성
+      Book book =
+          Book.builder()
+              .title("평점 테스트 도서 DESC")
+              .author("테스트 작가")
+              .publisher("테스트 출판사")
+              .isbn("9788956609955")
+              .publishedDate(LocalDate.now())
+              .isDeleted(false)
+              .build();
+      Book savedBook = bookRepository.save(book);
+
+      // 평점이 다른 리뷰 5개 생성 (순서를 섞어서 생성)
+      int[] ratings = {3, 1, 5, 2, 4};
+      for (int i = 0; i < 5; i++) {
+        Review review =
+            Review.builder()
+                .content("평점 내림차순 테스트 리뷰 " + ratings[i])
+                .rating(ratings[i])
+                .likeCount(0)
+                .commentCount(0)
+                .user(savedUser)
+                .book(savedBook)
+                .build();
+        reviewRepository.save(review);
+      }
+
+      // When - 첫 페이지 조회 (3개)
+      List<Review> firstPage =
+          reviewRepository.findReviewsWithCursor(
+              null,
+              "rating",
+              Direction.DESC,
+              null,
+              null,
+              null,
+              null,
+              3
+          );
+
+      // Then - 첫 페이지 검증 (내림차순이므로 평점 5, 4, 3이 나와야 함)
+      assertThat(firstPage).hasSize(3);
+      assertThat(firstPage.get(0).getRating()).isEqualTo(5);
+      assertThat(firstPage.get(1).getRating()).isEqualTo(4);
+      assertThat(firstPage.get(2).getRating()).isEqualTo(3);
+
+      // 다음 페이지 조회
+      Review lastReviewOfFirstPage = firstPage.get(firstPage.size() - 1);
+      List<Review> secondPage =
+          reviewRepository.findReviewsWithCursor(
+              null,
+              "rating",
+              Direction.DESC,
+              null,
+              null,
+              String.valueOf(lastReviewOfFirstPage.getRating()),
+              lastReviewOfFirstPage.getCreatedAt(),
+              3
+          );
+
+      // Then - 두 번째 페이지 검증
+      assertThat(secondPage).hasSize(2);
+      assertThat(secondPage.get(0).getRating()).isEqualTo(2);
+      assertThat(secondPage.get(1).getRating()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("평점이 동일한 경우 생성 시간으로 정렬 (평점 오름차순)")
+    void findReviewsWithCursor_byRatingAsc_sameRating_sortByCreatedAt() {
+      // Given
+      // 테스트 사용자 생성
+      User user =
+          User.builder()
+              .email("test-rating-same@example.com")
+              .nickname("평점동일테스터")
+              .password("password")
+              .build();
+      User savedUser = userRepository.save(user);
+
+      // 테스트 도서 생성
+      Book book =
+          Book.builder()
+              .title("평점 동일 테스트 도서")
+              .author("테스트 작가")
+              .publisher("테스트 출판사")
+              .isbn("9788956609956")
+              .publishedDate(LocalDate.now())
+              .isDeleted(false)
+              .build();
+      Book savedBook = bookRepository.save(book);
+
+      // 평점이 동일한 리뷰 3개 생성
+      for (int i = 1; i <= 3; i++) {
+        Review review =
+            Review.builder()
+                .content("평점 동일 테스트 리뷰 " + i)
+                .rating(3) // 평점 모두 3으로 동일
+                .likeCount(0)
+                .commentCount(0)
+                .user(savedUser)
+                .book(savedBook)
+                .build();
+        reviewRepository.save(review);
+      }
+
+      // When - 오름차순 조회
+      List<Review> ascResults =
+          reviewRepository.findReviewsWithCursor(
+              null,
+              "rating",
+              Direction.ASC,
+              null,
+              null,
+              null,
+              null,
+              3
+          );
+
+      // Then - 평점이 같으므로 생성 시간 오름차순으로 정렬되어야 함
+      assertThat(ascResults).hasSize(3);
+      assertThat(ascResults.get(0).getContent()).contains("평점 동일 테스트 리뷰 1");
+      assertThat(ascResults.get(1).getContent()).contains("평점 동일 테스트 리뷰 2");
+      assertThat(ascResults.get(2).getContent()).contains("평점 동일 테스트 리뷰 3");
     }
   }
 }

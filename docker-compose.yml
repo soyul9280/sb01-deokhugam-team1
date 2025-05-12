@@ -1,0 +1,117 @@
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: duckhu-server
+    networks:
+      - monitoring-network
+    ports:
+      - "80:8080"
+    environment:
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - JVM_OPTS=${JVM_OPTS}
+      - AWS_S3_ACCESS_KEY=${AWS_S3_ACCESS_KEY}
+      - AWS_S3_SECRET_KEY=${AWS_S3_SECRET_KEY}
+      - AWS_S3_REGION=${AWS_S3_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_S3_PRESIGNED_URL_EXPIRATION=${AWS_S3_PRESIGNED_URL_EXPIRATION}
+      - STORAGE_TYPE=${STORAGE_TYPE}
+    volumes:
+      - app-storage:/app/duckhuFile
+    depends_on:
+      - my-db
+      - prometheus
+      - grafana
+
+
+  my-db:
+    image: postgres:17
+    container_name: duckhu-db
+    networks:
+      - monitoring-network
+    environment:
+      - POSTGRES_DB=duckhu_dev
+      - POSTGRES_USER=${SPRING_DATASOURCE_USERNAME}
+      - POSTGRES_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    networks:
+      - monitoring-network
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    networks:
+      - monitoring-network
+    user: "$UID:$GID"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    networks:
+      - monitoring-network
+    ports:
+      - "3100:3100"
+    command:
+      - '--config.file=/etc/loki/loki-config.yml'
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/loki-config.yml
+      - ./monitoring/loki-data:/loki
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:latest
+    networks:
+      - monitoring-network
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml
+      - ./logs:/app/logs
+    command:
+      - '--config.file=/etc/promtail/promtail-config.yml'
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    networks:
+      - monitoring-network
+    ports:
+      - "9100:9100"
+
+networks:
+  monitoring-network:
+    driver: bridge
+
+
+
+volumes:
+  db-data:
+  app-storage:
+  grafana-data:

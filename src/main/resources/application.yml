@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: duckhu
   profiles:
@@ -10,8 +12,50 @@ spring:
     hibernate:
       ddl-auto: validate
     database: postgresql
+    properties:
+      hibernate.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
   transaction:
     default-timeout: 30
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
+duckhu:
+  storage:
+    type: s3
+    s3:
+      access-key: ${AWS_S3_ACCESS_KEY} #Github secret에 올릴 예정
+      secret-key: ${AWS_S3_SECRET_KEY}
+      region: ${AWS_S3_REGION}
+      bucket: ${AWS_S3_BUCKET}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION}
+
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+
+google:
+  application-credentials: classpath:vision-key.json
 
 springdoc:
   swagger-ui:
+    enabled: true
+    path: /swagger-custom-ui.html
+
+
+logging:
+  level:
+    root: INFO
+  file:
+    path: ${LOGGING_FILE_PATH:logs}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
